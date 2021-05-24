@@ -1,23 +1,36 @@
 select
-  vol.arn as resource,
-  -- Everything passing the where clause is in alarm state
-  'alarm' as status,
-  vol.volume_id || ' is attached to ' || (att ->> 'InstanceId') || ' which is stopped.' as reason,
-  vol.region,
-  vol.account_id
-from
-  aws_ebs_volume vol,
-  jsonb_array_elements(vol.attachments) as att
-where 
-  vol.arn not in (
-    -- List of volumes attached to running instances
-    select
-      v.arn
-    from 
-      aws_ebs_volume v,
-      jsonb_array_elements(v.attachments) as a,
-      aws_ec2_instance i
-    where
-      i.instance_state in ('running', 'pending', 'rebooting')
-      and i.instance_id = a ->> 'InstanceId'
-  );
+  arn as resource,
+    case
+      when running_instances > 0 then 'ok'
+    else 'alarm'
+  end as status,
+  volume_id || ' is attached to ' || running_instances || ' running instances.' as reason,
+  region,
+  account_id
+from (
+  select
+    v.arn,
+    v.volume_id,
+    i.instance_id,
+    v.region,
+    v.account_id,
+    sum(
+      case 
+        when i.instance_state = 'stopped' then 0
+        else 1
+      end
+    ) as running_instances
+  from
+    aws_ebs_volume v,
+    jsonb_array_elements(v.attachments) va, 
+    aws_ec2_instance i
+  where
+    va ->> 'InstanceId' = i.instance_id
+  group by
+    v.arn, 
+    v.volume_id,
+    i.instance_id,
+    i.instance_id,
+    v.region,
+    v.account_id
+) as ebs_volumes
