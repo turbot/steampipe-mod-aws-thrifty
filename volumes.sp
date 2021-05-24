@@ -73,3 +73,6 @@ control "low_iops_ebs_volumes" {
     code = "management"
   }
 }
+
+// TODO - attached to stopped EC2 instance
+// TODO - look for cost allocation tags

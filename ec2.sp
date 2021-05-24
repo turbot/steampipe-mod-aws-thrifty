@@ -10,6 +10,17 @@ control "large_ec2_instances" {
   }
 }
 
+control "long_running_ec2_instances" {
+  title = "Instances running for over 90 days"
+  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long."
+  sql = query.long_running_instances.sql
+  severity = "low"
+  tags = {
+    service = "ec2"
+    code = "deprecated"
+  }
+}
+
 control "old_snapshots" {
   title = "EBS snapshots created over 90 days ago"
   description = "Old EBS snapshots are likely uneeded and costly to maintain."
@@ -21,7 +32,4 @@ control "old_snapshots" {
   }
 }
 
-// TODO - high IOPS
-// TODO - attached to stopped EC2 instance
-// TODO - long running instances (stop at night? why so old?)
-// TODO - look for cost allocation tags
+/// TODO - look for cost allocation tags
