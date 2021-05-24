@@ -1,7 +1,18 @@
 control "gp2_volumes" {
-  title = "GP2 Volumes"
+  title = "GP2 Volume Usage"
   description = "GP2 Volumes are more costly and lower performance than GP3."
   sql = query.gp2_ebs_volumes.sql
+  severity = "low"
+  tags = {
+    service = "ebs"
+    code = "deprecated"
+  }
+}
+
+control "io1_volumes" {
+  title = "IO1 Volume Usage"
+  description = "IO1 Volumes are less reliable than IO2 for same cost."
+  sql = query.io1_ebs_volumes.sql
   severity = "low"
   tags = {
     service = "ebs"
