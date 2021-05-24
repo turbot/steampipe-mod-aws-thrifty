@@ -12,4 +12,4 @@ select
   region,
   account_id
 from
-  aws_ebs_volume
+  aws_ebs_volume;
