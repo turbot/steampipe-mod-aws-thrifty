@@ -1,6 +1,6 @@
 
 control "large_ec2_instances" {
-  title = "Large EC2 instances"
+  title = "Very high cost, running EC2 instances"
   description = "Large EC2 instances are unusual, expensive and should be reviewed."
   sql = query.large_ec2_instances.sql
   severity = "low"
