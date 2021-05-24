@@ -1,6 +1,6 @@
 
 control "large_ec2_instances" {
-  title = "Large EC2 instances"
+  title = "Very high cost, running EC2 instances"
   description = "Large EC2 instances are unusual, expensive and should be reviewed."
   sql = query.large_ec2_instances.sql
   severity = "low"
@@ -11,8 +11,8 @@ control "large_ec2_instances" {
 }
 
 control "old_snapshots" {
-  title = "Old EBS snapshots"
-  description = "Old EBS snapshots are "
+  title = "EBS snapshots created over 90 days ago"
+  description = "Old EBS snapshots are likely uneeded and costly to maintain."
   sql = query.old_ebs_snapshots.sql
   severity = "low"
   tags = {
