@@ -10,7 +10,7 @@ control "gp2_volumes" {
 }
 
 control "io1_volumes" {
-  title = "EBS io1 usage is deprecated, use io"
+  title = "EBS io1 usage is deprecated, use io2"
   description = "io1 Volumes are less reliable than io2 for same cost."
   sql = query.io1_ebs_volumes.sql
   severity = "low"
