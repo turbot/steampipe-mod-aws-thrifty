@@ -12,7 +12,3 @@ from
 where
   -- Instance is running
   instance_state in ('running', 'pending', 'rebooting')
-
-
-
-
