@@ -1,14 +1,14 @@
 mod "aws_thrifty" {
   # hub metadata
   title         = "AWS Thrifty"
-  description   = "TODO"
+  description   = "Steampipe Mod for reducing wastefulness of AWS resources and spend."
   color         = "#FF9900"
   #documentation = file("./docs/index.md")
   #icon          = "/images/mods/turbot/aws-compliance.svg"
   categories    = ["AWS", "Cost"]
 
   opengraph {
-    title         = "Steampipe Mod for AWS Cost Management"
-    description   = "TODO"
+    title         = "AWS Thrifty"
+    description   = "Economy and good management checks for AWS"
   }
 }
