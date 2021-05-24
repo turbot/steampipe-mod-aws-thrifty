@@ -40,3 +40,25 @@ control "large_ebs_volumes" {
     code = "deprecated"
   }
 }
+
+control "high_iops_ebs_volumes" {
+  title = "High IOPS volumes"
+  description = "High IOPS volumes are rare, high cost and should be reviewed."
+  sql = query.high_iops_volumes.sql
+  severity = "low"
+  tags = {
+    service = "ebs"
+    code = "deprecated"
+  }
+}
+
+control "low_iops_ebs_volumes" {
+  title = "Low IOPS volumes"
+  description = "Low IOPS volumes should be replaced with cost effective GP3."
+  sql = query.low_iops_volumes.sql
+  severity = "low"
+  tags = {
+    service = "ebs"
+    code = "deprecated"
+  }
+}
