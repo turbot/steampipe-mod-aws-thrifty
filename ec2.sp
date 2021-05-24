@@ -11,8 +11,8 @@ control "large_ec2_instances" {
 }
 
 control "old_snapshots" {
-  title = "Old EBS snapshots"
-  description = "Old EBS snapshots are "
+  title = "EBS snapshots created over 90 days ago"
+  description = "Old EBS snapshots are likely uneeded and costly to maintain."
   sql = query.old_ebs_snapshots.sql
   severity = "low"
   tags = {
