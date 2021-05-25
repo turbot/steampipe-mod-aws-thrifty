@@ -74,5 +74,16 @@ control "low_iops_ebs_volumes" {
   }
 }
 
-// TODO - attached to stopped EC2 instance
+control "ebs_volumes_on_stopped_instances" {
+  title = "EBS volumes attached to stopped EC2 instances"
+  description = "Instances that are stopped may no longer need any attached EBS volumes"
+  sql = query.inactive_ebs_volumes.sql
+  severity = "low"
+  tags = {
+    service = "ebs"
+    code = "deprecated"
+  }
+}
+
 // TODO - look for cost allocation tags
+
