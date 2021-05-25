@@ -22,3 +22,24 @@ control "latest_rds_instance_types" {
   }
 }
 
+control "rds_db_low_connection_count" {
+  title = "Databases with less than 2 connections per day"
+  description = "These databases have very little usage in last 30 days. Should this instance be shutdown when not in use?"
+  sql = query.low_connections_rds_metrics.sql
+  severity = "high"
+  tags = {
+    service = "rds"
+    code = "unused"
+  }
+}
+
+control "rds_db_low_utilization" {
+  title = "Databases with less than 25% utilization for last 30 days"
+  description = "These databases may be oversized for their usage."
+  sql = query.low_usage_rds_metrics.sql
+  severity = "low"
+  tags = {
+    service = "rds"
+    code = "managed"
+  }
+}
