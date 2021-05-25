@@ -1,14 +1,4 @@
-select
-  arn as resource,
-    case
-      when running_instances > 0 then 'ok'
-    else 'alarm'
-  end as status,
-  volume_id || ' is attached to ' || running_instances || ' running instances.' as reason,
-  region,
-  account_id
-from 
-  (
+with vols_and_instances as (
     select
       v.arn,
       v.volume_id,
@@ -22,11 +12,9 @@ from
         end
       ) as running_instances
     from
-      aws_ebs_volume v,
-      jsonb_array_elements(v.attachments) va, 
-      aws_ec2_instance i
-    where
-      va ->> 'InstanceId' = i.instance_id
+      aws_ebs_volume as v
+      left join jsonb_array_elements(v.attachments) as va on true
+      left join aws_ec2_instance as i on va ->> 'InstanceId' = i.instance_id
     group by
       v.arn, 
       v.volume_id,
@@ -34,4 +22,15 @@ from
       i.instance_id,
       v.region,
       v.account_id
-  ) as ebs_volumes;
+)
+select
+  arn as resource,
+  case
+    when running_instances > 0 then 'ok'
+    else 'alarm'
+  end as status,
+  volume_id || ' is attached to ' || running_instances || ' running instances.' as reason,
+  region,
+  account_id
+from 
+  vols_and_instances
