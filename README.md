@@ -1,10 +1,10 @@
 ![image](https://repository-images.githubusercontent.com/370221947/0c690a80-be4a-11eb-8bcd-a6cf52fa2f02)
 
-# Thrifty Mod for AWS | Powered by Steampipe 
+# Thrifty Mod for AWS  |  powered by Steampipe 
 
-**AWS Thrifty Mod**: Economy and good management checks for AWS.
+Economy and good management checks for AWS.
 
-Are you a thrifty AWS dev? Check your AWS account(s) for unused and under-utilized resources.
+Are you a `thrifty` AWS dev? Check your AWS account(s) for unused and under-utilized resources.
 
 * **[Get started →](https://hub.steampipe.io/mods/turbot/aws_thrifty)**
 * Documentation: [Controls](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls)
