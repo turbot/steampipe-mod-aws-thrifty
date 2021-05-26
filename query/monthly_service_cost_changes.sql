@@ -8,7 +8,7 @@ with
       net_unblended_cost_unit as unit,
       sum(net_unblended_cost_amount) as cost
     from 
-      dmi.aws_cost_usage 
+      aws_cost_usage 
     where 
       granularity = 'MONTHLY'
       and dimension_type_1 = 'SERVICE'
@@ -28,7 +28,7 @@ with
       net_unblended_cost_unit as unit,
       sum(net_unblended_cost_amount) as cost
     from 
-      dmi.aws_cost_usage 
+      aws_cost_usage 
     where 
       granularity = 'MONTHLY'
       and dimension_type_1 = 'SERVICE'

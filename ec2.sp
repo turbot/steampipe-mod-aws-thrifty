@@ -33,3 +33,4 @@ control "old_snapshots" {
 }
 
 /// TODO - look for cost allocation tags
+/// TOD0 - Newer instance sizes

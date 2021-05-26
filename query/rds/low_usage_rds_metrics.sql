@@ -1,14 +1,14 @@
 with rds_db_usage as (
   select 
-  db_instance_identifier,
-  round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
-  count(maximum) days
-from 
-  aws_rds_db_instance_metric_cpu_utilization_daily
-where
-  date_part('day', now() - timestamp) <=30
-group by
-  db_instance_identifier
+    db_instance_identifier,
+    round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
+    count(maximum) days
+  from 
+    aws_rds_db_instance_metric_cpu_utilization_daily
+  where
+    date_part('day', now() - timestamp) <=30
+  group by
+    db_instance_identifier
 )
 select
   arn as resource,

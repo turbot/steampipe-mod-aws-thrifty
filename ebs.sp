@@ -85,5 +85,13 @@ control "ebs_volumes_on_stopped_instances" {
   }
 }
 
-// TODO - look for cost allocation tags
-
+control "ebs_with_low_usage" {
+  title = "EBS volumes with low read and write ops"
+  description = "Instances that are unused should be archived and deleted"
+  sql = query.low_usage_ebs_volumes.sql
+  severity = "low"
+  tags = {
+    service = "ebs"
+    code = "unused"
+  }
+}
