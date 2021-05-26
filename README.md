@@ -1,6 +1,6 @@
 ![image](https://repository-images.githubusercontent.com/370221947/0c690a80-be4a-11eb-8bcd-a6cf52fa2f02)
 
-# steampipe-mod-aws-thrifty
+# Thrifty Mod for AWS | Powered by Steampipe 
 
 **AWS Thrifty Mod**: Economy and good management checks for AWS.
 
