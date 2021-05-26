@@ -32,5 +32,17 @@ control "old_snapshots" {
   }
 }
 
+control "instances_with_low_utilization" {
+  title = "EC2 Instances with low utilization"
+  description = "Resize or eliminate under utilized instances."
+  sql = query.low_utilization_ec2_instance.sql
+  severity = "low"
+  tags = {
+    service = "ec2"
+    code = "unused"
+  }
+}
+
+
 /// TODO - look for cost allocation tags
 /// TOD0 - Newer instance sizes
