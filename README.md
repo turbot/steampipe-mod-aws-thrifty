@@ -4,7 +4,7 @@
 
 Economy and good management checks for AWS.
 
-Are you a `thrifty` AWS dev? Check your AWS account(s) for unused and under-utilized resources.
+Are you a **thrifty** AWS developer? Check your AWS account(s) for unused and under-utilized resources.
 
 * **[Get started →](https://hub.steampipe.io/mods/turbot/aws_thrifty)**
 * Documentation: [Controls](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls)
