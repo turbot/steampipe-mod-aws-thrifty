@@ -1,4 +1,4 @@
-![image](https://repository-images.githubusercontent.com/370221947/0c690a80-be4a-11eb-8bcd-a6cf52fa2f02)
+![image](https://hub.steampipe.io/images/mods/turbot/aws-thrifty-social-graphic.png)
 
 # Thrifty Mod for AWS  |  powered by Steampipe 
 
