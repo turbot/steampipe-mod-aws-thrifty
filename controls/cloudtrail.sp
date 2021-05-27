@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "cloudtrail" {
-  title         = "Thrifty CloudTrail Checks"
+  title         = "Thrifty CloudTrail Checks: One trail to rule them all."
   description   = "Thrifty developers know that multiple active CloudTrail Trails can add signifigant costs. Be thrifty and eliminate the extra trails."
   documentation = file("./controls/docs/cloudtrail.md") #TODO
   tags          = local.cloudtrail_common_tags
@@ -16,21 +16,21 @@ benchmark "cloudtrail" {
 }
 
 control "multiple_global_trails" {
-  title = "Multiple Global CloudTrail Trails"
+  title = "Are there redundant globals CloudTrail trails?"
   description   = "Your first cloudtrail in each account is free, additional trails are expensive."
   sql           = query.multiple_cloudtrail_trails.sql
   severity      = "low"
   tags = merge(local.cloudtrail_common_tags, {
-    code = "managed"
+    class = "managed"
   })
 }
 
 control "multiple_regional_trails" {
-  title         = "Multiple Regional CloudTrail Trails"
+  title         = "Are there redundant regional CloudTrail trails?"
   description   = "Your first cloudtrail in each region is free, additional trails are expensive."
   sql           = query.multiple_regional_trails.sql
   severity      = "low"
   tags = merge(local.cloudtrail_common_tags, {
-    code = "managed"
+    class = "managed"
   })
 }
