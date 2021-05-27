@@ -1,1 +1,0 @@
-# CloudTrail Thrifty Benchmark

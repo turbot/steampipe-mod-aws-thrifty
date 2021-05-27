@@ -17,7 +17,6 @@ benchmark "network" {
 control "unattached_eips" {
   title         = "Unattached Elastic IP addresses (EIP)"
   description   = "Unattached Elastic IPs are charged by AWS, they should be released."
-  documentation = file("./controls/docs/network-1.md") #TODO
   sql           = query.unattached_eips.sql
   severity      = "low"
   tags = merge(local.vpc_common_tags, {

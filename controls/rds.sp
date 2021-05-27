@@ -10,14 +10,14 @@ benchmark "rds" {
   documentation = file("./controls/docs/rds.md") #TODO
   tags          = local.rds_common_tags
   children = [
-    control.on_demand_rds_db_instances,
+    control.long_running_rds_db_instances,
     control.latest_rds_instance_types,
     control.rds_db_low_connection_count,
     control.rds_db_low_utilization
   ]
 }
 
-control "on_demand_rds_db_instances" {
+control "long_running_rds_db_instances" {
   title         = "RDS DBs that should have reserved instances purchased"
   description   = "Long running database servers should be associated with a reserve instance."
   documentation = file("./controls/docs/rds-1.md") #TODO
@@ -54,7 +54,6 @@ control "rds_db_low_connection_count" {
 control "rds_db_low_utilization" {
   title         = "Databases with less than 25% utilization for last 30 days"
   description   = "These databases may be oversized for their usage."
-  documentation = file("./controls/docs/rds-1.md") #TODO
   sql           = query.low_usage_rds_metrics.sql
   severity      = "low"
   tags = merge(local.rds_common_tags, {
