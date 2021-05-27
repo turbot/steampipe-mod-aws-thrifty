@@ -17,7 +17,6 @@ benchmark "dynamodb" {
 control "stale_dynamodb_table_data" {
   title         = "DynamoDB tables with stale data"
   description   = "If the data has not changed in 90 days, is the table needed?"
-  documentation = file("./controls/docs/dynamodb-1.md") #TODO
   sql           = query.dynamodb_stale_data.sql
   severity      = "low"
   tags = merge(local.dynamodb_common_tags, {

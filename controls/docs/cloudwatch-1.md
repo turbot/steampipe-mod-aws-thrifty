@@ -1,1 +1,0 @@
-# Thrifty CloudWatch Control
