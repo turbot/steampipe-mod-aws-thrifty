@@ -5,7 +5,7 @@ mod "aws_thrifty" {
   color         = "#FF9900"
   documentation = file("./docs/index.md")
   icon          = "/images/mods/turbot/aws-thrifty.svg"
-  categories    = ["AWS", "Cost"]
+  categories    = ["AWS", "Cost", "Thrifty", "Public Cloud"]
 
   opengraph {
     title       = "AWS Thrifty"
