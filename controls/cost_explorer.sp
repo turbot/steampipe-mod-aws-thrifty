@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "cost-explorer" {
-  title         = "Thrifty Cost Explorer Checks"
+  title         = "Cost Explorer Checks"
   description   = "Thrifty developers actively monitor their cloud usage and cost data."
   documentation = file("./controls/docs/cost-explorer.md") #TODO
   tags          = local.cost-explorer_common_tags

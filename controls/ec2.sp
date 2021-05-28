@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "ec2" {
-  title         = "Thrifty EC2 Checks"
+  title         = "EC2 Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
   documentation = file("./controls/docs/ec2.md") #TODO
   tags          = local.ec2_common_tags

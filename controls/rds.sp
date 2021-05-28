@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "rds" {
-  title         = "Thrifty RDS Checks"
+  title         = "RDS Checks"
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
   documentation = file("./controls/docs/rds.md") #TODO
   tags          = local.rds_common_tags

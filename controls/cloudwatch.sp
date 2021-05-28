@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "cloudwatch" {
-  title         = "Thrifty CloudWatch Checks"
+  title         = "CloudWatch Checks"
   description   = "Thrifty developers actively manage the retention of their Cloudtrail logs."
   documentation = file("./controls/docs/cloudwatch.md") #TODO
   tags          = local.cloudwatch_common_tags

@@ -8,7 +8,7 @@ locals {
 }
 
 benchmark "thrifty_aws" {
-  title         = "Thrifty Benchmark for AWS  <(ﾟ´(｡｡)`ﾟ)>"
+  title         = "AWS Thrifty <(ﾟ´(｡｡)`ﾟ)>"
   description   = "Find unused, under-utilized and over-priced resources in your AWS account."
   documentation = file("./controls/docs/thrifty.md")
   children = [

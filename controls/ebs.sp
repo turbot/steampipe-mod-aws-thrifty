@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "ebs" {
-  title         = "Thrifty EBS Checks"
+  title         = "EBS Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
   documentation = file("./controls/docs/ebs.md") #TODO
   tags          = local.ebs_common_tags

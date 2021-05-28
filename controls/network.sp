@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "network" {
-  title         = "Thrifty Networking Checks"
+  title         = "Networking Checks"
   description   = "Thrifty developers ensure delete unused network resources."
   documentation = file("./controls/docs/network.md") #TODO
   tags          = local.vpc_common_tags

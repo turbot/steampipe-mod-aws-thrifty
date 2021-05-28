@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "dynamodb" {
-  title         = "Thrifty DynamoDB Checks"
+  title         = "DynamoDB Checks"
   description   = "Thrifty developers delete DynamoDB tables with stale data."
   documentation = file("./controls/docs/dynamodb.md") #TODO
   tags          = local.dynamodb_common_tags
