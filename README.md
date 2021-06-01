@@ -29,7 +29,7 @@ Run all benchmarks:
 steampipe check all
 ```
 
-![image](/turbot/steampipe-mod-aws-thrifty/blob/main/docs/thrifty-output.png?raw=true)
+![image](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/main/docs/thrifty-output.png?raw=true)
 
 Run a specific control:
 ```shell
