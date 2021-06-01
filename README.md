@@ -31,7 +31,7 @@ steampipe check all
 
 ![image](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/main/docs/thrifty-output.png?raw=true)
 
-Run a specific control:
+Your can also run a specific controls:
 ```shell
 steampipe check control.instances_with_low_utilization
 ```
@@ -48,8 +48,12 @@ steampipe check control.instances_with_low_utilization
 - Unattached **Elastic IPs**
 - [#TODO List](https://github.com/turbot/steampipe-mod-aws-thrifty/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
+**Use introspection to view the available controls:**:
+```
+steampipe query "select resource_name from steampipe_control;"
+```
 
-## How to help with development of more checks:
+## Contributing
 
 Have an idea for a thrifty check but aren't sure how to get started?
 - **[Join our Slack community →](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)**
@@ -71,23 +75,6 @@ Click on the GitHub Fork Widget. (Don't forget to :star: the repo!)
 git clone git@github.com:YOUR-USERNAME/steampipe-mod-aws-thrifty
 cd steampipe-mod-aws-compliance
 ```
-
-**View controls and benchmarks**:
-```
-steampipe query "select resource_name from steampipe_control;"
-```
-
-```sql
-steampipe query
-> select
-    resource_name
-  from
-    steampipe_benchmark
-  order by
-    resource_name;
-```
-
-## Contributing
 
 Thanks for getting involved! We would love to have you [join our Slack community](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g) and hang out with other Mod developers.
 
