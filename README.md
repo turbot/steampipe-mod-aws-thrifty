@@ -36,19 +36,20 @@ Run a specific control:
 steampipe check control.instances_with_low_utilization
 ```
 
-## Current Check Coverage
-- Month to month swings in service cost from AWS Cost Explorer
-- Underused and oversized RDS Databases
-- Unused, underused and oversized EC2 Instances
-- Unused, underused and oversized EBS Volumes and Snapshots
-- CloudWatch Log Groups without retention policies
-- Cloudwatch Log Streams with stale data 
-- Stale DynamoDB Tables
-- S3 Buckets without lifecycle policies
-- Unattached Elastic IPs
+## Current Thrifty Checks
+- Month to month swings in service cost from **AWS Cost Explorer**
+- Underused and oversized **RDS** Databases
+- Unused, underused and oversized **EC2 Instances**
+- Unused, underused and oversized **EBS Volumes** and **Snapshots**
+- **CloudWatch Log Groups** without retention policies
+- **Cloudwatch Log Streams** with stale data 
+- Stale **DynamoDB** Tables
+- **S3 Buckets** without lifecycle policies
+- Unattached **Elastic IPs**
+- [#TODO List](https://github.com/turbot/steampipe-mod-aws-thrifty/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 
-## Developing
+## How to help with development of more checks:
 
 Have an idea for a thrifty check but aren't sure how to get started?
 - **[Join our Slack community →](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)**
