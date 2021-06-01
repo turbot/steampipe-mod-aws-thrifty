@@ -1,24 +1,24 @@
-![image](https://hub.steampipe.io/images/mods/turbot/aws-thrifty-social-graphic.png)
-
-# Thrifty Mod for AWS  |  powered by Steampipe 
-
-Economy and good management checks for AWS.
-
-Are you a **thrifty** AWS developer? Check your AWS account(s) for unused and under-utilized resources.
-
-* **[Get started →](https://hub.steampipe.io/mods/turbot/aws_thrifty)**
-* Documentation: [Controls](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls)
-* Community: [Slack Channel](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)
-* Get involved: [Issues](https://github.com/turbot/steampipe-mod-aws-thrifty/issues)
+# AWS Thrifty
+An AWS cost savings and waste checking tool.
 
 ## Quick start
 
-Install the AWS plugin with [Steampipe](https://steampipe.io):
+1) Download and install Steampipe (https://steampipe.io/downloads). Or use Brew:
+
+```shell
+brew tap turbot/tap
+brew install steampipe
+
+steampipe -v 
+steampipe version 0.5.1
+```
+
+Install the AWS plugin
 ```shell
 steampipe plugin install aws
 ```
 
-Clone:
+Clone this repo and move into the directory:
 ```sh
 git clone git@github.com:turbot/steampipe-mod-aws-thrifty
 cd steampipe-mod-aws-compliance
@@ -29,12 +29,31 @@ Run all benchmarks:
 steampipe check all
 ```
 
-Run a specific control:
+![image](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/main/docs/thrifty-output.png?raw=true)
+
+Your can also run a specific controls:
 ```shell
 steampipe check control.instances_with_low_utilization
 ```
 
-## Developing
+## Current Thrifty Checks
+- Month to month swings in service cost from **AWS Cost Explorer**
+- Underused and oversized **RDS** Databases
+- Unused, underused and oversized **EC2 Instances**
+- Unused, underused and oversized **EBS Volumes** and **Snapshots**
+- **CloudWatch Log Groups** without retention policies
+- **Cloudwatch Log Streams** with stale data 
+- Stale **DynamoDB** Tables
+- **S3 Buckets** without lifecycle policies
+- Unattached **Elastic IPs**
+- [#TODO List](https://github.com/turbot/steampipe-mod-aws-thrifty/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+
+**Use introspection to view the available controls:**:
+```
+steampipe query "select resource_name from steampipe_control;"
+```
+
+## Contributing
 
 Have an idea for a thrifty check but aren't sure how to get started?
 - **[Join our Slack community →](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)**
@@ -56,23 +75,6 @@ Click on the GitHub Fork Widget. (Don't forget to :star: the repo!)
 git clone git@github.com:YOUR-USERNAME/steampipe-mod-aws-thrifty
 cd steampipe-mod-aws-compliance
 ```
-
-**View controls and benchmarks**:
-```
-steampipe query "select resource_name from steampipe_control;"
-```
-
-```sql
-steampipe query
-> select
-    resource_name
-  from
-    steampipe_benchmark
-  order by
-    resource_name;
-```
-
-## Contributing
 
 Thanks for getting involved! We would love to have you [join our Slack community](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g) and hang out with other Mod developers.
 
