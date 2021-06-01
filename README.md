@@ -1,24 +1,24 @@
-![image](https://hub.steampipe.io/images/mods/turbot/aws-thrifty-social-graphic.png)
-
-# Thrifty Mod for AWS  |  powered by Steampipe 
-
-Economy and good management checks for AWS.
-
-Are you a **thrifty** AWS developer? Check your AWS account(s) for unused and under-utilized resources.
-
-* **[Get started →](https://hub.steampipe.io/mods/turbot/aws_thrifty)**
-* Documentation: [Controls](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls)
-* Community: [Slack Channel](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)
-* Get involved: [Issues](https://github.com/turbot/steampipe-mod-aws-thrifty/issues)
+# AWS Thrifty
+An AWS cost savings and waste checking tool.
 
 ## Quick start
 
-Install the AWS plugin with [Steampipe](https://steampipe.io):
+1) Download and install Steampipe (https://steampipe.io/downloads). Or use Brew:
+
+```shell
+brew tap turbot/tap
+brew install steampipe
+
+steampipe -v 
+steampipe version 0.5.1
+```
+
+Install the AWS plugin
 ```shell
 steampipe plugin install aws
 ```
 
-Clone:
+Clone this repo and move into the directory:
 ```sh
 git clone git@github.com:turbot/steampipe-mod-aws-thrifty
 cd steampipe-mod-aws-compliance
@@ -29,10 +29,24 @@ Run all benchmarks:
 steampipe check all
 ```
 
+![image](/turbot/steampipe-mod-aws-thrifty/blob/main/docs/thrifty-output.png?raw=true)
+
 Run a specific control:
 ```shell
 steampipe check control.instances_with_low_utilization
 ```
+
+## Current Check Coverage
+- Month to month swings in service cost from AWS Cost Explorer
+- Underused and oversized RDS Databases
+- Unused, underused and oversized EC2 Instances
+- Unused, underused and oversized EBS Volumes and Snapshots
+- CloudWatch Log Groups without retention policies
+- Cloudwatch Log Streams with stale data 
+- Stale DynamoDB Tables
+- S3 Buckets without lifecycle policies
+- Unattached Elastic IPs
+
 
 ## Developing
 
