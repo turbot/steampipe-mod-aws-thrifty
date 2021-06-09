@@ -16,7 +16,7 @@ benchmark "cloudtrail" {
 }
 
 control "multiple_global_trails" {
-  title = "Are there redundant globals CloudTrail trails?"
+  title = "Are there redundant global CloudTrail trails?"
   description   = "Your first cloudtrail in each account is free, additional trails are expensive."
   sql           = query.multiple_cloudtrail_trails.sql
   severity      = "low"
