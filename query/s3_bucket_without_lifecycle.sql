@@ -5,8 +5,8 @@ select
     else 'ok'
   end as status,
   case
-    when lifecycle_rules is null then name || ' does not have life cyle policy.'
-    else name || ' has a life cycle policy.'
+    when lifecycle_rules is null then name || ' does not have lifecycle policy.'
+    else name || ' has a lifecycle policy.'
   end as reason,
   region,
   account_id
