@@ -93,7 +93,7 @@ control "ebs_volumes_on_stopped_instances" {
 
 control "ebs_with_low_usage" {
   title         = "Are there any EBS volumes with low usage?"
-  description   = "Instances that are unused should be archived and deleted"
+  description   = "Volumes that are unused should be archived and deleted"
   sql           = query.low_usage_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
