@@ -1,6 +1,6 @@
 ## Thrifty Redshift Benchmark
 
-Thrifty developers eliminate their unused Redshift clusters. This benchmark focuses on testing your Redshift clusters to ensure they are in-use.
+Thrifty developers checks long running Redshift clusters should be associated with reserved nodes.
 
 ### Default Thresholds
 - [Redshift cluster age threshold (90 Days)]
