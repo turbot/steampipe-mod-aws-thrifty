@@ -10,10 +10,32 @@ benchmark "ec2" {
   documentation = file("./controls/docs/ec2.md") #TODO
   tags          = local.ec2_common_tags
   children = [
+    control.ec2_application_lb_unused,
+    control.ec2_instance_previous_generation,
     control.large_ec2_instances,
     control.long_running_ec2_instances,
     control.instances_with_low_utilization
   ]
+}
+
+control "ec2_application_lb_unused" {
+  title         = "Unsued application load balancers should be removed"
+  description   = "Applicaion load balancers with no services attached, or its attached services are unhealthy should be reviewed."
+  sql           = query.ec2_application_lb_unused.sql
+  severity      = "low"
+  tags = merge(local.ec2_common_tags, {
+    class = "deprecated"
+  })
+}
+
+control "ec2_instance_previous_generation" {
+  title         = "EC2 instances of latest generation should be used for best performance"
+  description   = "It is recommended to use the latest generation of instances to get the best performance."
+  sql           = query.ec2_instance_previous_generation.sql
+  severity      = "low"
+  tags = merge(local.ec2_common_tags, {
+    class = "deprecated"
+  })
 }
 
 control "large_ec2_instances" {
