@@ -6,7 +6,7 @@ locals {
 
 benchmark "elasticache" {
   title         = "ElastiCache Checks"
-  description   = "Thrifty developers eliminate unused ElastiCache clusters."
+  description   = "Thrifty developers checks long running ElastiCache clusters should be associated with reserved nodes."
   documentation = file("./controls/docs/elasticache.md")
   tags          = local.elasticache_common_tags
   children = [
@@ -15,8 +15,8 @@ benchmark "elasticache" {
 }
 
 control "elasticache_cluster_age_90_days" {
-  title         = "Clusters created over 90 days ago should be deleted if not required"
-  description   = "Old clusters are likely unneeded and costly to maintain."
+  title         = "ElastiCache clusters should have reserved nodes purchased for them"
+  description   = "Long running clusters should be associated with reserved nodes."
   sql           = query.elasticache_cluster_age_90_days.sql
   severity      = "low"
   tags = merge(local.redshift_common_tags, {

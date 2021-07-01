@@ -7,11 +7,10 @@ locals {
 benchmark "ec2" {
   title         = "EC2 Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
-  documentation = file("./controls/docs/ec2.md") #TODO
+  documentation = file("./controls/docs/ec2.md")
   tags          = local.ec2_common_tags
   children = [
     control.ec2_application_lb_unused,
-    control.ec2_instance_previous_generation,
     control.large_ec2_instances,
     control.long_running_ec2_instances,
     control.instances_with_low_utilization
@@ -19,19 +18,9 @@ benchmark "ec2" {
 }
 
 control "ec2_application_lb_unused" {
-  title         = "Unsued application load balancers should be removed"
-  description   = "Applicaion load balancers with no services attached, or its attached services are unhealthy should be reviewed."
+  title         = "Unsued application load balancers should be deleted"
+  description   = "Application load balancers with no applicable resources attached such as instance, lambda function or IP should be deleted."
   sql           = query.ec2_application_lb_unused.sql
-  severity      = "low"
-  tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
-  })
-}
-
-control "ec2_instance_previous_generation" {
-  title         = "EC2 instances of latest generation should be used for best performance"
-  description   = "It is recommended to use the latest generation of instances to get the best performance."
-  sql           = query.ec2_instance_previous_generation.sql
   severity      = "low"
   tags = merge(local.ec2_common_tags, {
     class = "deprecated"
