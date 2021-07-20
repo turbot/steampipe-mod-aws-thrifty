@@ -7,10 +7,11 @@ locals {
 benchmark "network" {
   title         = "Networking Checks"
   description   = "Thrifty developers ensure delete unused network resources."
-  documentation = file("./controls/docs/network.md") #TODO
+  documentation = file("./controls/docs/network.md")
   tags          = local.vpc_common_tags
   children = [
-    control.unattached_eips
+    control.unattached_eips,
+    control.unused_vpc_nat_gateways
   ]
 }
 
@@ -24,4 +25,12 @@ control "unattached_eips" {
   })
 }
 
-//TODO Add unattached Gateways
+control "unused_vpc_nat_gateways" {
+  title         = "VPC NAT gateway available and unused should be reviewed"
+  description   = "NAT Gateway is charged on an hourly basis once it is provisioned and available, check why these are available but not used."
+  sql           = query.vpc_nat_gateway_unused.sql
+  severity      = "low"
+  tags = merge(local.vpc_common_tags, {
+    class = "unused"
+  })
+}
