@@ -26,7 +26,7 @@ control "unattached_eips" {
 }
 
 control "unused_vpc_nat_gateways" {
-  title         = "VPC NAT gateway available and unused should be reviewed"
+  title         = "Unused NAT gateways should be reviewed"
   description   = "NAT Gateway is charged on an hourly basis once it is provisioned and available, check why these are available but not used."
   sql           = query.vpc_nat_gateway_unused.sql
   severity      = "low"
