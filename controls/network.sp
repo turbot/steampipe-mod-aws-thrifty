@@ -11,7 +11,7 @@ benchmark "network" {
   tags          = local.vpc_common_tags
   children = [
     control.unattached_eips,
-    control.unused_vpc_nat_gateways
+    control.vpc_nat_gateway_unused
   ]
 }
 
@@ -25,7 +25,7 @@ control "unattached_eips" {
   })
 }
 
-control "unused_vpc_nat_gateways" {
+control "vpc_nat_gateway_unused" {
   title         = "Unused NAT gateways should be deleted"
   description   = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
   sql           = query.vpc_nat_gateway_unused.sql
