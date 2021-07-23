@@ -16,7 +16,7 @@ benchmark "network" {
 }
 
 control "unattached_eips" {
-  title         = "Are there any unattached Elastic IP addresses (EIP)?"
+  title         = "Unattached elastic IP addresses (EIPs) should be released"
   description   = "Unattached Elastic IPs are charged by AWS, they should be released."
   sql           = query.unattached_eips.sql
   severity      = "low"
@@ -26,8 +26,8 @@ control "unattached_eips" {
 }
 
 control "unused_vpc_nat_gateways" {
-  title         = "Unused NAT gateways should be reviewed"
-  description   = "NAT Gateway is charged on an hourly basis once it is provisioned and available, check why these are available but not used."
+  title         = "Unused NAT gateways should be deleted"
+  description   = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
   sql           = query.vpc_nat_gateway_unused.sql
   severity      = "low"
   tags = merge(local.vpc_common_tags, {
