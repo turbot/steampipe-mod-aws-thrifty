@@ -7,13 +7,57 @@ locals {
 benchmark "ec2" {
   title         = "EC2 Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
-  documentation = file("./controls/docs/ec2.md") #TODO
+  documentation = file("./controls/docs/ec2.md")
   tags          = local.ec2_common_tags
   children = [
+    control.ec2_application_lb_unused,
+    control.ec2_classic_lb_unused,
+    control.ec2_gateway_lb_unused,
+    control.ec2_network_lb_unused,
+    control.instances_with_low_utilization,
     control.large_ec2_instances,
     control.long_running_ec2_instances,
-    control.instances_with_low_utilization
   ]
+}
+
+control "ec2_application_lb_unused" {
+  title         = "Application load balancers having no targets attached should be deleted"
+  description   = "Application load balancers with no targets attached still cost money and should be deleted."
+  sql           = query.ec2_application_lb_unused.sql
+  severity      = "low"
+  tags = merge(local.ec2_common_tags, {
+    class = "unused"
+  })
+}
+
+control "ec2_classic_lb_unused" {
+  title         = "Classic load balancers having no instances attached should be deleted"
+  description   = "Classic load balancers with no instances attached still cost money should be deleted."
+  sql           = query.ec2_classic_lb_unused.sql
+  severity      = "low"
+  tags = merge(local.ec2_common_tags, {
+    class = "unused"
+  })
+}
+
+control "ec2_gateway_lb_unused" {
+  title         = "Gateway load balancers having no targets attached should be deleted"
+  description   = "Gateway load balancers with no targets attached still cost money and should be deleted."
+  sql           = query.ec2_gateway_lb_unused.sql
+  severity      = "low"
+  tags = merge(local.ec2_common_tags, {
+    class = "unused"
+  })
+}
+
+control "ec2_network_lb_unused" {
+  title         = "Network load balancers having no targets attached should be deleted"
+  description   = "Network load balancers with no targets attached still cost money and should be deleted."
+  sql           = query.ec2_network_lb_unused.sql
+  severity      = "low"
+  tags = merge(local.ec2_common_tags, {
+    class = "unused"
+  })
 }
 
 control "large_ec2_instances" {
