@@ -21,42 +21,42 @@ benchmark "ec2" {
 }
 
 control "ec2_application_lb_unused" {
-  title         = "Application load balancers having no targets attached should be reviewed"
-  description   = "Application load balancers with no applicable resources attached such as instance, lambda function or IP should be deleted."
+  title         = "Application load balancers having no targets attached should be deleted"
+  description   = "Application load balancers with no targets attached still cost money and should be deleted."
   sql           = query.ec2_application_lb_unused.sql
   severity      = "low"
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "unused"
   })
 }
 
 control "ec2_classic_lb_unused" {
-  title         = "Classic load balancers having no instances attached should be reviewed"
-  description   = "Unattached Classic load balancers cost money and should be deleted, unless there is a business need to retain them."
+  title         = "Classic load balancers having no instances attached should be deleted"
+  description   = "Classic load balancers with no instances attached still cost money should be deleted."
   sql           = query.ec2_classic_lb_unused.sql
   severity      = "low"
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "unused"
   })
 }
 
 control "ec2_gateway_lb_unused" {
-  title         = "Gateway load balancers having no targets attached should be reviewed"
-  description   = "Unattached Gateway load balancers cost money and should be deleted, unless there is a business need to retain them."
+  title         = "Gateway load balancers having no targets attached should be deleted"
+  description   = "Gateway load balancers with no targets attached still cost money and should be deleted."
   sql           = query.ec2_gateway_lb_unused.sql
   severity      = "low"
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "unused"
   })
 }
 
 control "ec2_network_lb_unused" {
-  title         = "Network load balancers having no targets attached should be reviewed"
-  description   = "Unattached Network load balancers cost money and should be deleted, unless there is a business need to retain them."
+  title         = "Network load balancers having no targets attached should be deleted"
+  description   = "Network load balancers with no targets attached still cost money and should be deleted."
   sql           = query.ec2_network_lb_unused.sql
   severity      = "low"
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "unused"
   })
 }
 
