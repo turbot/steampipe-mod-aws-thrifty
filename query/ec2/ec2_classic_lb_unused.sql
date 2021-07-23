@@ -5,8 +5,8 @@ select
     else 'ok'
   end as status,
   case
-    when instances is null then title || ' has no instance registered.'
-    else title || ' has registered instance.'
+    when instances is null then title || ' has no instances registered.'
+    else title || ' has registered instances.'
   end as reason,
   region,
   account_id
