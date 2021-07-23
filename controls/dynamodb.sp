@@ -7,7 +7,7 @@ locals {
 benchmark "dynamodb" {
   title         = "DynamoDB Checks"
   description   = "Thrifty developers delete DynamoDB tables with stale data."
-  documentation = file("./controls/docs/dynamodb.md") #TODO
+  documentation = file("./controls/docs/dynamodb.md")
   tags          = local.dynamodb_common_tags
   children = [
     control.stale_dynamodb_table_data

@@ -7,7 +7,7 @@ locals {
 benchmark "ebs" {
   title         = "EBS Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
-  documentation = file("./controls/docs/ebs.md") #TODO
+  documentation = file("./controls/docs/ebs.md")
   tags          = local.ebs_common_tags
   children = [
     control.gp2_volumes,
@@ -103,7 +103,7 @@ control "ebs_with_low_usage" {
 
 control "old_snapshots" {
   title         = "Which EBS snapshots were created over 90 days ago?"
-  description   = "Old EBS snapshots are likely uneeded and costly to maintain."
+  description   = "Old EBS snapshots are likely unnecessary and costly to maintain."
   sql           = query.old_ebs_snapshots.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {

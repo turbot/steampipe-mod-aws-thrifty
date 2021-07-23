@@ -1,11 +1,12 @@
-## Thrifty DynamoDB Benchmark
+## Thrifty EBS Benchmark
 
 Thrifty developers keep a careful eye for unused and under-utilized EBS volumes. Elastic block store is a key component of hidden cost on AWS, and this benchmark looks for EBS volumes that are unused, under-utilized, out-dates and over-sized.
 
 ### Default Thresholds
-- [High IOPS threshold (32,000 IOPS)](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/1f71e77023825835770fd88d70e745c8379c68a5/query/ebs/high_iops_volumes.sql#L5)
-- [Low IOPS threshold (3,000 IOPS)](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/1f71e77023825835770fd88d70e745c8379c68a5/query/ebs/low_iops_volumes.sql#L5)
-- [Large EBS volume size threshold (100gb)](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/1f71e77023825835770fd88d70e745c8379c68a5/query/ebs/large_ebs_volumes.sql#L4)
-- [Very Low EBS usage threshold (100 Max Write Operations/min)](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/1f71e77023825835770fd88d70e745c8379c68a5/query/ebs/low_usage_ebs_volumes.sql#L41)
-- [Low EBS usage threshold (100 Max Write Operations/min)](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/1f71e77023825835770fd88d70e745c8379c68a5/query/ebs/low_usage_ebs_volumes.sql#L42)
-- [Old EBS Snapshots threshold (90 days)](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/1f71e77023825835770fd88d70e745c8379c68a5/query/ebs/old_ebs_snapshots.sql#L4)
+
+- [High IOPS threshold (32,000 IOPS)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/high_iops_volumes)
+- [Low IOPS threshold (3,000 IOPS)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/low_iops_volumes)
+- [Large EBS volume size threshold (100gb)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/large_ebs_volumes)
+- [Very Low EBS usage threshold (100 Max Write Operations/min)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/low_usage_ebs_volumes)
+- [Low EBS usage threshold (100 Max Write Operations/min)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/low_usage_ebs_volumes)
+- [Old EBS Snapshots threshold (90 days)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/old_ebs_snapshots)

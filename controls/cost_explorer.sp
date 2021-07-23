@@ -7,7 +7,7 @@ locals {
 benchmark "cost-explorer" {
   title         = "Cost Explorer Checks"
   description   = "Thrifty developers actively monitor their cloud usage and cost data."
-  documentation = file("./controls/docs/cost-explorer.md") #TODO
+  documentation = file("./controls/docs/cost-explorer.md")
   tags          = local.cost-explorer_common_tags
   children = [
     control.full_month_cost_changes
