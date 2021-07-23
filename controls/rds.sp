@@ -7,7 +7,7 @@ locals {
 benchmark "rds" {
   title         = "RDS Checks"
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
-  documentation = file("./controls/docs/rds.md") #TODO
+  documentation = file("./controls/docs/rds.md")
   tags          = local.rds_common_tags
   children = [
     control.long_running_rds_db_instances,

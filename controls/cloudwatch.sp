@@ -7,7 +7,7 @@ locals {
 benchmark "cloudwatch" {
   title         = "CloudWatch Checks"
   description   = "Thrifty developers actively manage the retention of their Cloudtrail logs."
-  documentation = file("./controls/docs/cloudwatch.md") #TODO
+  documentation = file("./controls/docs/cloudwatch.md")
   tags          = local.cloudwatch_common_tags
   children = [
     control.cw_log_group_retention,

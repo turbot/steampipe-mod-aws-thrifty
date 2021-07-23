@@ -7,7 +7,7 @@ locals {
 benchmark "ebs" {
   title         = "EBS Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
-  documentation = file("./controls/docs/ebs.md") #TODO
+  documentation = file("./controls/docs/ebs.md")
   tags          = local.ebs_common_tags
   children = [
     control.gp2_volumes,
