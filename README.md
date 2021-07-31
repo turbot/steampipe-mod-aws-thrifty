@@ -57,7 +57,7 @@ steampipe query "select resource_name from steampipe_control;"
 
 Have an idea for a thrifty check but aren't sure how to get started?
 - **[Join our Slack community →](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)**
-- **[Mod developer guide →](https://steampipe.io/docs/steampipe-mods/writing-mods.md)**
+- **[Mod developer guide →](https://steampipe.io/docs/using-steampipe/writing-controls)**
 
 **Prerequisites**:
 - [Steampipe installed](https://steampipe.io/downloads)
