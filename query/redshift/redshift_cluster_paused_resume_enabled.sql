@@ -41,4 +41,4 @@ select
   a.account_id
 from
   aws_redshift_cluster as a
-  left join both_enabled as b on a.arn = b.arn
+  left join both_enabled as b on a.arn = b.arn;

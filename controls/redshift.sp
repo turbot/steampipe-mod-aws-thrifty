@@ -27,8 +27,8 @@ control "redshift_cluster_age_90_days" {
 
 
 control "redshift_cluster_paused_resume_enabled" {
-  title         = "redshift_cluster_paused_resume_enabled"
-  description   = "redshift_cluster_paused_resume_enabled"
+  title         = "Redshift cluster paused resume should be enabled"
+  description   = "Redshift cluster paused resume should be enabled to easily suspend on-demand billing while the cluster is not being used."
   sql           = query.redshift_cluster_paused_resume_enabled.sql
   severity      = "low"
   tags = merge(local.redshift_common_tags, {
