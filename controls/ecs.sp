@@ -10,7 +10,8 @@ benchmark "ecs" {
   documentation = file("./controls/docs/ecs.md")
   tags          = local.ecs_common_tags
   children = [
-    control.ecs_cluster_low_utilization
+    control.ecs_cluster_low_utilization,
+    control.ecs_service_without_autoscaling
   ]
 }
 

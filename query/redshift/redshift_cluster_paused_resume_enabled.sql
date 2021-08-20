@@ -18,7 +18,7 @@ cluster_resume_enabled as (
   where
     s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' is not null
 ),
-both_enabled as (
+pause_and_resume_enabled as (
   select
     p.arn
   from
@@ -31,7 +31,7 @@ select
   a.arn as resource,
   case
     when b.arn is not null then 'ok'
-    else 'alarm'
+    else 'info'
   end as status,
   case
     when b.arn is not null then a.title || ' pause-resume action enabled.'
@@ -41,4 +41,4 @@ select
   a.account_id
 from
   aws_redshift_cluster as a
-  left join both_enabled as b on a.arn = b.arn;
+  left join pause_and_resume_enabled as b on a.arn = b.arn;

@@ -1,17 +1,17 @@
-with ecs_cluster_utilization as (
+with redshift_cluster_utilization as (
   select
-    cluster_name,
+    cluster_identifier,
     round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
     count(maximum) days
   from
-    aws_ecs_cluster_metric_cpu_utilization_daily
+    aws_redshift_cluster_metric_cpu_utilization_daily
   where
     date_part('day', now() - timestamp) <=30
   group by
-    cluster_name
+    cluster_identifier
 )
 select
-  i.cluster_name as resource,
+  i.cluster_identifier as resource,
   case
     when avg_max is null then 'error'
     when avg_max < 20 then 'alarm'
@@ -25,5 +25,5 @@ select
   region,
   account_id
 from
-  aws_ecs_cluster as i
-  left join ecs_cluster_utilization as u on u.cluster_name = i.cluster_name;
+  aws_redshift_cluster as i
+  left join redshift_cluster_utilization as u on u.cluster_identifier = i.cluster_identifier;
