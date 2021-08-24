@@ -1,6 +1,6 @@
 ## Thrifty ECS Benchmark
 
-Thrifty developers eliminate their under-utilized ECS clusters and ECS service without autoscaling policy. This benchmark focuses on finding clusters that have low utilization and ECS service without autoscaling policy.
+Thrifty developers eliminate their underutilized ECS clusters and ECS services without an autoscaling policy. This benchmark focuses on finding ECS clusters that have low utilization and an ECS service without an autoscaling policy.
 
 ### Default Thresholds
 

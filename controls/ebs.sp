@@ -44,6 +44,7 @@ control "io1_volumes" {
 
 control "unattached_ebs_volumes" {
   title         = "Are there any unattached EBS volumes?"
+  description   = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
   sql           = query.unattached_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
