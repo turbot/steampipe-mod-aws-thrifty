@@ -23,7 +23,7 @@ pause_and_resume_enabled as (
     p.arn
   from
     cluster_pause_enabled as p
-    left join cluster_resume_enabled as r on r.arn =p.arn
+    left join cluster_resume_enabled as r on r.arn = p.arn
   where
     p.pause_cluster = r.resume_cluster
 )
