@@ -2,7 +2,7 @@
 
 _What's new?_
 
-- Added initial CloudFront, ECS and EMR benchmarks and basic controls to provide additional monitoring of AWS resources
+- Added initial CloudFront, ECS and EMR benchmarks and controls along with new controls for the Redshift benchmark
 
 - New controls added:
   - cloudfront_distribution_pricing_class
