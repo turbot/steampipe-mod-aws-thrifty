@@ -54,6 +54,6 @@ control "rds_db_low_utilization" {
   sql           = query.low_usage_rds_metrics.sql
   severity      = "low"
   tags = merge(local.rds_common_tags, {
-    class = "managed"
+    class = "unused"
   })
 }

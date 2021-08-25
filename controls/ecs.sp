@@ -33,6 +33,6 @@ control "ecs_service_without_autoscaling" {
   severity      = "low"
 
   tags = merge(local.ecs_common_tags, {
-    class = "unused"
+    class = "managed"
   })
 }

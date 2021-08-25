@@ -97,6 +97,6 @@ control "ec2_reserved_instance_lease_expiration_30_days" {
   sql           = query.ec2_reserved_instance_lease_expiration_30_days.sql
   severity      = "low"
   tags = merge(local.ec2_common_tags, {
-    class = "unused"
+    class = "managed"
   })
 }

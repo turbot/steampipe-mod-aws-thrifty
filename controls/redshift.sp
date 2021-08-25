@@ -43,6 +43,6 @@ control "redshift_cluster_low_utilization" {
   sql           = query.redshift_cluster_low_utilization.sql
   severity      = "low"
   tags = merge(local.redshift_common_tags, {
-    class = "managed"
+    class = "unused"
   })
 }
