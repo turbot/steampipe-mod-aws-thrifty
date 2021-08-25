@@ -12,7 +12,7 @@ _What's new?_
   - emr_cluster_instance_prev_gen
   - emr_cluster_is_idle_30_minutes
   - redshift_cluster_low_utilization
-  - redshift_cluster_paused_resume_enabled
+  - redshift_cluster_schedule_pause_resume_enabled
 
 ## v0.5 [2021-07-23]
 
