@@ -2,7 +2,7 @@ select
   arn as resource,
   case
     when volume_type not in ('io1', 'io2') then 'skip'
-    when iops >32000 then 'alarm'
+    when iops > 32000 then 'alarm'
     else 'ok'
   end as status,
   case

@@ -6,7 +6,7 @@ with rds_db_usage as (
   from 
     aws_rds_db_instance_metric_connections_daily
   where
-    date_part('day', now() - timestamp) <=30
+    date_part('day', now() - timestamp) <= 30
   group by
     db_instance_identifier
 )
@@ -27,4 +27,4 @@ select
   account_id
 from
   aws_rds_db_instance i
-  left join rds_db_usage as u on u.db_instance_identifier = i.db_instance_identifier
+  left join rds_db_usage as u on u.db_instance_identifier = i.db_instance_identifier;

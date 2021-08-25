@@ -10,7 +10,7 @@ brew tap turbot/tap
 brew install steampipe
 
 steampipe -v 
-steampipe version 0.7.0
+steampipe version 0.7.3
 ```
 
 Install the AWS plugin
@@ -20,7 +20,7 @@ steampipe plugin install aws
 
 Clone this repo and move into the directory:
 ```sh
-git clone git@github.com:turbot/steampipe-mod-aws-thrifty
+git clone https://github.com/turbot/steampipe-mod-aws-thrifty.git
 cd steampipe-mod-aws-thrifty
 ```
 
