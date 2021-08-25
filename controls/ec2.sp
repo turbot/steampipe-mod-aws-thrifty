@@ -17,6 +17,7 @@ benchmark "ec2" {
     control.instances_with_low_utilization,
     control.large_ec2_instances,
     control.long_running_ec2_instances,
+    control.ec2_reserved_instance_lease_expiration_30_days,
   ]
 }
 
@@ -84,6 +85,16 @@ control "instances_with_low_utilization" {
   title         = "Which EC2 instances have very low CPU utilization?"
   description   = "Resize or eliminate under utilized instances."
   sql           = query.low_utilization_ec2_instance.sql
+  severity      = "low"
+  tags = merge(local.ec2_common_tags, {
+    class = "unused"
+  })
+}
+
+control "ec2_reserved_instance_lease_expiration_30_days" {
+  title         = "EC2 reserved instances scheduled to expire within next 30 days should be reviewed"
+  description   = "EC2 reserved instances that are scheduled to expire within the next 30 days or have expired in the preceding 30 days should be reviewed."
+  sql           = query.ec2_reserved_instance_lease_expiration_30_days.sql
   severity      = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"

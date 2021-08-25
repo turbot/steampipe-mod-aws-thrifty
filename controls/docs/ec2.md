@@ -1,6 +1,6 @@
 ## Thrifty EC2 Benchmark
 
-Thrifty developers eliminate their unused and under-utilized EC2 instances. This benchmark focuses on finding resources that have not been restarted recently, have low utilization and are using very large instance sizes.
+Thrifty developers eliminate their unused and under-utilized EC2 instances. This benchmark focuses on finding resources that have not been restarted recently, have low utilization, using very large instance sizes and revered instances scheduled to expire within the next 30 days or have expired in the preceding 30 days.
 
 ### Default Thresholds
 
@@ -8,3 +8,4 @@ Thrifty developers eliminate their unused and under-utilized EC2 instances. This
 - [Long running instance threshold (90 Days)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/long_running_instances)
 - [Very low utilization threshold (< 20%)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/low_utilization_ec2_instance)
 - [Low utilization threshold (< 35%)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/low_utilization_ec2_instance)
+- [Reserved instance lease expire threshold (30 days)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/ec2_reserved_instance_lease_expiration_30_days)
