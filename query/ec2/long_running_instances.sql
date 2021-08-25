@@ -11,4 +11,4 @@ from
   aws_ec2_instance
 where
   -- Instance is running
-  instance_state in ('running', 'pending', 'rebooting')
+  instance_state in ('running', 'pending', 'rebooting');
