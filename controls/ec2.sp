@@ -14,10 +14,10 @@ benchmark "ec2" {
     control.ec2_classic_lb_unused,
     control.ec2_gateway_lb_unused,
     control.ec2_network_lb_unused,
+    control.ec2_reserved_instance_lease_expiration_30_days,
     control.instances_with_low_utilization,
     control.large_ec2_instances,
-    control.long_running_ec2_instances,
-    control.ec2_reserved_instance_lease_expiration_30_days,
+    control.long_running_ec2_instances
   ]
 }
 

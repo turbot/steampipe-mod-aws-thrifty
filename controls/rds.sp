@@ -10,8 +10,8 @@ benchmark "rds" {
   documentation = file("./controls/docs/rds.md")
   tags          = local.rds_common_tags
   children = [
-    control.long_running_rds_db_instances,
     control.latest_rds_instance_types,
+    control.long_running_rds_db_instances,
     control.rds_db_low_connection_count,
     control.rds_db_low_utilization
   ]

@@ -21,12 +21,12 @@ select
   i.id as resource,
   case
     when u.id is null then 'error'
-    when avagsum = 1 and count >=7  then 'alarm'
+    when avagsum = 1 and count >= 7  then 'alarm'
     else 'ok'
   end as status,
   case
     when u.id is null then 'CloudWatch metrics not available for ' || i.title || '.'
-    else i.title || ' is idle from last ' || (count*5 -5) ||  ' minutes.'
+    else i.title || ' is idle from last ' || (count*5 - 5) ||  ' minutes.'
    end as reason,
   i.region,
   i.account_id

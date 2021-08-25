@@ -6,7 +6,7 @@ with ec2_instance_utilization as (
   from 
     aws_ec2_instance_metric_cpu_utilization_daily
   where
-    date_part('day', now() - timestamp) <=30
+    date_part('day', now() - timestamp) <= 30
   group by
     instance_id
 )
@@ -26,4 +26,4 @@ select
   account_id
 from
   aws_ec2_instance i
-  left join ec2_instance_utilization as u on u.instance_id = i.instance_id
+  left join ec2_instance_utilization as u on u.instance_id = i.instance_id;

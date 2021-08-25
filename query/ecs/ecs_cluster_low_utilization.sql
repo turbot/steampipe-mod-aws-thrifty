@@ -6,7 +6,7 @@ with ecs_cluster_utilization as (
   from
     aws_ecs_cluster_metric_cpu_utilization_daily
   where
-    date_part('day', now() - timestamp) <=30
+    date_part('day', now() - timestamp) <= 30
   group by
     cluster_name
 )

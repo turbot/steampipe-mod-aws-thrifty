@@ -11,8 +11,8 @@ benchmark "redshift" {
   tags          = local.redshift_common_tags
   children = [
     control.redshift_cluster_age_90_days,
-    control.redshift_cluster_schedule_pause_resume_enabled,
-    control.redshift_cluster_low_utilization
+    control.redshift_cluster_low_utilization,
+    control.redshift_cluster_schedule_pause_resume_enabled
   ]
 }
 

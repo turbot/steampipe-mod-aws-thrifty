@@ -1,6 +1,6 @@
 ## Thrifty EC2 Benchmark
 
-Thrifty developers eliminate their unused and under-utilized EC2 instances. This benchmark focuses on finding resources that have not been restarted recently, have low utilization, using very large instance sizes and revered instances scheduled to expire within the next 30 days or have expired in the preceding 30 days.
+Thrifty developers eliminate their unused and underutilized EC2 instances. This benchmark focuses on finding resources that have not been restarted recently, have low utilization, using very large instance sizes, and reserved instances scheduled to expire within the next 30 days or have expired in the preceding 30 days.
 
 ### Default Thresholds
 
