@@ -3,8 +3,9 @@ with service_with_autoscaling as (
     distinct split_part(t.resource_id, '/', 2) as cluster_name,
     split_part(t.resource_id, '/', 3) as service_name
   from
-    aws_ecs_service as s
-    left join aws_appautoscaling_target as t on t.service_namespace = 'ecs'
+    aws_appautoscaling_target as t
+  where
+    t.service_namespace = 'ecs'
 )
 select
   s.arn as resource,
