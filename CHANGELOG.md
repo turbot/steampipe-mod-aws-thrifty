@@ -1,11 +1,12 @@
-## v0.6 [2021-08-24]
+## v0.6 [2021-08-25]
 
 _What's new?_
 
-- Added initial CloudFront, ECS and EMR benchmarks and controls along with new controls for the Redshift benchmark
+- Added initial CloudFront, ECS and EMR benchmarks and controls along with new controls for the Redshift and the EC2 benchmarks
 
 - New controls added:
   - cloudfront_distribution_pricing_class
+  - ec2_reserved_instance_lease_expiration_30_days
   - ecs_cluster_low_utilization
   - ecs_service_without_autoscaling
   - emr_cluster_instance_prev_gen
