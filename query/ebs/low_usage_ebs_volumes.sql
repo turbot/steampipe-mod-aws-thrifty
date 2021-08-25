@@ -17,7 +17,7 @@ with ebs_usage as (
         from 
           aws_ebs_volume_metric_read_ops_daily
         where
-          date_part('day', now() - timestamp) <=30
+          date_part('day', now() - timestamp) <= 30
       )
       UNION
       (
@@ -30,7 +30,7 @@ with ebs_usage as (
         from 
           aws_ebs_volume_metric_write_ops_daily
         where
-          date_part('day', now() - timestamp) <=30
+          date_part('day', now() - timestamp) <= 30
       ) 
     ) as read_and_write_ops
     group by 1,2,3,4

@@ -11,4 +11,4 @@ select
   region,
   account_id
 from
-  aws_vpc_eip
+  aws_vpc_eip;

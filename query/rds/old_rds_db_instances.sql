@@ -9,4 +9,4 @@ select
   region,
   account_id
 from
-  aws_rds_db_instance
+  aws_rds_db_instance;

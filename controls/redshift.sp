@@ -11,6 +11,8 @@ benchmark "redshift" {
   tags          = local.redshift_common_tags
   children = [
     control.redshift_cluster_age_90_days,
+    control.redshift_cluster_low_utilization,
+    control.redshift_cluster_schedule_pause_resume_enabled
   ]
 }
 
@@ -21,5 +23,26 @@ control "redshift_cluster_age_90_days" {
   severity      = "low"
   tags = merge(local.redshift_common_tags, {
     class = "managed"
+  })
+}
+
+
+control "redshift_cluster_schedule_pause_resume_enabled" {
+  title         = "Redshift cluster paused resume should be enabled"
+  description   = "Redshift cluster paused resume should be enabled to easily suspend on-demand billing while the cluster is not being used."
+  sql           = query.redshift_cluster_schedule_pause_resume_enabled.sql
+  severity      = "low"
+  tags = merge(local.redshift_common_tags, {
+    class = "managed"
+  })
+}
+
+control "redshift_cluster_low_utilization" {
+  title         = "Redshift cluster with low CPU utilization should be reviewed"
+  description   = "Resize or eliminate under utilized clusters."
+  sql           = query.redshift_cluster_low_utilization.sql
+  severity      = "low"
+  tags = merge(local.redshift_common_tags, {
+    class = "unused"
   })
 }
