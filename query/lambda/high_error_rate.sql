@@ -24,4 +24,4 @@ select
   account_id
 from
   aws_lambda_function f
-  left join error_rate as er on f.name = er.name
+  left join error_rate as er on f.name = er.name;
