@@ -9,9 +9,9 @@ benchmark "lambda" {
   description   = "Thrifty developers ensure their Lambda functions are optimized."
   documentation = file("./controls/docs/lambda.md")
   tags          = local.lambda_common_tags
-  children = [
-    control.high_error_rate,
+  children = [    
     control.excessive_timout,
+    control.high_error_rate
   ]
 }
 
