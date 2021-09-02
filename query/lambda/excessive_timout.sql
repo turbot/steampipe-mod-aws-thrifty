@@ -24,4 +24,4 @@ select
   account_id
 from
   aws_lambda_function f
-  left join lambda_duration as d on f.name = d.name
+  left join lambda_duration as d on f.name = d.name;
