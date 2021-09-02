@@ -20,7 +20,8 @@ locals {
 #     benchmark.ec2,
 #     benchmark.network,
 #     benchmark.rds,
-#     benchmark.s3
+#     benchmark.s3,
+#     benchmark.lambda
 #   ]
 #   tags = local.thrifty_common_tags
 # }
