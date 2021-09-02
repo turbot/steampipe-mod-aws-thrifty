@@ -10,7 +10,7 @@ brew tap turbot/tap
 brew install steampipe
 
 steampipe -v 
-steampipe version 0.7.0
+steampipe version 0.7.3
 ```
 
 Install the AWS plugin
@@ -20,7 +20,7 @@ steampipe plugin install aws
 
 Clone this repo and move into the directory:
 ```sh
-git clone git@github.com:turbot/steampipe-mod-aws-thrifty
+git clone https://github.com/turbot/steampipe-mod-aws-thrifty.git
 cd steampipe-mod-aws-thrifty
 ```
 
@@ -42,8 +42,12 @@ steampipe check control.instances_with_low_utilization
 - Unused, underused and oversized **EC2 Instances**
 - Unused, underused and oversized **EBS Volumes** and **Snapshots**
 - **CloudWatch Log Groups** without retention policies
-- **Cloudwatch Log Streams** with stale data 
+- **CloudWatch Log Streams** with stale data 
+- **CloudFront Distribution** pricing classes
+- Unused **EMR Clusters** with previous generation instances
+- Unused **ECS Clusters** 
 - Stale **DynamoDB** Tables
+- Unused and underused **Redshift Clusters**
 - **S3 Buckets** without lifecycle policies
 - Unattached **Elastic IPs**
 - [#TODO List](https://github.com/turbot/steampipe-mod-aws-thrifty/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)

@@ -68,4 +68,4 @@ from
 where 
   prev_month.cost != base_month.cost
 order by
-  (prev_month.cost - base_month.cost) desc
+  (prev_month.cost - base_month.cost) desc;

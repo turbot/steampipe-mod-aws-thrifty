@@ -1,17 +1,17 @@
-with ec2_instance_utilization as (
-  select 
-    instance_id,
+with ecs_cluster_utilization as (
+  select
+    cluster_name,
     round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
     count(maximum) days
-  from 
-    aws_ec2_instance_metric_cpu_utilization_daily
+  from
+    aws_ecs_cluster_metric_cpu_utilization_daily
   where
     date_part('day', now() - timestamp) <= 30
   group by
-    instance_id
+    cluster_name
 )
 select
-  arn as resource,
+  i.cluster_name as resource,
   case
     when avg_max is null then 'error'
     when avg_max < 20 then 'alarm'
@@ -25,5 +25,5 @@ select
   region,
   account_id
 from
-  aws_ec2_instance i
-  left join ec2_instance_utilization as u on u.instance_id = i.instance_id;
+  aws_ecs_cluster as i
+  left join ecs_cluster_utilization as u on u.cluster_name = i.cluster_name;

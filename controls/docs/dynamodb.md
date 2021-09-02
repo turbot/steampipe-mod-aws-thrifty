@@ -1,6 +1,6 @@
 ## Thrifty DynamoDB Benchmark
 
-Thrifty developers archive DynamoDB tables with stale data. This benchmark focuses on finding tables where the data has not changed recently.
+Thrifty developers archive DynamoDB tables with stale data. This benchmark focuses on finding tables where the data has not been changed recently.
 
 ### Default Thresholds
 

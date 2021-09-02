@@ -10,4 +10,4 @@ select
   region,
   account_id
 from
-  aws_ec2_instance
+  aws_ec2_instance;
