@@ -17,7 +17,7 @@ select
     else 'ok'
   end as status,
   case
-    when avg_duration is null then 'CloudWatch metrics not available for ' || title || '.'
+    when avg_duration is null then 'CloudWatch lambda metrics not available for ' || title || '.'
     else title || ' Timeout of ' || timeout::numeric*1000 || ' milliseconds is ' || round(((timeout :: numeric*1000)-avg_duration)/(timeout :: numeric*1000)*100,1) || '% more as compared to average of ' || round(avg_duration,0) || ' milliseconds.'
   end as reason,
   region,
