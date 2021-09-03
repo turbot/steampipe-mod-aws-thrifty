@@ -10,12 +10,12 @@ benchmark "lambda" {
   documentation = file("./controls/docs/lambda.md")
   tags          = local.lambda_common_tags
   children = [    
-    control.excessive_timout,
-    control.high_error_rate
+    control.lambda_excessive_timeout,
+    control.lambda_high_error_rate
   ]
 }
 
-control "high_error_rate" {
+control "lambda_high_error_rate" {
   title         = "Are there any lambda functions with high error rate?"
   description   = "Function errors may result in retries that incur extra charges."
   sql           = query.high_error_rate.sql
@@ -25,7 +25,7 @@ control "high_error_rate" {
   })
 }
 
-control "excessive_timout" {
+control "lambda_excessive_timeout" {
   title         = "Are there any lambda functions with high timout?"
   description   = "Excessive timeouts result in retries and additional execution time for the function, incurring request charges and billed duration."
   sql           = query.excessive_timout.sql
