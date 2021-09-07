@@ -1,3 +1,13 @@
+## v0.7 [2021-09-07]
+
+_What's new?_
+
+- Added initial Lambda benchmark and controls
+
+- New controls added:
+  - lambda_excessive_timout
+  - lambda_high_error_rate
+
 ## v0.6 [2021-08-25]
 
 _What's new?_
