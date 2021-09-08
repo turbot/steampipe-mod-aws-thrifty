@@ -18,7 +18,7 @@ benchmark "lambda" {
 control "lambda_high_error_rate" {
   title         = "Are there any lambda functions with high error rate?"
   description   = "Function errors may result in retries that incur extra charges."
-  sql           = query.high_error_rate.sql
+  sql           = query.lambda_function_high_error_rate.sql
   severity      = "low"
   tags = merge(local.lambda_common_tags, {
     class = "managed"
@@ -28,7 +28,7 @@ control "lambda_high_error_rate" {
 control "lambda_excessive_timeout" {
   title         = "Are there any lambda functions with high timeout?"
   description   = "Excessive timeouts result in retries and additional execution time for the function, incurring request charges and billed duration."
-  sql           = query.excessive_timeout.sql
+  sql           = query.lambda_function_excessive_timeout.sql
   severity      = "low"
   tags = merge(local.lambda_common_tags, {
     class = "managed"
