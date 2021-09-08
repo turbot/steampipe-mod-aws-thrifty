@@ -27,7 +27,7 @@ control "lambda_function_high_error_rate" {
 
 control "lambda_function_excessive_timeout" {
   title         = "Are there any lambda functions with high timeout?"
-  description   = "Excessive timeouts result in retries and additional execution time for the function, incurring request charges and billed duration. The control checks for functions with a timeout rate of more than 10% a day in one of the last 7 days"
+  description   = "Excessive timeouts result in retries and additional execution time for the function, incurring request charges and billed duration. The control checks for functions with a timeout rate of more than 10% a day in one of the last 7 days."
   sql           = query.lambda_function_excessive_timeout.sql
   severity      = "low"
   tags = merge(local.lambda_common_tags, {
