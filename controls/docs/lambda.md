@@ -6,8 +6,5 @@ Lambda charges based on number of requests for your function. Function errors ma
 
 ### Default Thresholds
 
-- [Checks for functions with a timeout rate of more than 10% a day in one of the last 7 days](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/lambda_function_excessive_timeout)
-
-
-- [Checks for functions with an error rate of more than 10% a day in one of the last 7 days](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/lambda_function_high_error_rate)
-
+- [Lambda function timeout rate threshold (> 10%)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/lambda_function_excessive_timeout)
+- [Lambda function error rate threshold (> 10%)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/lambda_function_high_error_rate)
