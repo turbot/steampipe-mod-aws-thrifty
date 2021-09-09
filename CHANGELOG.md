@@ -2,7 +2,7 @@
 
 - _Enhancements_
 
-- The control and the query names of the Lambda benchmark have been updated to maintain consistency across other controls and queries
+- Lambda benchmark control and query names have been updated to maintain consistency
 
 _Bug fixes_
 
