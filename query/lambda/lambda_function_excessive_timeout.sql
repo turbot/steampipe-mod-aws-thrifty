@@ -13,7 +13,7 @@ select
   arn as resource,
   case
     when avg_duration is null then 'error'
-    when ((timeout :: numeric*1000)-avg_duration)/(timeout :: numeric*1000) > 0.1 then 'alarm'
+    when ((timeout :: numeric*1000) - avg_duration)/(timeout :: numeric*1000) > 0.1 then 'alarm'
     else 'ok'
   end as status,
   case
