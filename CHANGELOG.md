@@ -1,3 +1,13 @@
+## v0.8 [2021-09-09]
+
+- _Enhancements_
+
+- Lambda benchmark control and query names have been updated to maintain consistency
+
+_Bug fixes_
+
+- The broken reference links in the Lambda benchmark document have been removed
+
 ## v0.7 [2021-09-07]
 
 _What's new?_
