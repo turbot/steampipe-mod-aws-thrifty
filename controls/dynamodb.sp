@@ -10,14 +10,14 @@ benchmark "dynamodb" {
   documentation = file("./controls/docs/dynamodb.md")
   tags          = local.dynamodb_common_tags
   children = [
-    control.stale_dynamodb_table_data
+    control.dynamodb_table_stale_data
   ]
 }
 
-control "stale_dynamodb_table_data" {
+control "dynamodb_table_stale_data" {
   title         = "What DynamoDB tables have stale data? (Not changed in last 90 days)"
   description   = "If the data has not changed in 90 days, is the table needed?"
-  sql           = query.dynamodb_stale_data.sql
+  sql           = query.dynamodb_table_stale_data.sql
   severity      = "low"
   tags = merge(local.dynamodb_common_tags, {
     class = "unused"
