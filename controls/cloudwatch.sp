@@ -10,25 +10,25 @@ benchmark "cloudwatch" {
   documentation = file("./controls/docs/cloudwatch.md")
   tags          = local.cloudwatch_common_tags
   children = [
-    control.cw_log_group_retention,
-    control.cw_log_stream_unused
+    control.cloudwatch_log_group_no_retention,
+    control.cloudwatch_log_stream_stale
   ]
 }
 
-control "cw_log_group_retention" {
+control "cloudwatch_log_group_no_retention" {
   title         = "Is retention enabled for your CloudWatch Log Groups?"
   description   = "All log groups should have a defined retention configuration."
-  sql           = query.cw_log_group_without_retention.sql
+  sql           = query.cloudwatch_log_group_no_retention.sql
   severity      = "low"
   tags = merge(local.cloudwatch_common_tags, {
     class = "managed"
   })
 }
 
-control "cw_log_stream_unused" {
+control "cloudwatch_log_stream_stale" {
   title         = "Are CloudWatch log streams active? (i.e. written to in last 90 days)"
   description   = "Unnecessary log streams should be deleted for storage cost savings."
-  sql           = query.stale_cw_log_stream.sql
+  sql           = query.cloudwatch_log_stream_stale.sql
   severity      = "low"
   tags = merge(local.cloudwatch_common_tags, {
     class = "unused"

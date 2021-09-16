@@ -10,25 +10,25 @@ benchmark "cloudtrail" {
   documentation = file("./controls/docs/cloudtrail.md")
   tags          = local.cloudtrail_common_tags
   children = [
-    control.multiple_global_trails,
-    control.multiple_regional_trails
+    control.cloudtrail_trail_global_multiple,
+    control.cloudtrail_trail_regional_multiple
   ]
 }
 
-control "multiple_global_trails" {
+control "cloudtrail_trail_global_multiple" {
   title = "Are there redundant global CloudTrail trails?"
   description   = "Your first cloudtrail in each account is free, additional trails are expensive."
-  sql           = query.multiple_cloudtrail_trails.sql
+  sql           = query.cloudtrail_trail_global_multiple.sql
   severity      = "low"
   tags = merge(local.cloudtrail_common_tags, {
     class = "managed"
   })
 }
 
-control "multiple_regional_trails" {
+control "cloudtrail_trail_regional_multiple" {
   title         = "Are there redundant regional CloudTrail trails?"
   description   = "Your first cloudtrail in each region is free, additional trails are expensive."
-  sql           = query.multiple_regional_trails.sql
+  sql           = query.cloudtrail_trail_regional_multiple.sql
   severity      = "low"
   tags = merge(local.cloudtrail_common_tags, {
     class = "managed"

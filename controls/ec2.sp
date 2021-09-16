@@ -16,7 +16,7 @@ benchmark "ec2" {
     control.ec2_network_lb_unused,
     control.ec2_reserved_instance_lease_expiration_30_days,
     control.instances_with_low_utilization,
-    control.large_ec2_instances,
+    control.ec2_instances_large,
     control.long_running_ec2_instances
   ]
 }
@@ -61,10 +61,10 @@ control "ec2_network_lb_unused" {
   })
 }
 
-control "large_ec2_instances" {
+control "ec2_instances_large" {
   title         = "What running EC2 instances are huge? (e.g. > 12xlarge)"
   description   = "Large EC2 instances are unusual, expensive and should be reviewed."
-  sql           = query.large_ec2_instances.sql
+  sql           = query.ec2_instances_large.sql
   severity      = "low"
   tags = merge(local.ec2_common_tags, {
     class = "deprecated"

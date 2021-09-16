@@ -10,15 +10,15 @@ benchmark "network" {
   documentation = file("./controls/docs/network.md")
   tags          = local.vpc_common_tags
   children = [
-    control.unattached_eips,
+    control.ec2_eips_unattached,
     control.vpc_nat_gateway_unused
   ]
 }
 
-control "unattached_eips" {
+control "ec2_eips_unattached" {
   title         = "Unattached elastic IP addresses (EIPs) should be released"
   description   = "Unattached Elastic IPs are charged by AWS, they should be released."
-  sql           = query.unattached_eips.sql
+  sql           = query.ec2_eips_unattached.sql
   severity      = "low"
   tags = merge(local.vpc_common_tags, {
     class = "unused"
