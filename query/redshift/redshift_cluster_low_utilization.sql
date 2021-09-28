@@ -14,8 +14,8 @@ select
   i.cluster_identifier as resource,
   case
     when avg_max is null then 'error'
-    when avg_max < 20 then 'alarm'
-    when avg_max < 35 then 'info'
+    when avg_max < $1 then 'alarm'
+    when avg_max < $2 then 'info'
     else 'ok'
   end as status,
   case

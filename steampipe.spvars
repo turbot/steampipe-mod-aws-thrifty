@@ -34,3 +34,9 @@ rds_running_db_instance_age_warning_days = 30
 rds_db_instance_avg_connections = 2
 rds_db_instance_avg_cpu_utilization_low = 25
 rds_db_instance_avg_cpu_utilization_high = 50
+
+# Redshift
+redshift_running_cluster_age_max_days = 90
+redshift_running_cluster_age_warning_days = 30
+redshift_cluster_avg_cpu_utilization_low = 20
+redshift_cluster_avg_cpu_utilization_high = 35
