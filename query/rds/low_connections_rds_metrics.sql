@@ -15,7 +15,7 @@ select
   case
     when avg_max is null then 'error'
     when avg_max = 0 then 'alarm'
-    when avg_max < 2 then 'info'
+    when avg_max < $1 then 'info'
     else 'ok'
   end as status,
   case

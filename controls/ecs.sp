@@ -1,3 +1,13 @@
+variable "ecs_cluster_avg_cpu_utilization_low" {
+  type        = number
+  description = "The average CPU utilization required for clusters to be considered infrequently used. This value should be lower than ecs_cluster_avg_cpu_utilization_high."
+}
+
+variable "ecs_cluster_avg_cpu_utilization_high" {
+  type        = number
+  description = "The average CPU utilization required for clusters to be considered frequently used. This value should be higher than ecs_cluster_avg_cpu_utilization_low."
+}
+
 locals {
   ecs_common_tags = merge(local.thrifty_common_tags, {
     service = "ecs"
@@ -20,6 +30,16 @@ control "ecs_cluster_low_utilization" {
   description   = "Resize or eliminate under utilized clusters."
   sql           = query.ecs_cluster_low_utilization.sql
   severity      = "low"
+
+  param "ecs_cluster_avg_cpu_utilization_low" {
+    description = "The average CPU utilization required for clusters to be considered infrequently used. This value should be lower than ecs_cluster_avg_cpu_utilization_high."
+    default     = var.ecs_cluster_avg_cpu_utilization_low
+  }
+
+  param "ecs_cluster_avg_cpu_utilization_high" {
+    description = "The average CPU utilization required for clusters to be considered frequently used. This value should be higher than ecs_cluster_avg_cpu_utilization_low."
+    default     = var.ecs_cluster_avg_cpu_utilization_high
+  }
 
   tags = merge(local.ecs_common_tags, {
     class = "unused"

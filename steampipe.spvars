@@ -1,0 +1,36 @@
+# CloudWatch
+cloudwatch_log_stream_max_age = 90
+
+# Cost Explorer
+cost_explorer_max_allowed_diff = 10
+
+# DynamoDB
+dynamodb_table_stale_data_max_days = 90
+
+# EBS
+ebs_volume_max_size_gb = 100
+ebs_volume_iops_high = 32000
+ebs_volume_avg_read_write_ops_low = 100
+ebs_volume_avg_read_write_ops_high = 500
+ebs_snapshot_age_max_days = 90
+
+# EC2
+ec2_running_instance_age_max_days = 90
+ec2_instance_avg_cpu_utilization_low = 20
+ec2_instance_avg_cpu_utilization_high = 35
+ec2_reserved_instance_expiration_warning_days = 30
+
+# ECS
+ecs_cluster_avg_cpu_utilization_low = 20
+ecs_cluster_avg_cpu_utilization_high = 35
+
+# Elasticache
+elasticache_running_cluster_age_max_days = 90
+elasticache_running_cluster_age_warning_days = 30
+
+# RDS
+rds_running_db_instance_age_max_days = 90
+rds_running_db_instance_age_warning_days = 30
+rds_db_instance_avg_connections = 2
+rds_db_instance_avg_cpu_utilization_low = 25
+rds_db_instance_avg_cpu_utilization_high = 50

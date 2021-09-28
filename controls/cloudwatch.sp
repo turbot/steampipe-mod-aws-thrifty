@@ -1,3 +1,8 @@
+variable "cloudwatch_log_stream_max_age" {
+  type        = number
+  description = "The maximum number of days a log stream is allowed without any log event written to it."
+}
+
 locals {
   cloudwatch_common_tags = merge(local.thrifty_common_tags, {
     service = "cloudwatch"
@@ -26,10 +31,16 @@ control "cw_log_group_retention" {
 }
 
 control "cw_log_stream_unused" {
-  title         = "Are CloudWatch log streams active? (i.e. written to in last 90 days)"
+  title         = "Unused log streams should be removed if not required"
   description   = "Unnecessary log streams should be deleted for storage cost savings."
   sql           = query.stale_cw_log_stream.sql
   severity      = "low"
+
+  param "cloudwatch_log_stream_max_age" {
+    description = "The maximum number of days a log stream is allowed without any log event written to it."
+    default     = var.cloudwatch_log_stream_max_age
+  }
+
   tags = merge(local.cloudwatch_common_tags, {
     class = "unused"
   })

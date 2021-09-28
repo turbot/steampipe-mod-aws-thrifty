@@ -1,3 +1,8 @@
+variable "cost_explorer_max_allowed_diff" {
+  type        = number
+  description = "The maximum allowed cost differences between current and previous month."
+}
+
 locals {
   cost-explorer_common_tags = merge(local.thrifty_common_tags, {
     service = "cost-explorer"
@@ -19,6 +24,12 @@ control "full_month_cost_changes" {
   description   = "Compares the cost of services between the last two full months of AWS usage. Change line 51 of the named query (monthly_service_cost_changes.sql) to adjust the granularity of the alarm."
   sql           = query.monthly_service_cost_changes.sql
   severity      = "low"
+
+  param "cost_explorer_max_allowed_diff" {
+    description = "The maximum allowed cost differences between current and previous month."
+    default     = var.cost_explorer_max_allowed_diff
+  }
+
   tags = merge(local.cost-explorer_common_tags, {
     class = "managed"
   })
