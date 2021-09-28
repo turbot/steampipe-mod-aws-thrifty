@@ -35,6 +35,7 @@ benchmark "ebs" {
   documentation = file("./controls/docs/ebs.md")
   tags          = local.ebs_common_tags
   children = [
+    control.ebs_snapshot_max_age,
     control.ebs_volumes_on_stopped_instances,
     control.ebs_with_low_usage,
     control.gp2_volumes,
@@ -42,7 +43,6 @@ benchmark "ebs" {
     control.io1_volumes,
     control.large_ebs_volumes,
     control.low_iops_ebs_volumes,
-    control.ebs_snapshot_max_age,
     control.unattached_ebs_volumes
   ]
 }

@@ -63,7 +63,6 @@ control "long_running_rds_db_instances" {
   })
 }
 
-
 control "latest_rds_instance_types" {
   title         = "Are there RDS instances using previous gen instance types?"
   description   = "M5 and T3 instance types are less costly than previous generations"

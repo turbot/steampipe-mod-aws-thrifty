@@ -1,4 +1,4 @@
-variable "cost_explorer_max_allowed_diff" {
+variable "cost_explorer_max_allowed_cost_diff" {
   type        = number
   description = "The maximum allowed cost differences between current and previous month."
 }
@@ -21,13 +21,13 @@ benchmark "cost-explorer" {
 
 control "full_month_cost_changes" {
   title         = "What services have changed in cost over last two months?"
-  description   = "Compares the cost of services between the last two full months of AWS usage. Change line 51 of the named query (monthly_service_cost_changes.sql) to adjust the granularity of the alarm."
+  description   = "Compares the cost of services between the last two full months of AWS usage."
   sql           = query.monthly_service_cost_changes.sql
   severity      = "low"
 
-  param "cost_explorer_max_allowed_diff" {
+  param "cost_explorer_max_allowed_cost_diff" {
     description = "The maximum allowed cost differences between current and previous month."
-    default     = var.cost_explorer_max_allowed_diff
+    default     = var.cost_explorer_max_allowed_cost_diff
   }
 
   tags = merge(local.cost-explorer_common_tags, {

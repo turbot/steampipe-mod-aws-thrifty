@@ -30,8 +30,8 @@ benchmark "redshift" {
   documentation = file("./controls/docs/redshift.md")
   tags          = local.redshift_common_tags
   children = [
-    control.redshift_cluster_max_age,
     control.redshift_cluster_low_utilization,
+    control.redshift_cluster_max_age,
     control.redshift_cluster_schedule_pause_resume_enabled
   ]
 }
@@ -39,7 +39,7 @@ benchmark "redshift" {
 control "redshift_cluster_max_age" {
   title         = "Long running Redshift clusters should have reserved nodes purchased for them"
   description   = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
-  sql           = query.redshift_cluster_age_90_days.sql
+  sql           = query.redshift_cluster_max_age.sql
   severity      = "low"
 
   param "redshift_running_cluster_age_max_days" {

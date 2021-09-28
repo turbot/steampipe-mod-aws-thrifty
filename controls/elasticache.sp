@@ -20,14 +20,14 @@ benchmark "elasticache" {
   documentation = file("./controls/docs/elasticache.md")
   tags          = local.elasticache_common_tags
   children = [
-    control.elasticache_cluster_long_running,
+    control.elasticache_cluster_long_running
   ]
 }
 
 control "elasticache_cluster_long_running" {
   title         = "Long running ElastiCache clusters should have reserved nodes purchased for them"
   description   = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
-  sql           = query.elasticache_cluster_age_90_days.sql
+  sql           = query.elasticache_long_running_cluster.sql
   severity      = "low"
 
   param "elasticache_running_cluster_age_max_days" {
