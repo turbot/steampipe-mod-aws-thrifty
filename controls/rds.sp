@@ -1,16 +1,11 @@
-variable "rds_running_db_instance_age_max_days" {
-  type        = number
-  description = "The maximum number of days DB instances are allowed to run."
-}
-
-variable "rds_running_db_instance_age_warning_days" {
-  type        = number
-  description = "The number of days after which a DB instances set a warning."
-}
-
 variable "rds_db_instance_avg_connections" {
   type        = number
   description = "The minimum number of average connections per day required for DB instances to be considered in-use."
+}
+
+variable "rds_db_instance_avg_cpu_utilization_high" {
+  type        = number
+  description = "The average CPU utilization required for DB instances to be considered frequently used. This value should be higher than rds_db_instance_avg_cpu_utilization_low."
 }
 
 variable "rds_db_instance_avg_cpu_utilization_low" {
@@ -18,9 +13,14 @@ variable "rds_db_instance_avg_cpu_utilization_low" {
   description = "The average CPU utilization required for DB instances to be considered infrequently used. This value should be lower than rds_db_instance_avg_cpu_utilization_high."
 }
 
-variable "rds_db_instance_avg_cpu_utilization_high" {
+variable "rds_running_db_instance_age_max_days" {
   type        = number
-  description = "The average CPU utilization required for DB instances to be considered frequently used. This value should be higher than rds_db_instance_avg_cpu_utilization_low."
+  description = "The maximum number of days DB instances are allowed to run."
+}
+
+variable "rds_running_db_instance_age_warning_days" {
+  type        = number
+  description = "The number of days DB instances can be running before sending a warning."
 }
 
 locals {
@@ -54,7 +54,7 @@ control "long_running_rds_db_instances" {
   }
 
   param "rds_running_db_instance_age_warning_days" {
-    description = "The number of days after which a DB instances set a warning."
+    description = "The number of days DB instances can be running before sending a warning."
     default     = var.rds_running_db_instance_age_warning_days
   }
 

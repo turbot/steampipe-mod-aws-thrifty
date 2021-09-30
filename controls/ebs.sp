@@ -1,16 +1,6 @@
-variable "ebs_volume_max_size_gb" {
+variable "ebs_snapshot_age_max_days" {
   type        = number
-  description = "The maximum size (GB) allowed for volumes."
-}
-
-variable "ebs_volume_iops_high" {
-  type        = number
-  description = "The maximum allowed input/output operations per second (IOPS) for volumes."
-}
-
-variable "ebs_volume_avg_read_write_ops_low" {
-  type        = number
-  description = "The number of average read/write ops required for volumes to be considered infrequently used. This value should be lower than ebs_volume_avg_read_write_ops_high."
+  description = "The maximum number of days snapshots can be retained."
 }
 
 variable "ebs_volume_avg_read_write_ops_high" {
@@ -18,9 +8,19 @@ variable "ebs_volume_avg_read_write_ops_high" {
   description = "The number of average read/write ops required for volumes to be considered frequently used. This value should be higher than ebs_volume_avg_read_write_ops_low."
 }
 
-variable "ebs_snapshot_age_max_days" {
+variable "ebs_volume_avg_read_write_ops_low" {
   type        = number
-  description = "The maximum number of days snapshots can be retained."
+  description = "The number of average read/write ops required for volumes to be considered infrequently used. This value should be lower than ebs_volume_avg_read_write_ops_high."
+}
+
+variable "ebs_volume_max_iops" {
+  type        = number
+  description = "The maximum IOPS allowed for volumes."
+}
+
+variable "ebs_volume_max_size_gb" {
+  type        = number
+  description = "The maximum size (GB) allowed for volumes."
 }
 
 locals {
@@ -99,9 +99,9 @@ control "high_iops_ebs_volumes" {
   sql           = query.high_iops_volumes.sql
   severity      = "low"
 
-  param "ebs_volume_iops_high" {
-    description = "The maximum allowed input/output operations per second (IOPS) for disks."
-    default     = var.ebs_volume_iops_high
+  param "ebs_volume_max_iops" {
+    description = "The maximum IOPS allowed for volumes."
+    default     = var.ebs_volume_max_iops
   }
 
   tags = merge(local.ebs_common_tags, {

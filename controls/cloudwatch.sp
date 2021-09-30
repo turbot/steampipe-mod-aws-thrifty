@@ -1,6 +1,6 @@
 variable "cloudwatch_log_stream_max_age" {
   type        = number
-  description = "The maximum number of days a log stream is allowed without any log event written to it."
+  description = "The maximum number of days log streams are allowed without any log event written to it."
 }
 
 locals {
@@ -21,7 +21,7 @@ benchmark "cloudwatch" {
 }
 
 control "cw_log_group_retention" {
-  title         = "Is retention enabled for your CloudWatch Log Groups?"
+  title         = "CloudWatch Log Groups retention should be enabled"
   description   = "All log groups should have a defined retention configuration."
   sql           = query.cw_log_group_without_retention.sql
   severity      = "low"
@@ -37,7 +37,7 @@ control "cw_log_stream_unused" {
   severity      = "low"
 
   param "cloudwatch_log_stream_max_age" {
-    description = "The maximum number of days a log stream is allowed without any log event written to it."
+    description = "The maximum number of days log streams are allowed without any log event written to it."
     default     = var.cloudwatch_log_stream_max_age
   }
 

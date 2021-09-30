@@ -6,4 +6,4 @@ Thrifty developers actively manage the retention of their Cloudtrail logs. This 
 
 | Variable | Description | Default |
 | - | - | - |
-| cloudwatch_log_stream_max_age | The maximum number of days a log stream is allowed without any log event written to it. | 90 days |
+| cloudwatch_log_stream_max_age | The maximum number of days log streams are allowed without any log event written to it. | 90 days |

@@ -1,11 +1,6 @@
-variable "redshift_running_cluster_age_max_days" {
+variable "redshift_cluster_avg_cpu_utilization_high" {
   type        = number
-  description = "The maximum number of days clusters are allowed to run."
-}
-
-variable "redshift_running_cluster_age_warning_days" {
-  type        = number
-  description = "The number of days after which a cluster set a warning."
+  description = "The average CPU utilization required for clusters to be considered frequently used. This value should be higher than redshift_cluster_avg_cpu_utilization_low."
 }
 
 variable "redshift_cluster_avg_cpu_utilization_low" {
@@ -13,9 +8,14 @@ variable "redshift_cluster_avg_cpu_utilization_low" {
   description = "The average CPU utilization required for clusters to be considered infrequently used. This value should be lower than redshift_cluster_avg_cpu_utilization_high."
 }
 
-variable "redshift_cluster_avg_cpu_utilization_high" {
+variable "redshift_running_cluster_age_max_days" {
   type        = number
-  description = "The average CPU utilization required for clusters to be considered frequently used. This value should be higher than redshift_cluster_avg_cpu_utilization_low."
+  description = "The maximum number of days clusters are allowed to run."
+}
+
+variable "redshift_running_cluster_age_warning_days" {
+  type        = number
+  description = "The number of days clusters can be running before sending a warning."
 }
 
 locals {
@@ -48,7 +48,7 @@ control "redshift_cluster_max_age" {
   }
 
   param "redshift_running_cluster_age_warning_days" {
-    description = "The number of days after which clusters set a warning."
+    description = "The number of days clusters can be running before sending a warning."
     default     = var.redshift_running_cluster_age_warning_days
   }
 
