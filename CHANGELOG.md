@@ -1,6 +1,12 @@
+## v0.9 [2021-09-30]
+
+_What's new?_
+
+- Added: Input variables have been added to CloudWatch, Cost Explorer, DynamoDB, EBS, EC2, ECS, ElastiCache, RDS, and Redshift controls to allow different thresholds to be passed in. To get started, please see [AWS Thrifty Configuration](https://hub.steampipe.io/mods/turbot/aws_thrifty#configuration). For a list of variables and their default values, please see [steampipe.spvars](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/main/steampipe.spvars).
+
 ## v0.8 [2021-09-09]
 
-- _Enhancements_
+_Enhancements_
 
 - Lambda benchmark control and query names have been updated to maintain consistency
 
