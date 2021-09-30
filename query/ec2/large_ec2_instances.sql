@@ -2,9 +2,8 @@ select
   arn as resource,
   case
     when instance_state not in ('running', 'pending', 'rebooting') then 'info'
-    when instance_type like '%.__xlarge' then 'alarm'
-    when instance_type like '%.metal' then 'alarm'
-    else 'ok'
+    when instance_type like any ($1) then 'ok'
+    else 'alarm'
   end as status,
   title || ' has type ' || instance_type || ' and is ' || instance_state || '.' as reason,
   region,

@@ -1,3 +1,28 @@
+variable "ec2_instance_allowed_types" {
+  type        = list(string)
+  description = "A list of allowed instance types. PostgreSQL wildcards are supported."
+}
+
+variable "ec2_instance_avg_cpu_utilization_high" {
+  type        = number
+  description = "The average CPU utilization required for instances to be considered frequently used. This value should be higher than ec2_instance_avg_cpu_utilization_low."
+}
+
+variable "ec2_instance_avg_cpu_utilization_low" {
+  type        = number
+  description = "The average CPU utilization required for instances to be considered infrequently used. This value should be lower than ec2_instance_avg_cpu_utilization_high."
+}
+
+variable "ec2_reserved_instance_expiration_warning_days" {
+  type        = number
+  description = "The number of days reserved instances can be running before sending a warning."
+}
+
+variable "ec2_running_instance_age_max_days" {
+  type        = number
+  description = "The maximum number of days instances are allowed to run."
+}
+
 locals {
   ec2_common_tags = merge(local.thrifty_common_tags, {
     service = "ec2"
@@ -14,7 +39,7 @@ benchmark "ec2" {
     control.ec2_classic_lb_unused,
     control.ec2_gateway_lb_unused,
     control.ec2_network_lb_unused,
-    control.ec2_reserved_instance_lease_expiration_30_days,
+    control.ec2_reserved_instance_lease_expiration_days,
     control.instances_with_low_utilization,
     control.large_ec2_instances,
     control.long_running_ec2_instances
@@ -62,20 +87,32 @@ control "ec2_network_lb_unused" {
 }
 
 control "large_ec2_instances" {
-  title         = "What running EC2 instances are huge? (e.g. > 12xlarge)"
+  title         = "Large EC2 instances should be reviewed"
   description   = "Large EC2 instances are unusual, expensive and should be reviewed."
   sql           = query.large_ec2_instances.sql
   severity      = "low"
+
+  param "ec2_instance_allowed_types" {
+    description = "A list of allowed instance types. PostgreSQL wildcards are supported."
+    default     = var.ec2_instance_allowed_types
+  }
+
   tags = merge(local.ec2_common_tags, {
     class = "deprecated"
   })
 }
 
 control "long_running_ec2_instances" {
-  title         = "What are my long running EC2 instances? (over 90 days?)"
+  title         = "Long running EC2 instances should be reviewed"
   description   = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long."
   sql           = query.long_running_instances.sql
   severity      = "low"
+
+  param "ec2_running_instance_age_max_days" {
+    description = "The maximum number of days instances are allowed to run."
+    default     = var.ec2_running_instance_age_max_days
+  }
+
   tags = merge(local.ec2_common_tags, {
     class = "deprecated"
   })
@@ -86,16 +123,33 @@ control "instances_with_low_utilization" {
   description   = "Resize or eliminate under utilized instances."
   sql           = query.low_utilization_ec2_instance.sql
   severity      = "low"
+
+  param "ec2_instance_avg_cpu_utilization_low" {
+    description = "The average CPU utilization required for instances to be considered infrequently used. This value should be lower than ec2_instance_avg_cpu_utilization_high."
+    default     = var.ec2_instance_avg_cpu_utilization_low
+  }
+
+  param "ec2_instance_avg_cpu_utilization_high" {
+    description = "The average CPU utilization required for instances to be considered frequently used. This value should be higher than ec2_instance_avg_cpu_utilization_low."
+    default     = var.ec2_instance_avg_cpu_utilization_high
+  }
+
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
 }
 
-control "ec2_reserved_instance_lease_expiration_30_days" {
-  title         = "EC2 reserved instances scheduled to expire within next 30 days should be reviewed"
-  description   = "EC2 reserved instances that are scheduled to expire within the next 30 days or have expired in the preceding 30 days should be reviewed."
-  sql           = query.ec2_reserved_instance_lease_expiration_30_days.sql
+control "ec2_reserved_instance_lease_expiration_days" {
+  title         = "EC2 reserved instances scheduled for expiration should be reviewed"
+  description   = "EC2 reserved instances that are scheduled for expiration or have expired in the preceding 30 days should be reviewed."
+  sql           = query.ec2_reserved_instance_lease_expiration_days.sql
   severity      = "low"
+
+  param "ec2_reserved_instance_expiration_warning_days" {
+    description = "The number of days reserved instances can be running before sending a warning."
+    default     = var.ec2_reserved_instance_expiration_warning_days
+  }
+
   tags = merge(local.ec2_common_tags, {
     class = "managed"
   })

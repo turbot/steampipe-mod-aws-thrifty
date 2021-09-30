@@ -38,8 +38,8 @@ with ebs_usage as (
 select
   'arn:' || partition || ':ec2:' || region || ':' || account_id || ':volume/' || volume_id as resource,
   case
-    when avg_max <= 100 then 'alarm'
-    when avg_max <= 500 then 'info'
+    when avg_max <= $1 then 'alarm'
+    when avg_max <= $2 then 'info'
     else 'ok'
   end as status,
   volume_id || ' is averaging ' || avg_max || ' read and write ops over the last ' || days || ' days.' as reason,

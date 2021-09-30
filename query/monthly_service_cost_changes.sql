@@ -48,7 +48,7 @@ select
     when base_month.cost is null then 'info'
     when prev_month.cost is null then 'ok'
     -- adjust this value to change threshold for the alarm
-    when (prev_month.cost - base_month.cost) > 10 then 'alarm'
+    when (prev_month.cost - base_month.cost) > $1 then 'alarm'
     else 'ok'
   end as status,
   case 

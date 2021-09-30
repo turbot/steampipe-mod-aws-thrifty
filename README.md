@@ -1,4 +1,5 @@
 # AWS Thrifty
+
 An AWS cost savings and waste checking tool.
 
 ## Quick start
@@ -14,17 +15,20 @@ steampipe version 0.7.3
 ```
 
 Install the AWS plugin
+
 ```shell
 steampipe plugin install aws
 ```
 
 Clone this repo and move into the directory:
+
 ```sh
 git clone https://github.com/turbot/steampipe-mod-aws-thrifty.git
 cd steampipe-mod-aws-thrifty
 ```
 
 Run all benchmarks:
+
 ```shell
 steampipe check all
 ```
@@ -32,20 +36,22 @@ steampipe check all
 ![image](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/main/docs/thrifty-output.png?raw=true)
 
 Your can also run a specific controls:
+
 ```shell
 steampipe check control.instances_with_low_utilization
 ```
 
 ## Current Thrifty Checks
+
 - Month to month swings in service cost from **AWS Cost Explorer**
 - Underused and oversized **RDS** Databases
 - Unused, underused and oversized **EC2 Instances**
 - Unused, underused and oversized **EBS Volumes** and **Snapshots**
 - **CloudWatch Log Groups** without retention policies
-- **CloudWatch Log Streams** with stale data 
+- **CloudWatch Log Streams** with stale data
 - **CloudFront Distribution** pricing classes
 - Unused **EMR Clusters** with previous generation instances
-- Unused **ECS Clusters** 
+- Unused **ECS Clusters**
 - Stale **DynamoDB** Tables
 - Unused and underused **Redshift Clusters**
 - **S3 Buckets** without lifecycle policies
@@ -53,17 +59,20 @@ steampipe check control.instances_with_low_utilization
 - [#TODO List](https://github.com/turbot/steampipe-mod-aws-thrifty/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 **Use introspection to view the available controls:**:
-```
+
+```shell
 steampipe query "select resource_name from steampipe_control;"
 ```
 
 ## Contributing
 
 Have an idea for a thrifty check but aren't sure how to get started?
+
 - **[Join our Slack community →](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)**
 - **[Mod developer guide →](https://steampipe.io/docs/using-steampipe/writing-controls)**
 
 **Prerequisites**:
+
 - [Steampipe installed](https://steampipe.io/downloads)
 - Steampipe AWS plugin installed (see above)
 
@@ -85,5 +94,6 @@ Thanks for getting involved! We would love to have you [join our Slack community
 Please see the [contribution guidelines](https://github.com/turbot/steampipe/blob/main/CONTRIBUTING.md) and our [code of conduct](https://github.com/turbot/steampipe/blob/main/CODE_OF_CONDUCT.md). All contributions are subject to the [Apache 2.0 open source license](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/main/LICENSE).
 
 `help wanted` issues:
+
 - [Steampipe](https://github.com/turbot/steampipe/labels/help%20wanted)
 - [AWS Thrifty Mod](https://github.com/turbot/steampipe-mod-aws-thrifty/labels/help%20wanted)
