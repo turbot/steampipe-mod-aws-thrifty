@@ -1,8 +1,8 @@
 # CloudWatch
-cloudwatch_log_stream_max_age = 90
+cloudwatch_log_stream_age_max_days = 90
 
 # Cost Explorer
-cost_explorer_max_allowed_cost_diff = 10
+cost_explorer_service_cost_max_cost_units = 10
 
 # DynamoDB
 dynamodb_table_stale_data_max_days = 90

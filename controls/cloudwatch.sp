@@ -1,6 +1,6 @@
-variable "cloudwatch_log_stream_max_age" {
+variable "cloudwatch_log_stream_age_max_days" {
   type        = number
-  description = "The maximum number of days log streams are allowed without any log event written to it."
+  description = "The maximum number of days log streams are allowed without any log event written to them."
 }
 
 locals {
@@ -36,9 +36,9 @@ control "cw_log_stream_unused" {
   sql           = query.stale_cw_log_stream.sql
   severity      = "low"
 
-  param "cloudwatch_log_stream_max_age" {
-    description = "The maximum number of days log streams are allowed without any log event written to it."
-    default     = var.cloudwatch_log_stream_max_age
+  param "cloudwatch_log_stream_age_max_days" {
+    description = "The maximum number of days log streams are allowed without any log event written to them."
+    default     = var.cloudwatch_log_stream_age_max_days
   }
 
   tags = merge(local.cloudwatch_common_tags, {

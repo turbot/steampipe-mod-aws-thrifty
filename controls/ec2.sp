@@ -15,7 +15,7 @@ variable "ec2_instance_avg_cpu_utilization_low" {
 
 variable "ec2_reserved_instance_expiration_warning_days" {
   type        = number
-  description = "The number of days reserved instances can be running before sending a expiration warning."
+  description = "The number of days reserved instances can be running before sending a warning."
 }
 
 variable "ec2_running_instance_age_max_days" {
@@ -146,7 +146,7 @@ control "ec2_reserved_instance_lease_expiration_days" {
   severity      = "low"
 
   param "ec2_reserved_instance_expiration_warning_days" {
-    description = "The number of days reserved instances can be running before sending a expiration warning."
+    description = "The number of days reserved instances can be running before sending a warning."
     default     = var.ec2_reserved_instance_expiration_warning_days
   }
 

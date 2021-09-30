@@ -6,4 +6,4 @@ Thrifty developers actively monitor their cloud usage and cost data.  This bench
 
 | Variable | Description | Default |
 | - | - | - |
-| cost_explorer_max_allowed_cost_diff | The maximum allowed cost differences between current and previous month. | 10 cost unit |
+| cost_explorer_service_cost_max_cost_units | The maximum difference in cost units allowed for service costs between the current and previous month. | 10 cost units |

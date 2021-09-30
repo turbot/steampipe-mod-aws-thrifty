@@ -1,6 +1,6 @@
-variable "cost_explorer_max_allowed_cost_diff" {
+variable "cost_explorer_service_cost_max_cost_units" {
   type        = number
-  description = "The maximum allowed cost differences between current and previous month."
+  description = "The maximum difference in cost units allowed for service costs between the current and previous month."
 }
 
 locals {
@@ -25,9 +25,9 @@ control "full_month_cost_changes" {
   sql           = query.monthly_service_cost_changes.sql
   severity      = "low"
 
-  param "cost_explorer_max_allowed_cost_diff" {
-    description = "The maximum allowed cost differences between current and previous month."
-    default     = var.cost_explorer_max_allowed_cost_diff
+  param "cost_explorer_service_cost_max_cost_units" {
+    description = "The maximum difference in cost units allowed for service costs between the current and previous month."
+    default     = var.cost_explorer_service_cost_max_cost_units
   }
 
   tags = merge(local.cost-explorer_common_tags, {
