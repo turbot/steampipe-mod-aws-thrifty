@@ -2,11 +2,12 @@
 
 Thrifty developers keep a careful eye for unused and under-utilized EBS volumes. Elastic block store is a key component of hidden cost on AWS, and this benchmark looks for EBS volumes that are unused, under-utilized, out-dates and oversized.
 
-### Default Thresholds
+## Variables
 
-- [High IOPS threshold (32,000 IOPS)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/high_iops_volumes)
-- [Low IOPS threshold (3,000 IOPS)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/low_iops_volumes)
-- [Large EBS volume size threshold (100gb)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/large_ebs_volumes)
-- [Very Low EBS usage threshold (100 Max Write Operations/min)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/low_usage_ebs_volumes)
-- [Low EBS usage threshold (100 Max Write Operations/min)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/low_usage_ebs_volumes)
-- [Old EBS Snapshots threshold (90 days)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/old_ebs_snapshots)
+| Variable | Description | Default |
+| - | - | - |
+| ebs_snapshot_age_max_days | The maximum number of days snapshots can be retained. | 90 days |
+| ebs_volume_avg_read_write_ops_high | The number of average read/write ops required for volumes to be considered frequently used. This value should be higher than `ebs_volume_avg_read_write_ops_low`. | 500 ops/min |
+| ebs_volume_avg_read_write_ops_low | The number of average read/write ops required for volumes to be considered infrequently used. This value should be lower than `ebs_volume_avg_read_write_ops_high`. | 100 ops/min |
+| ebs_volume_max_iops | The maximum IOPS allowed for volumes. | 32,000 IOPS |
+| ebs_volume_max_size_gb | The maximum size (GB) allowed for volumes. | 100 GB |

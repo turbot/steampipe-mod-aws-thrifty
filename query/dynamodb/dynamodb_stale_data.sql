@@ -1,8 +1,8 @@
 select
   'arn:' || partition || ':dynamodb:' || region || ':' || account_id || ':table/' || name as resource,
-  case 
+  case
     when latest_stream_label is null then 'info'
-    when date_part('day', now() - (latest_stream_label::timestamptz)) > 90 then 'alarm'
+    when date_part('day', now() - (latest_stream_label::timestamptz)) > $1 then 'alarm'
     else 'ok'
   end as status,
   case 
@@ -11,6 +11,5 @@ select
   end as reason,
   region,
   account_id
-from 
+from
   aws_dynamodb_table;
-  
