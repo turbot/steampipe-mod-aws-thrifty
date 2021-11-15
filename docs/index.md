@@ -6,7 +6,7 @@ repository: "https://github.com/turbot/steampipe-mod-aws-thrifty"
 
 Be Thrifty on AWS! This mod checks for unused resources and opportunities to optimize your spend on AWS.
 
-![image](https://raw.githubusercontent.com/turbot/steampipe-mod-aws-thrifty/main/docs/thrifty-output.png)
+![image](https://raw.githubusercontent.com/turbot/steampipe-mod-aws-thrifty/main/docs/aws_thrifty_mod_terminal.png)
 
 ## References
 
