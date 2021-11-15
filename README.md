@@ -2,6 +2,8 @@
 
 An AWS cost savings and waste checking tool.
 
+![image](https://raw.githubusercontent.com/turbot/steampipe-mod-aws-thrifty/main/docs/aws_thrifty_mod_terminal.png)
+
 ## Quick start
 
 1) Download and install Steampipe (https://steampipe.io/downloads). Or use Brew:
@@ -11,7 +13,7 @@ brew tap turbot/tap
 brew install steampipe
 
 steampipe -v 
-steampipe version 0.7.3
+steampipe version 0.9.1
 ```
 
 Install the AWS plugin
@@ -32,8 +34,6 @@ Run all benchmarks:
 ```shell
 steampipe check all
 ```
-
-![image](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/main/docs/thrifty-output.png?raw=true)
 
 Your can also run a specific controls:
 

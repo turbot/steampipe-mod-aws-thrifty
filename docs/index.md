@@ -6,6 +6,8 @@ repository: "https://github.com/turbot/steampipe-mod-aws-thrifty"
 
 Be Thrifty on AWS! This mod checks for unused resources and opportunities to optimize your spend on AWS.
 
+![image](https://raw.githubusercontent.com/turbot/steampipe-mod-aws-thrifty/main/docs/aws_thrifty_mod_terminal.png)
+
 ## References
 
 [AWS](https://aws.amazon.com) provides on-demand cloud computing platforms and APIs to authenticated customers on a metered pay-as-you-go basis.
