@@ -1,11 +1,13 @@
 variable "elasticache_running_cluster_age_max_days" {
   type        = number
   description = "The maximum number of days clusters are allowed to run."
+  default     = 90
 }
 
 variable "elasticache_running_cluster_age_warning_days" {
   type        = number
   description = "The number of days clusters can be running before sending a warning."
+  default     = 30
 }
 
 locals {

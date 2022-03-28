@@ -1,26 +1,31 @@
 variable "rds_db_instance_avg_connections" {
   type        = number
   description = "The minimum number of average connections per day required for DB instances to be considered in-use."
+  default     = 2
 }
 
 variable "rds_db_instance_avg_cpu_utilization_high" {
   type        = number
   description = "The average CPU utilization required for DB instances to be considered frequently used. This value should be higher than rds_db_instance_avg_cpu_utilization_low."
+  default     = 50
 }
 
 variable "rds_db_instance_avg_cpu_utilization_low" {
   type        = number
   description = "The average CPU utilization required for DB instances to be considered infrequently used. This value should be lower than rds_db_instance_avg_cpu_utilization_high."
+  default     = 25
 }
 
 variable "rds_running_db_instance_age_max_days" {
   type        = number
   description = "The maximum number of days DB instances are allowed to run."
+  default     = 90
 }
 
 variable "rds_running_db_instance_age_warning_days" {
   type        = number
   description = "The number of days DB instances can be running before sending a warning."
+  default     = 30
 }
 
 locals {

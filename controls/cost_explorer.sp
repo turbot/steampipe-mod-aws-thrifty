@@ -1,6 +1,7 @@
 variable "cost_explorer_service_cost_max_cost_units" {
   type        = number
   description = "The maximum difference in cost units allowed for service costs between the current and previous month."
+  default     = 10
 }
 
 locals {

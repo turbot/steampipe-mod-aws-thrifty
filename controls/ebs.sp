@@ -1,26 +1,31 @@
 variable "ebs_snapshot_age_max_days" {
   type        = number
   description = "The maximum number of days snapshots can be retained."
+  default     = 90
 }
 
 variable "ebs_volume_avg_read_write_ops_high" {
   type        = number
   description = "The number of average read/write ops required for volumes to be considered frequently used. This value should be higher than ebs_volume_avg_read_write_ops_low."
+  default     = 500
 }
 
 variable "ebs_volume_avg_read_write_ops_low" {
   type        = number
   description = "The number of average read/write ops required for volumes to be considered infrequently used. This value should be lower than ebs_volume_avg_read_write_ops_high."
+  default     = 100
 }
 
 variable "ebs_volume_max_iops" {
   type        = number
   description = "The maximum IOPS allowed for volumes."
+  default     = 32000
 }
 
 variable "ebs_volume_max_size_gb" {
   type        = number
   description = "The maximum size (GB) allowed for volumes."
+  default     = 100
 }
 
 locals {

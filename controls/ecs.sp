@@ -1,11 +1,13 @@
 variable "ecs_cluster_avg_cpu_utilization_high" {
   type        = number
   description = "The average CPU utilization required for clusters to be considered frequently used. This value should be higher than ecs_cluster_avg_cpu_utilization_low."
+  default     = 35
 }
 
 variable "ecs_cluster_avg_cpu_utilization_low" {
   type        = number
   description = "The average CPU utilization required for clusters to be considered infrequently used. This value should be lower than ecs_cluster_avg_cpu_utilization_high."
+  default     = 20
 }
 
 locals {

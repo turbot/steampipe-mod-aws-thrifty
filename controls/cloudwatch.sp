@@ -1,6 +1,7 @@
 variable "cloudwatch_log_stream_age_max_days" {
   type        = number
   description = "The maximum number of days log streams are allowed without any log event written to them."
+  default     = 90
 }
 
 locals {
