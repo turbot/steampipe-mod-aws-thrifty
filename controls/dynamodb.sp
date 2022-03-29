@@ -1,6 +1,7 @@
 variable "dynamodb_table_stale_data_max_days" {
   type        = number
   description = "The maximum number of days table data can be unchanged before it is considered stale."
+  default     = 90
 }
 
 locals {

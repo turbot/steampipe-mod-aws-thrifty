@@ -1,26 +1,31 @@
 variable "ec2_instance_allowed_types" {
   type        = list(string)
   description = "A list of allowed instance types. PostgreSQL wildcards are supported."
+  default     = ["%.nano", "%.micro", "%.small", "%.medium", "%.large", "%.xlarge", "%._xlarge"]
 }
 
 variable "ec2_instance_avg_cpu_utilization_high" {
   type        = number
   description = "The average CPU utilization required for instances to be considered frequently used. This value should be higher than ec2_instance_avg_cpu_utilization_low."
+  default     = 35
 }
 
 variable "ec2_instance_avg_cpu_utilization_low" {
   type        = number
   description = "The average CPU utilization required for instances to be considered infrequently used. This value should be lower than ec2_instance_avg_cpu_utilization_high."
+  default     = 20
 }
 
 variable "ec2_reserved_instance_expiration_warning_days" {
   type        = number
   description = "The number of days reserved instances can be running before sending a warning."
+  default     = 30
 }
 
 variable "ec2_running_instance_age_max_days" {
   type        = number
   description = "The maximum number of days instances are allowed to run."
+  default     = 90
 }
 
 locals {
