@@ -1,3 +1,11 @@
+## v0.11 [2022-03-29]
+
+_What's new?_
+
+- Added default values to all variables (set to the same values in `steampipe.spvars.example`)
+- Added `*.spvars` and `*.auto.spvars` files to `.gitignore`
+- Renamed `steampipe.spvars` to `steampipe.spvars.example`, so the variable default values will be used initially. To use this example file instead, copy `steampipe.spvars.example` as a new file `steampipe.spvars`, and then modify the variable values in it. For more information on how to set variable values, please see [Input Variable Configuration](https://hub.steampipe.io/mods/turbot/aws_thrifty#configuration).
+
 ## v0.10 [2021-11-15]
 
 _Enhancements_
