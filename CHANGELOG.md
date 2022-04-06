@@ -1,3 +1,9 @@
+## v0.12 [2022-04-06]
+
+_Bug fixes_
+
+- Fixed the `old_ebs_snapshots` query to correctly evaluate the age of the snapshots ([#69](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/69))
+
 ## v0.11 [2022-03-29]
 
 _What's new?_
