@@ -5,8 +5,8 @@ variable "dynamodb_table_stale_data_max_days" {
 }
 
 locals {
-  dynamodb_common_tags = merge(local.thrifty_common_tags, {
-    service = "dynamodb"
+  dynamodb_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/DynamoDB"
   })
 }
 
@@ -14,10 +14,13 @@ benchmark "dynamodb" {
   title         = "DynamoDB Checks"
   description   = "Thrifty developers delete DynamoDB tables with stale data."
   documentation = file("./controls/docs/dynamodb.md")
-  tags          = local.dynamodb_common_tags
   children = [
     control.stale_dynamodb_table_data
   ]
+
+  tags = merge(local.dynamodb_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "stale_dynamodb_table_data" {
