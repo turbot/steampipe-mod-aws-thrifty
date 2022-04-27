@@ -1,6 +1,6 @@
 locals {
-  vpc_common_tags = merge(local.thrifty_common_tags, {
-    service = "vpc"
+  vpc_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/VPC"
   })
 }
 
@@ -8,11 +8,14 @@ benchmark "network" {
   title         = "Networking Checks"
   description   = "Thrifty developers ensure delete unused network resources."
   documentation = file("./controls/docs/network.md")
-  tags          = local.vpc_common_tags
   children = [
     control.unattached_eips,
     control.vpc_nat_gateway_unused
   ]
+
+  tags = merge(local.vpc_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "unattached_eips" {

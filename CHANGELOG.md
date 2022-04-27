@@ -1,3 +1,9 @@
+## v0.13 [2022-04-27]
+
+_Enhancements_
+
+- Added `category`, `service`, and `type` tags to benchmarks and controls. ([#72](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/72))
+
 ## v0.12 [2022-04-06]
 
 _Bug fixes_

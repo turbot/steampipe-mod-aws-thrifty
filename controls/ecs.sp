@@ -11,8 +11,8 @@ variable "ecs_cluster_avg_cpu_utilization_low" {
 }
 
 locals {
-  ecs_common_tags = merge(local.thrifty_common_tags, {
-    service = "ecs"
+  ecs_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/ECS"
   })
 }
 
@@ -20,11 +20,14 @@ benchmark "ecs" {
   title         = "ECS Checks"
   description   = "Thrifty developers checks under-utilized ECS clusters and ECS service without autoscaling configuration."
   documentation = file("./controls/docs/ecs.md")
-  tags          = local.ecs_common_tags
   children = [
     control.ecs_cluster_low_utilization,
     control.ecs_service_without_autoscaling
   ]
+
+  tags = merge(local.ecs_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "ecs_cluster_low_utilization" {

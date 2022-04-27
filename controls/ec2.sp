@@ -29,8 +29,8 @@ variable "ec2_running_instance_age_max_days" {
 }
 
 locals {
-  ec2_common_tags = merge(local.thrifty_common_tags, {
-    service = "ec2"
+  ec2_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/EC2"
   })
 }
 
@@ -38,7 +38,6 @@ benchmark "ec2" {
   title         = "EC2 Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
   documentation = file("./controls/docs/ec2.md")
-  tags          = local.ec2_common_tags
   children = [
     control.ec2_application_lb_unused,
     control.ec2_classic_lb_unused,
@@ -49,6 +48,10 @@ benchmark "ec2" {
     control.large_ec2_instances,
     control.long_running_ec2_instances
   ]
+
+  tags = merge(local.ec2_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "ec2_application_lb_unused" {
