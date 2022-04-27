@@ -11,8 +11,8 @@ variable "elasticache_running_cluster_age_warning_days" {
 }
 
 locals {
-  elasticache_common_tags = merge(local.thrifty_common_tags, {
-    service = "elasticache"
+  elasticache_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/ElastiCache"
   })
 }
 
@@ -20,10 +20,13 @@ benchmark "elasticache" {
   title         = "ElastiCache Checks"
   description   = "Thrifty developers check their long running ElastiCache clusters are associated with reserved nodes."
   documentation = file("./controls/docs/elasticache.md")
-  tags          = local.elasticache_common_tags
   children = [
     control.elasticache_cluster_long_running
   ]
+
+  tags = merge(local.elasticache_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "elasticache_cluster_long_running" {

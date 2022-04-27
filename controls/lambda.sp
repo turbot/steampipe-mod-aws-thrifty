@@ -1,6 +1,6 @@
 locals {
-  lambda_common_tags = merge(local.thrifty_common_tags, {
-    service = "lambda"
+  lambda_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/Lambda"
   })
 }
 
@@ -8,11 +8,14 @@ benchmark "lambda" {
   title         = "Lambda Checks"
   description   = "Thrifty developers ensure their Lambda functions are optimized."
   documentation = file("./controls/docs/lambda.md")
-  tags          = local.lambda_common_tags
   children = [    
     control.lambda_function_excessive_timeout,
     control.lambda_function_high_error_rate
   ]
+
+  tags = merge(local.lambda_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "lambda_function_high_error_rate" {

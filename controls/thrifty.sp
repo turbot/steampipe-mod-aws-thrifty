@@ -1,11 +1,11 @@
-locals {
-  thrifty_common_tags = {
-    plugin      = "aws"
-  }
-  required_aws_tags = [
-    "aws:createdBy"
-  ]
-}
+#locals {
+#  thrifty_common_tags = {
+#    plugin      = "aws"
+#  }
+#  required_aws_tags = [
+#    "aws:createdBy"
+#  ]
+#}
 
 # benchmark "thrifty_aws" {
 #   title         = "AWS Thrifty <(ﾟ´(｡｡)`ﾟ)>"

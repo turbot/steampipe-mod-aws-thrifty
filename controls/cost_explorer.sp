@@ -5,19 +5,22 @@ variable "cost_explorer_service_cost_max_cost_units" {
 }
 
 locals {
-  cost-explorer_common_tags = merge(local.thrifty_common_tags, {
-    service = "cost-explorer"
+  cost_explorer_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/CostExplorer"
   })
 }
 
-benchmark "cost-explorer" {
+benchmark "cost_explorer" {
   title         = "Cost Explorer Checks"
   description   = "Thrifty developers actively monitor their cloud usage and cost data."
   documentation = file("./controls/docs/cost-explorer.md")
-  tags          = local.cost-explorer_common_tags
   children = [
     control.full_month_cost_changes
   ]
+
+  tags = merge(local.cost_explorer_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "full_month_cost_changes" {
@@ -31,7 +34,7 @@ control "full_month_cost_changes" {
     default     = var.cost_explorer_service_cost_max_cost_units
   }
 
-  tags = merge(local.cost-explorer_common_tags, {
+  tags = merge(local.cost_explorer_common_tags, {
     class = "managed"
   })
 }

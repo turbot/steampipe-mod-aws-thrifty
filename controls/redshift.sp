@@ -23,8 +23,8 @@ variable "redshift_running_cluster_age_warning_days" {
 }
 
 locals {
-  redshift_common_tags = merge(local.thrifty_common_tags, {
-    service = "redshift"
+  redshift_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/Redshift"
   })
 }
 
@@ -32,12 +32,15 @@ benchmark "redshift" {
   title         = "Redshift Checks"
   description   = "Thrifty developers check their long running Redshift clusters are associated with reserved nodes."
   documentation = file("./controls/docs/redshift.md")
-  tags          = local.redshift_common_tags
   children = [
     control.redshift_cluster_low_utilization,
     control.redshift_cluster_max_age,
     control.redshift_cluster_schedule_pause_resume_enabled
   ]
+
+  tags = merge(local.redshift_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "redshift_cluster_max_age" {

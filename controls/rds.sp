@@ -29,8 +29,8 @@ variable "rds_running_db_instance_age_warning_days" {
 }
 
 locals {
-  rds_common_tags = merge(local.thrifty_common_tags, {
-    service = "rds"
+  rds_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/RDS"
   })
 }
 
@@ -38,13 +38,16 @@ benchmark "rds" {
   title         = "RDS Checks"
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
   documentation = file("./controls/docs/rds.md")
-  tags          = local.rds_common_tags
   children = [
     control.latest_rds_instance_types,
     control.long_running_rds_db_instances,
     control.rds_db_low_connection_count,
     control.rds_db_low_utilization
   ]
+
+  tags = merge(local.rds_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "long_running_rds_db_instances" {

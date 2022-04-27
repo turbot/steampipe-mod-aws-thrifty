@@ -29,8 +29,8 @@ variable "ebs_volume_max_size_gb" {
 }
 
 locals {
-  ebs_common_tags = merge(local.thrifty_common_tags, {
-    service = "ebs"
+  ebs_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/EBS"
   })
 }
 
@@ -38,7 +38,6 @@ benchmark "ebs" {
   title         = "EBS Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
   documentation = file("./controls/docs/ebs.md")
-  tags          = local.ebs_common_tags
   children = [
     control.ebs_snapshot_max_age,
     control.ebs_volumes_on_stopped_instances,
@@ -50,6 +49,10 @@ benchmark "ebs" {
     control.low_iops_ebs_volumes,
     control.unattached_ebs_volumes
   ]
+
+  tags = merge(local.ebs_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "gp2_volumes" {
