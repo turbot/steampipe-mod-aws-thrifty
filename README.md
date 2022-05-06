@@ -4,7 +4,7 @@ An AWS cost savings and waste checking tool.
 
 Run checks in a dashboard:
 
-![image](https://raw.githubusercontent.com/turbot/steampipe-mod-aws-tags/add-benchmark-screenshots/docs/aws_tags_dashboard.png)
+![image](https://raw.githubusercontent.com/turbot/steampipe-mod-aws-thrifty/add-benchmark-screenshots/docs/aws_thrifty_dashboard.png)
 
 Or in a terminal:
 
