@@ -1,3 +1,9 @@
+## v0.14 [2022-05-09]
+
+_Enhancements_
+
+- Updated docs/index.md and README with new dashboard screenshots and latest format. ([#75](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/75))
+
 ## v0.13 [2022-04-27]
 
 _Enhancements_
