@@ -1,31 +1,36 @@
 variable "ec2_instance_allowed_types" {
   type        = list(string)
   description = "A list of allowed instance types. PostgreSQL wildcards are supported."
+  default     = ["%.nano", "%.micro", "%.small", "%.medium", "%.large", "%.xlarge", "%._xlarge"]
 }
 
 variable "ec2_instance_avg_cpu_utilization_high" {
   type        = number
   description = "The average CPU utilization required for instances to be considered frequently used. This value should be higher than ec2_instance_avg_cpu_utilization_low."
+  default     = 35
 }
 
 variable "ec2_instance_avg_cpu_utilization_low" {
   type        = number
   description = "The average CPU utilization required for instances to be considered infrequently used. This value should be lower than ec2_instance_avg_cpu_utilization_high."
+  default     = 20
 }
 
 variable "ec2_reserved_instance_expiration_warning_days" {
   type        = number
   description = "The number of days reserved instances can be running before sending a warning."
+  default     = 30
 }
 
 variable "ec2_running_instance_age_max_days" {
   type        = number
   description = "The maximum number of days instances are allowed to run."
+  default     = 90
 }
 
 locals {
-  ec2_common_tags = merge(local.thrifty_common_tags, {
-    service = "ec2"
+  ec2_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/EC2"
   })
 }
 
@@ -33,7 +38,6 @@ benchmark "ec2" {
   title         = "EC2 Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
   documentation = file("./controls/docs/ec2.md")
-  tags          = local.ec2_common_tags
   children = [
     control.ec2_application_lb_unused,
     control.ec2_classic_lb_unused,
@@ -45,6 +49,10 @@ benchmark "ec2" {
     control.long_running_ec2_instances,
     control.older_generation_instance_type_used
   ]
+
+  tags = merge(local.ec2_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "ec2_application_lb_unused" {
