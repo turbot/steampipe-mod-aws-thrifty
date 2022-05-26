@@ -14,7 +14,7 @@ select
     else 'ok'
   end as status,
   case
-    when c.health_check_id is null then h.title || ' is not necessary.'
+    when c.health_check_id is null then h.title || ' is unnecessary.'
     else h.title || ' is necessary.'
   end as reason,
   h.region,
