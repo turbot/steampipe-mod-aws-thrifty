@@ -5,7 +5,7 @@ select
     else 'ok'
   end as status,
   case
-    when status = 'ACTION_NEEDED' then title || ' not in healthy state.'
+    when status = 'ACTION_NEEDED' then title || ' is in unhealthy state.'
     else title || ' is in healthy state.'
   end as reason,
   region,
