@@ -44,6 +44,7 @@ benchmark "ec2" {
     control.ec2_eips_unattached,
     control.ec2_gateway_lb_unused,
     control.ec2_instance_avg_cpu_utilization_low,
+    control.ec2_instance_older_generation,
     control.ec2_instance_running_max_age,
     control.ec2_instances_large,
     control.ec2_network_lb_unused,
@@ -56,40 +57,40 @@ benchmark "ec2" {
 }
 
 control "ec2_application_lb_unused" {
-  title         = "Application load balancers having no targets attached should be deleted"
-  description   = "Application load balancers with no targets attached still cost money and should be deleted."
-  sql           = query.ec2_application_lb_unused.sql
-  severity      = "low"
+  title       = "Application load balancers having no targets attached should be deleted"
+  description = "Application load balancers with no targets attached still cost money and should be deleted."
+  sql         = query.ec2_application_lb_unused.sql
+  severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
 }
 
 control "ec2_classic_lb_unused" {
-  title         = "Classic load balancers having no instances attached should be deleted"
-  description   = "Classic load balancers with no instances attached still cost money should be deleted."
-  sql           = query.ec2_classic_lb_unused.sql
-  severity      = "low"
+  title       = "Classic load balancers having no instances attached should be deleted"
+  description = "Classic load balancers with no instances attached still cost money should be deleted."
+  sql         = query.ec2_classic_lb_unused.sql
+  severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
 }
 
 control "ec2_gateway_lb_unused" {
-  title         = "Gateway load balancers having no targets attached should be deleted"
-  description   = "Gateway load balancers with no targets attached still cost money and should be deleted."
-  sql           = query.ec2_gateway_lb_unused.sql
-  severity      = "low"
+  title       = "Gateway load balancers having no targets attached should be deleted"
+  description = "Gateway load balancers with no targets attached still cost money and should be deleted."
+  sql         = query.ec2_gateway_lb_unused.sql
+  severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
 }
 
 control "ec2_network_lb_unused" {
-  title         = "Network load balancers having no targets attached should be deleted"
-  description   = "Network load balancers with no targets attached still cost money and should be deleted."
-  sql           = query.ec2_network_lb_unused.sql
-  severity      = "low"
+  title       = "Network load balancers having no targets attached should be deleted"
+  description = "Network load balancers with no targets attached still cost money and should be deleted."
+  sql         = query.ec2_network_lb_unused.sql
+  severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
@@ -149,10 +150,10 @@ control "ec2_instance_avg_cpu_utilization_low" {
 }
 
 control "ec2_reserved_instance_lease_expiration_days" {
-  title         = "EC2 reserved instances scheduled for expiration should be reviewed"
-  description   = "EC2 reserved instances that are scheduled for expiration or have expired in the preceding 30 days should be reviewed."
-  sql           = query.ec2_reserved_instance_lease_expiration_days.sql
-  severity      = "low"
+  title       = "EC2 reserved instances scheduled for expiration should be reviewed"
+  description = "EC2 reserved instances that are scheduled for expiration or have expired in the preceding 30 days should be reviewed."
+  sql         = query.ec2_reserved_instance_lease_expiration_days.sql
+  severity    = "low"
 
   param "ec2_reserved_instance_expiration_warning_days" {
     description = "The number of days reserved instances can be running before sending a warning."
@@ -169,7 +170,17 @@ control "ec2_eips_unattached" {
   description   = "Unattached Elastic IPs are charged by AWS, they should be released."
   sql           = query.ec2_eips_unattached.sql
   severity      = "low"
-  tags = merge(local.vpc_common_tags, {
+  tags = merge(local.ec2_common_tags, {
+    class = "unused"
+  })
+}
+
+control "ec2_instance_older_generation" {
+  title       = "EC2 instances should not use older generation t2, m3, and m4 instance types"
+  description = "EC2 instances should not use older generation t2, m3, and m4 instance types as t3 and m5 are more cost effective."
+  sql         = query.ec2_instance_older_generation.sql
+  severity    = "low"
+  tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
 }
