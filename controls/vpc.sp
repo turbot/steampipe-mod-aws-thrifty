@@ -4,27 +4,16 @@ locals {
   })
 }
 
-benchmark "network" {
-  title         = "Networking Checks"
+benchmark "vpc" {
+  title         = "VPC Checks"
   description   = "Thrifty developers ensure delete unused network resources."
   documentation = file("./controls/docs/network.md")
   children = [
-    control.ec2_eips_unattached,
     control.vpc_nat_gateway_unused
   ]
 
   tags = merge(local.vpc_common_tags, {
     type = "Benchmark"
-  })
-}
-
-control "ec2_eips_unattached" {
-  title         = "Unattached elastic IP addresses (EIPs) should be released"
-  description   = "Unattached Elastic IPs are charged by AWS, they should be released."
-  sql           = query.ec2_eips_unattached.sql
-  severity      = "low"
-  tags = merge(local.vpc_common_tags, {
-    class = "unused"
   })
 }
 

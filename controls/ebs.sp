@@ -56,7 +56,7 @@ benchmark "ebs" {
 }
 
 control "ebs_volume_using_gp2" {
-  title         = "Still using gp2 EBS volumes? Should use gp3 instead."
+  title         = "EBS gp3 volumes should be used instead of gp2"
   description   = "EBS gp2 volumes are more costly and lower performance than gp3."
   sql           = query.ebs_volume_using_gp2.sql
   severity      = "low"
@@ -66,7 +66,7 @@ control "ebs_volume_using_gp2" {
 }
 
 control "ebs_volume_io1" {
-  title         = "Still using io1 EBS volumes? Should use io2 instead."
+  title         = "EBS io2 volumes should be used instead of io1"
   description   = "io1 Volumes are less reliable than io2 for same cost."
   sql           = query.ebs_volume_io1.sql
   severity      = "low"
@@ -76,7 +76,7 @@ control "ebs_volume_io1" {
 }
 
 control "ebs_volume_unattached" {
-  title         = "Are there any unattached EBS volumes?"
+  title         = "Unattached EBS volumes should be reviewed"
   description   = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
   sql           = query.ebs_volume_unattached.sql
   severity      = "low"
@@ -86,7 +86,7 @@ control "ebs_volume_unattached" {
 }
 
 control "ebs_volume_large" {
-  title         = "What EBS volumes are allocated over 100gb in storage?"
+  title         = "EBS volumes should be resized if too large"
   description   = "Large EBS volumes are unusual, high cost and usage should be reviewed."
   sql           = query.ebs_volume_large.sql
   severity      = "low"
@@ -102,7 +102,7 @@ control "ebs_volume_large" {
 }
 
 control "ebs_volume_high_iops" {
-  title         = "Which EBS volumes are allocated for > 32k IOPS?"
+  title         = "EBS volumes with high IOPS should be resized if too large"
   description   = "High IOPS io1 and io2 volumes are costly and usage should be reviewed."
   sql           = query.ebs_volume_high_iops.sql
   severity      = "low"
@@ -127,7 +127,7 @@ control "ebs_volume_low_iops" {
   })
 }
 
-control "ebs_volumes_on_stopped_instances" {
+control "ebs_volume_on_stopped_instances" {
   title         = "EBS volumes attached to stopped instances should be reviewed"
   description   = "Instances that are stopped may no longer need any attached EBS volumes"
   sql           = query.ebs_volume_inactive.sql
@@ -159,7 +159,7 @@ control "ebs_volume_low_usage" {
 }
 
 control "ebs_snapshot_age_90" {
-  title         = "Which EBS snapshots were created over 90 days ago?"
+  title         = "Old EBS snapshots should be deleted if not required"
   description   = "Old EBS snapshots are likely unnecessary and costly to maintain."
   sql           = query.ebs_snapshot_age_90.sql
   severity      = "low"

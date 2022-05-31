@@ -24,8 +24,8 @@ benchmark "dynamodb" {
 }
 
 control "dynamodb_table_stale_data" {
-  title         = "What DynamoDB tables have stale data? (Not changed in last 90 days)"
-  description   = "If the data has not changed in 90 days, is the table needed?"
+  title         = "DynamoDB tables with stale data should be reviewed"
+  description   = "If the data has not changed recently and has become stale, the table should be reviewed."
   sql           = query.dynamodb_table_stale_data.sql
   severity      = "low"
 

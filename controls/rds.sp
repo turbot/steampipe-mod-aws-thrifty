@@ -51,7 +51,7 @@ benchmark "rds" {
 }
 
 control "rds_db_instance_age_90" {
-  title         = "Which RDS DBs should have reserved instances purchased for them?"
+  title         = "Long running RDS DBs should have reserved instances purchased for them"
   description   = "Long running database servers should be associated with a reserve instance."
   sql           = query.rds_db_instance_age_90.sql
   severity      = "low"
@@ -83,7 +83,7 @@ control "rds_db_instance_class_prev_gen" {
 }
 
 control "rds_db_instance_low_connections" {
-  title         = "Which RDS DBs have fewer than 2 connections per day?"
+  title         = "RDS DB instances with a low number connections per day should be reviewed"
   description   = "These databases have very little usage in last 30 days. Should this instance be shutdown when not in use?"
   sql           = query.rds_db_instance_low_connections.sql
   severity      = "high"
@@ -99,7 +99,7 @@ control "rds_db_instance_low_connections" {
 }
 
 control "rds_db_instance_low_usage" {
-  title         = "Which RDS DBs have less than 25% utilization for last 30 days?"
+  title         = "RDS DB instance having low CPU utilization should be reviewed"
   description   = "These databases may be oversized for their usage."
   sql           = query.rds_db_instance_low_usage.sql
   severity      = "low"

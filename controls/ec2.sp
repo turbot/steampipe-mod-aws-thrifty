@@ -41,12 +41,13 @@ benchmark "ec2" {
   children = [
     control.ec2_application_lb_unused,
     control.ec2_classic_lb_unused,
+    control.ec2_eips_unattached,
     control.ec2_gateway_lb_unused,
-    control.ec2_network_lb_unused,
-    control.ec2_reserved_instance_lease_expiration_days,
-    control.instances_with_low_utilization,
+    control.ec2_instance_avg_cpu_utilization_low,
+    control.ec2_instance_running_max_age,
     control.ec2_instances_large,
-    control.long_running_ec2_instances
+    control.ec2_network_lb_unused,
+    control.ec2_reserved_instance_lease_expiration_days
   ]
 
   tags = merge(local.ec2_common_tags, {
@@ -95,7 +96,7 @@ control "ec2_network_lb_unused" {
 }
 
 control "ec2_instances_large" {
-  title         = "What running EC2 instances are huge? (e.g. > 12xlarge)"
+  title         = "Large EC2 instances should be reviewed"
   description   = "Large EC2 instances are unusual, expensive and should be reviewed."
   sql           = query.ec2_instances_large.sql
   severity      = "low"
@@ -110,10 +111,10 @@ control "ec2_instances_large" {
   })
 }
 
-control "long_running_ec2_instances" {
+control "ec2_instance_running_max_age" {
   title         = "Long running EC2 instances should be reviewed"
   description   = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long."
-  sql           = query.long_running_instances.sql
+  sql           = query.ec2_instance_running_max_age.sql
   severity      = "low"
 
   param "ec2_running_instance_age_max_days" {
@@ -126,10 +127,10 @@ control "long_running_ec2_instances" {
   })
 }
 
-control "instances_with_low_utilization" {
+control "ec2_instance_avg_cpu_utilization_low" {
   title         = "Which EC2 instances have very low CPU utilization?"
   description   = "Resize or eliminate under utilized instances."
-  sql           = query.low_utilization_ec2_instance.sql
+  sql           = query.ec2_instance_avg_cpu_utilization_low.sql
   severity      = "low"
 
   param "ec2_instance_avg_cpu_utilization_low" {
@@ -160,5 +161,15 @@ control "ec2_reserved_instance_lease_expiration_days" {
 
   tags = merge(local.ec2_common_tags, {
     class = "managed"
+  })
+}
+
+control "ec2_eips_unattached" {
+  title         = "Unattached elastic IP addresses (EIPs) should be released"
+  description   = "Unattached Elastic IPs are charged by AWS, they should be released."
+  sql           = query.ec2_eips_unattached.sql
+  severity      = "low"
+  tags = merge(local.vpc_common_tags, {
+    class = "unused"
   })
 }
