@@ -2,6 +2,8 @@
 
 Thrifty developers actively monitor their cloud usage and cost data.  This benchmark highlights service charges that have changed drastically over the last two full months of cost data.  
 
-### Default Thresholds
+## Variables
 
-- [Monthly cost change threshold (10 cost units e.g. USD)](https://hub.steampipe.io/mods/turbot/aws_thrifty/queries/monthly_service_cost_changes)
+| Variable | Description | Default |
+| - | - | - |
+| cost_explorer_service_cost_max_cost_units | The maximum difference in cost units allowed for service costs between the current and previous month. | 10 cost units |

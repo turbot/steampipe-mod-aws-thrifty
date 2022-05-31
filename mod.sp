@@ -1,3 +1,12 @@
+// Benchmarks and controls for specific services should override the "service" tag
+locals {
+  aws_thrifty_common_tags = {
+    category = "Cost"
+    plugin   = "aws"
+    service  = "AWS"
+  }
+}
+
 mod "aws_thrifty" {
   # hub metadata
   title         = "AWS Thrifty"

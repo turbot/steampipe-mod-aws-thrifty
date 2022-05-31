@@ -25,8 +25,8 @@ with filter_clusters as (
 select
   'arn:' || partition || ':elasticache:' || region || ':' || account_id || ':cluster:' || name as resource,
   case
-    when date_part('day', now() - cache_cluster_create_time) > 90 then 'alarm'
-    when date_part('day', now() - cache_cluster_create_time) > 30 then 'info'
+    when date_part('day', now() - cache_cluster_create_time) > $1 then 'alarm'
+    when date_part('day', now() - cache_cluster_create_time) > $2 then 'info'
     else 'ok'
   end as status,
   name || ' ' || engine || ' created on ' || cache_cluster_create_time || ' (' || date_part('day', now() - cache_cluster_create_time) || ' days).'

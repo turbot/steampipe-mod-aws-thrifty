@@ -1,6 +1,6 @@
 locals {
-  emr_common_tags = merge(local.thrifty_common_tags, {
-    service = "emr"
+  emr_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/EMR"
   })
 }
 
@@ -8,11 +8,14 @@ benchmark "emr" {
   title         = "EMR Checks"
   description   = "Thrifty developers checks EMR clusters of previous generation instances and idle clusters."
   documentation = file("./controls/docs/emr.md")
-  tags          = local.emr_common_tags
   children = [
     control.emr_cluster_instance_prev_gen,
     control.emr_cluster_is_idle_30_minutes
   ]
+
+  tags = merge(local.emr_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "emr_cluster_instance_prev_gen" {

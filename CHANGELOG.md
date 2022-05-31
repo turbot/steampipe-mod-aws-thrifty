@@ -1,6 +1,44 @@
+## v0.14 [2022-05-09]
+
+_Enhancements_
+
+- Updated docs/index.md and README with new dashboard screenshots and latest format. ([#75](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/75))
+
+## v0.13 [2022-04-27]
+
+_Enhancements_
+
+- Added `category`, `service`, and `type` tags to benchmarks and controls. ([#72](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/72))
+
+## v0.12 [2022-04-06]
+
+_Bug fixes_
+
+- Fixed the `old_ebs_snapshots` query to correctly evaluate the age of the snapshots ([#69](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/69))
+
+## v0.11 [2022-03-29]
+
+_What's new?_
+
+- Added default values to all variables (set to the same values in `steampipe.spvars.example`)
+- Added `*.spvars` and `*.auto.spvars` files to `.gitignore`
+- Renamed `steampipe.spvars` to `steampipe.spvars.example`, so the variable default values will be used initially. To use this example file instead, copy `steampipe.spvars.example` as a new file `steampipe.spvars`, and then modify the variable values in it. For more information on how to set variable values, please see [Input Variable Configuration](https://hub.steampipe.io/mods/turbot/aws_thrifty#configuration).
+
+## v0.10 [2021-11-15]
+
+_Enhancements_
+
+- `docs/index.md` file now includes the console output image
+
+## v0.9 [2021-09-30]
+
+_What's new?_
+
+- Added: Input variables have been added to CloudWatch, Cost Explorer, DynamoDB, EBS, EC2, ECS, ElastiCache, RDS, and Redshift controls to allow different thresholds to be passed in. To get started, please see [AWS Thrifty Configuration](https://hub.steampipe.io/mods/turbot/aws_thrifty#configuration). For a list of variables and their default values, please see [steampipe.spvars](https://github.com/turbot/steampipe-mod-aws-thrifty/blob/main/steampipe.spvars).
+
 ## v0.8 [2021-09-09]
 
-- _Enhancements_
+_Enhancements_
 
 - Lambda benchmark control and query names have been updated to maintain consistency
 

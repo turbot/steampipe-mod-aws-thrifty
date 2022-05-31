@@ -1,6 +1,36 @@
+variable "ebs_snapshot_age_max_days" {
+  type        = number
+  description = "The maximum number of days snapshots can be retained."
+  default     = 90
+}
+
+variable "ebs_volume_avg_read_write_ops_high" {
+  type        = number
+  description = "The number of average read/write ops required for volumes to be considered frequently used. This value should be higher than ebs_volume_avg_read_write_ops_low."
+  default     = 500
+}
+
+variable "ebs_volume_avg_read_write_ops_low" {
+  type        = number
+  description = "The number of average read/write ops required for volumes to be considered infrequently used. This value should be lower than ebs_volume_avg_read_write_ops_high."
+  default     = 100
+}
+
+variable "ebs_volume_max_iops" {
+  type        = number
+  description = "The maximum IOPS allowed for volumes."
+  default     = 32000
+}
+
+variable "ebs_volume_max_size_gb" {
+  type        = number
+  description = "The maximum size (GB) allowed for volumes."
+  default     = 100
+}
+
 locals {
-  ebs_common_tags = merge(local.thrifty_common_tags, {
-    service = "ebs"
+  ebs_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/EBS"
   })
 }
 
@@ -8,7 +38,6 @@ benchmark "ebs" {
   title         = "EBS Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
   documentation = file("./controls/docs/ebs.md")
-  tags          = local.ebs_common_tags
   children = [
     control.ebs_snapshot_age_90,
     control.ebs_volume_high_iops,
@@ -20,6 +49,10 @@ benchmark "ebs" {
     control.ebs_volume_unattached,
     control.ebs_volume_using_gp2
   ]
+
+  tags = merge(local.ebs_common_tags, {
+    type = "Benchmark"
+  })
 }
 
 control "ebs_volume_using_gp2" {
@@ -57,6 +90,12 @@ control "ebs_volume_large" {
   description   = "Large EBS volumes are unusual, high cost and usage should be reviewed."
   sql           = query.ebs_volume_large.sql
   severity      = "low"
+
+  param "ebs_volume_max_size_gb" {
+    description = "The maximum size (GB) allowed for volumes."
+    default     = var.ebs_volume_max_size_gb
+  }
+
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
@@ -67,6 +106,12 @@ control "ebs_volume_high_iops" {
   description   = "High IOPS io1 and io2 volumes are costly and usage should be reviewed."
   sql           = query.ebs_volume_high_iops.sql
   severity      = "low"
+
+  param "ebs_volume_max_iops" {
+    description = "The maximum IOPS allowed for volumes."
+    default     = var.ebs_volume_max_iops
+  }
+
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
@@ -82,8 +127,8 @@ control "ebs_volume_low_iops" {
   })
 }
 
-control "ebs_volume_on_stopped_instances" {
-  title         = "Which EBS volumes are only attached to stopped EC2 instances?"
+control "ebs_volumes_on_stopped_instances" {
+  title         = "EBS volumes attached to stopped instances should be reviewed"
   description   = "Instances that are stopped may no longer need any attached EBS volumes"
   sql           = query.ebs_volume_inactive.sql
   severity      = "low"
@@ -97,6 +142,17 @@ control "ebs_volume_low_usage" {
   description   = "Volumes that are unused should be archived and deleted"
   sql           = query.ebs_volume_low_usage.sql
   severity      = "low"
+
+  param "ebs_volume_avg_read_write_ops_low" {
+    description = "The number of average read/write ops required for volumes to be considered infrequently used. This value should be lower than ebs_volume_avg_read_write_ops_high."
+    default     = var.ebs_volume_avg_read_write_ops_low
+  }
+
+  param "ebs_volume_avg_read_write_ops_high" {
+    description = "The number of average read/write ops required for volumes to be considered frequently used. This value should be higher than ebs_volume_avg_read_write_ops_low."
+    default     = var.ebs_volume_avg_read_write_ops_high
+  }
+
   tags = merge(local.ebs_common_tags, {
     class = "unused"
   })
@@ -107,6 +163,12 @@ control "ebs_snapshot_age_90" {
   description   = "Old EBS snapshots are likely unnecessary and costly to maintain."
   sql           = query.ebs_snapshot_age_90.sql
   severity      = "low"
+
+  param "ebs_snapshot_age_max_days" {
+    description = "The maximum number of days snapshots can be retained."
+    default     = var.ebs_snapshot_age_max_days
+  }
+
   tags = merge(local.ebs_common_tags, {
     class = "unused"
   })
