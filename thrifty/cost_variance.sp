@@ -15,7 +15,6 @@ benchmark "cost_variance" {
   description   = "."
   documentation = file("./thrifty/docs/cost_variance.md")
   children = [
-    control.cloudfront_distribution_pricing_class,
     control.full_month_cost_changes
   ]
 
