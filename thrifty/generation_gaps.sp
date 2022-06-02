@@ -1,0 +1,84 @@
+locals {
+  generation_gaps_common_tags = merge(local.aws_thrifty_common_tags, {
+    generation_gaps = "true"
+  })
+}
+
+benchmark "generation_gaps" {
+  title         = "Generation Gaps"
+  description   = "."
+  documentation = file("./thrifty/docs/generation_gaps.md")
+  children = [
+    control.ebs_volume_using_gp2,
+    control.ebs_volume_io1,
+    control.ec2_instance_older_generation,
+    control.emr_cluster_instance_prev_gen,
+    control.lambda_function_with_graviton2,
+    control.rds_db_instance_class_prev_gen
+  ]
+
+  tags = merge(local.generation_gaps_common_tags, {
+    type = "Benchmark"
+  })
+}
+
+control "ec2_instance_older_generation" {
+  title       = "EC2 instances should not use older generation t2, m3, and m4 instance types"
+  description = "EC2 instances should not use older generation t2, m3, and m4 instance types as t3 and m5 are more cost effective."
+  sql         = query.ec2_instance_older_generation.sql
+  severity    = "low"
+  tags = merge(local.generation_gaps_common_tags, {
+    service = "AWS/EC2"
+  })
+}
+
+control "ebs_volume_using_gp2" {
+  title       = "EBS gp3 volumes should be used instead of gp2"
+  description = "EBS gp2 volumes are more costly and lower performance than gp3."
+  sql         = query.ebs_volume_using_gp2.sql
+  severity    = "low"
+  tags = merge(local.generation_gaps_common_tags, {
+    service = "AWS/EBS"
+  })
+}
+
+control "ebs_volume_io1" {
+  title       = "EBS io2 volumes should be used instead of io1"
+  description = "io1 Volumes are less reliable than io2 for same cost."
+  sql         = query.ebs_volume_io1.sql
+  severity    = "low"
+  tags = merge(local.generation_gaps_common_tags, {
+    service = "AWS/EBS"
+  })
+}
+
+control "emr_cluster_instance_prev_gen" {
+  title       = "EMR clusters of previous generation instances should be reviewed"
+  description = "EMR clusters of previous generations instance types (c1,cc2,cr1,m2,g2,i2,m1) should be replaced by latest generation instance types for better hardware performance."
+  sql         = query.emr_cluster_instance_prev_gen.sql
+  severity    = "low"
+
+  tags = merge(local.generation_gaps_common_tags, {
+    service = "AWS/EMR"
+  })
+}
+
+control "lambda_function_with_graviton2" {
+  title       = "Are there any lambda functions without graviton2 processor?"
+  description = "With graviton2 processor(arm64 – 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  sql         = query.lambda_function_with_graviton2.sql
+  severity    = "low"
+  tags = merge(local.generation_gaps_common_tags, {
+    service = "AWS/Lambda"
+  })
+}
+
+control "rds_db_instance_class_prev_gen" {
+  title       = "Are there RDS instances using previous gen instance types?"
+  description = "M5 and T3 instance types are less costly than previous generations"
+  sql         = query.rds_db_instance_class_prev_gen.sql
+  severity    = "low"
+  tags = merge(local.generation_gaps_common_tags, {
+    service = "AWS/RDS"
+  })
+}
