@@ -4,6 +4,12 @@ variable "cost_explorer_service_cost_max_cost_units" {
   default     = 10
 }
 
+variable "cost_explorer_forecast_cost_max_cost_units" {
+  type        = number
+  description = "The maximum difference in cost units allowed between the forecast and previous month's cost."
+  default     = 10
+}
+
 locals {
   cost_variance_common_tags = merge(local.aws_thrifty_common_tags, {
     cost_variance = "true"
@@ -45,6 +51,12 @@ control "full_month_forecast_cost_changes" {
   description = "Compares the current month's forecasted cost with last month's cost."
   sql         = query.monthly_forecast_cost_changes.sql
   severity    = "low"
+
+  param "cost_explorer_forecast_cost_max_cost_units" {
+    description = "The maximum difference in cost units allowed between the forecast and previous month's cost."
+    default     = var.cost_explorer_forecast_cost_max_cost_units
+  }
+
   tags = merge(local.cost_variance_common_tags, {
     service = "AWS/CostExplorer"
   })
