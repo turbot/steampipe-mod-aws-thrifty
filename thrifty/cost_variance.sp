@@ -15,7 +15,8 @@ benchmark "cost_variance" {
   description   = "."
   documentation = file("./thrifty/docs/cost_variance.md")
   children = [
-    control.full_month_cost_changes
+    control.full_month_cost_changes,
+    control.full_month_forecast_cost_changes
   ]
 
   tags = merge(local.cost_variance_common_tags, {
@@ -39,3 +40,12 @@ control "full_month_cost_changes" {
   })
 }
 
+control "full_month_forecast_cost_changes" {
+  title       = "What is the forecasted monthly cost over last month’s cost?"
+  description = "Compares the monthly cost of forecast with last month’s cost."
+  sql         = query.monthly_forecast_cost_changes.sql
+  severity    = "low"
+  tags = merge(local.cost_variance_common_tags, {
+    service = "AWS/CostExplorer"
+  })
+}
