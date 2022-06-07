@@ -16,11 +16,12 @@ benchmark "capacity_planning" {
   documentation = file("./thrifty/docs/capacity_planning.md")
   children = [
     control.cloudwatch_log_group_no_retention,
+    control.dynamodb_table_autoscaling_disabled,
     control.ebs_volume_low_iops,
     control.ec2_reserved_instance_lease_expiration_days,
     control.ecs_service_without_autoscaling,
     control.redshift_cluster_schedule_pause_resume_enabled,
-    control.route53_record_higher_ttl,
+    control.route53_record_higher_ttl
   ]
 
   tags = merge(local.capacity_planning_common_tags, {
@@ -89,6 +90,17 @@ control "route53_record_higher_ttl" {
 control "ecs_service_without_autoscaling" {
   title       = "ECS service should use autoscaling policy"
   description = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
+  sql         = query.ecs_service_without_autoscaling.sql
+  severity    = "low"
+
+  tags = merge(local.capacity_planning_common_tags, {
+    service = "AWS/ECS"
+  })
+}
+
+control "dynamodb_table_autoscaling_disabled" {
+  title       = "DynamoDB table should have auto scaling enabled"
+  description = "Amazon DynamoDB auto scaling uses the AWS Application Auto Scaling service to adjust provisioned throughput capacity that automatically responds to actual traffic patterns. Turning on the auto scaling feature will help to improve service performance in a cost-efficient way."
   sql         = query.ecs_service_without_autoscaling.sql
   severity    = "low"
 
