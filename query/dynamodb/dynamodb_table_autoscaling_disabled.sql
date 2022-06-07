@@ -17,9 +17,9 @@ select
   end as status,
   case
     when d.billing_mode = 'PAY_PER_REQUEST' then d.title || ' on-demand mode enabled.'
-    when t.resource_id is null then d.title || ' autoscaling not enabled.'
+    when t.resource_id is null then d.title || ' auto scaling not enabled.'
     when t.count < 2 then d.title || ' auto scaling not enabled for both read and write capacity.'
-    else d.title || ' autoscaling enabled for both read and write capacity.'
+    else d.title || ' auto scaling enabled for both read and write capacity.'
   end as reason,
   -- Additional Dimensions
   d.region,

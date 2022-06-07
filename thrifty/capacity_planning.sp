@@ -99,9 +99,9 @@ control "ecs_service_without_autoscaling" {
 }
 
 control "dynamodb_table_autoscaling_disabled" {
-  title       = "DynamoDB table should have auto scaling enabled"
+  title       = "DynamoDB tables should have auto scaling enabled"
   description = "Amazon DynamoDB auto scaling uses the AWS Application Auto Scaling service to adjust provisioned throughput capacity that automatically responds to actual traffic patterns. Turning on the auto scaling feature will help to improve service performance in a cost-efficient way."
-  sql         = query.ecs_service_without_autoscaling.sql
+  sql         = query.dynamodb_table_autoscaling_disabled.sql
   severity    = "low"
 
   tags = merge(local.capacity_planning_common_tags, {
