@@ -6,7 +6,7 @@ variable "ec2_reserved_instance_expiration_warning_days" {
 
 variable "kinesis_stream_high_retention_period_days" {
   type        = number
-  description = "The number of days for the data retention period to be considered as Maximum."
+  description = "The number of days for the data retention period to be considered as maximum."
   default     = 1
 }
 
@@ -102,7 +102,7 @@ control "kinesis_stream_high_retention_period" {
   severity    = "low"
 
   param "kinesis_stream_high_retention_period_days" {
-    description = "The number of days for the data retention period to be considered as high."
+    description = "The number of days for the data retention period to be considered as maximum."
     default     = var.kinesis_stream_high_retention_period_days
   }
 
