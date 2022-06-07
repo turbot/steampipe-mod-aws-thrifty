@@ -105,6 +105,6 @@ control "dynamodb_table_autoscaling_disabled" {
   severity    = "low"
 
   tags = merge(local.capacity_planning_common_tags, {
-    service = "AWS/ECS"
+    service = "AWS/DynamoDB"
   })
 }
