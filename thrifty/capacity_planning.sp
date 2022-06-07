@@ -4,6 +4,12 @@ variable "ec2_reserved_instance_expiration_warning_days" {
   default     = 30
 }
 
+variable "kinesis_stream_high_retention_period_days" {
+  type        = number
+  description = "The number of days for the data retention period to be considered as high."
+  default     = 1
+}
+
 locals {
   capacity_planning_common_tags = merge(local.aws_thrifty_common_tags, {
     capacity_planning = "true"
@@ -21,6 +27,9 @@ benchmark "capacity_planning" {
     control.ecs_service_without_autoscaling,
     control.redshift_cluster_schedule_pause_resume_enabled,
     control.route53_record_higher_ttl,
+    control.kinesis_stream_consumer_with_enhanced_fan_out,
+    control.kinesis_stream_high_retention_period,
+
   ]
 
   tags = merge(local.capacity_planning_common_tags, {
@@ -73,6 +82,32 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
   severity    = "low"
   tags = merge(local.capacity_planning_common_tags, {
     service = "AWS/Redshift"
+  })
+}
+
+control "kinesis_stream_consumer_with_enhanced_fan_out" {
+  title       = "Kinesis stream consumer with the enhanced_fan-out feature should be reviewed"
+  description = "The enhanced_fan-out feature should be avoided. Enhanced fan-out shard hours cost $36.00 (USD) per day."
+  sql         = query.kinesis_stream_consumer_with_enhanced_fan_out.sql
+  severity    = "low"
+  tags = merge(local.capacity_planning_common_tags, {
+    service = "AWS/Kinesis"
+  })
+}
+
+control "kinesis_stream_high_retention_period" {
+  title       = "Kinesis stream high retention period should be reviewed"
+  description = "Data retention period should not be high. Additional charges apply for data streams with a retention period over 24 hours."
+  sql         = query.kinesis_stream_high_retention_period.sql
+  severity    = "low"
+
+  param "kinesis_stream_high_retention_period_days" {
+    description = "The number of days for the data retention period to be considered as high."
+    default     = var.kinesis_stream_high_retention_period_days
+  }
+
+  tags = merge(local.capacity_planning_common_tags, {
+    service = "AWS/Kinesis"
   })
 }
 
