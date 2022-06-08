@@ -86,7 +86,7 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
 }
 
 control "kinesis_stream_consumer_with_enhanced_fan_out" {
-  title       = "Kinesis stream consumer with the enhanced fan-out feature should be reviewed"
+  title       = "Kinesis stream consumers with the enhanced fan-out feature should be reviewed"
   description = "The enhanced fan-out feature should be avoided. Enhanced fan-out shard hours cost $36.00 (USD) per day."
   sql         = query.kinesis_stream_consumer_with_enhanced_fan_out.sql
   severity    = "low"
@@ -96,7 +96,7 @@ control "kinesis_stream_consumer_with_enhanced_fan_out" {
 }
 
 control "kinesis_stream_high_retention_period" {
-  title       = "Kinesis stream high retention period should be reviewed"
+  title       = "Kinesis streams high retention period should be reviewed"
   description = "Data retention period should not be high. Additional charges apply for data streams with a retention period over 24 hours."
   sql         = query.kinesis_stream_high_retention_period.sql
   severity    = "low"
