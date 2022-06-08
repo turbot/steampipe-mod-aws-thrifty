@@ -86,8 +86,8 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
 }
 
 control "kinesis_stream_consumer_with_enhanced_fan_out" {
-  title       = "Kinesis stream consumer with the enhanced_fan-out feature should be reviewed"
-  description = "The enhanced_fan-out feature should be avoided. Enhanced fan-out shard hours cost $36.00 (USD) per day."
+  title       = "Kinesis stream consumer with the enhanced fan-out feature should be reviewed"
+  description = "The enhanced fan-out feature should be avoided. Enhanced fan-out shard hours cost $36.00 (USD) per day."
   sql         = query.kinesis_stream_consumer_with_enhanced_fan_out.sql
   severity    = "low"
   tags = merge(local.capacity_planning_common_tags, {
