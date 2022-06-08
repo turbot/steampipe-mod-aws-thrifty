@@ -18,17 +18,18 @@ locals {
 
 benchmark "capacity_planning" {
   title         = "Capacity Planning"
-  description   = "."
+  description   = "Thrifty developers ensure that long running resources are strategically planned. If you have long-running resources, it's a good idea to prepurchase reserved instances at lower cost. This can apply to long-running resources including EC2 instances, RDS instances, and Redshift clusters. You should also keep an eye on EC2 reserved instances that are scheduled for expiration, or have expired in the preceding 30 days, to verify that these cost-savers are in fact no longer needed."
   documentation = file("./thrifty/docs/capacity_planning.md")
   children = [
     control.cloudwatch_log_group_no_retention,
+    control.dynamodb_table_autoscaling_disabled,
     control.ebs_volume_low_iops,
     control.ec2_reserved_instance_lease_expiration_days,
     control.ecs_service_without_autoscaling,
-    control.redshift_cluster_schedule_pause_resume_enabled,
-    control.route53_record_higher_ttl,
     control.kinesis_stream_consumer_with_enhanced_fan_out,
-    control.kinesis_stream_high_retention_period
+    control.kinesis_stream_high_retention_period,
+    control.redshift_cluster_schedule_pause_resume_enabled,
+    control.route53_record_higher_ttl
   ]
 
   tags = merge(local.capacity_planning_common_tags, {
@@ -128,5 +129,16 @@ control "ecs_service_without_autoscaling" {
 
   tags = merge(local.capacity_planning_common_tags, {
     service = "AWS/ECS"
+  })
+}
+
+control "dynamodb_table_autoscaling_disabled" {
+  title       = "DynamoDB tables should have auto scaling enabled"
+  description = "Amazon DynamoDB auto scaling uses the AWS Application Auto Scaling service to adjust provisioned throughput capacity that automatically responds to actual traffic patterns. Turning on the auto scaling feature will help to improve service performance in a cost-efficient way."
+  sql         = query.dynamodb_table_autoscaling_disabled.sql
+  severity    = "low"
+
+  tags = merge(local.capacity_planning_common_tags, {
+    service = "AWS/DynamoDB"
   })
 }
