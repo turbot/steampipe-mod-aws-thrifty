@@ -7,3 +7,4 @@ Thrifty developers check their long-running resources; it’s a good idea to pre
 | Variable                                      | Description                                                                    | Default |
 | --------------------------------------------- | ------------------------------------------------------------------------------ | ------- |
 | ec2_reserved_instance_expiration_warning_days | The number of days reserved instances can be running before sending a warning. | 30 days |
+| kinesis_stream_high_retention_period_days     | The number of days for the data retention period to be considered as maximum.  | 1 day   |
