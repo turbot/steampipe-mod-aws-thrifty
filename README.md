@@ -75,13 +75,13 @@ steampipe check all
 Run a single benchmark:
 
 ```sh
-steampipe check benchmark.ec2
+steampipe check benchmark.underused
 ```
 
 Run a specific control:
 
 ```sh
-steampipe check control.instances_with_low_utilization
+steampipe check control.ebs_volume_low_usage
 ```
 
 Different output formats are also available, for more information please see
@@ -105,7 +105,7 @@ Several benchmarks have [input variables](https://steampipe.io/docs/using-steamp
 - Set an environment variable:
 
   ```shell
-  SP_VAR_ec2_running_instance_age_max_days=90 steampipe check control.long_running_ec2_instances
+  SP_VAR_ec2_running_instance_age_max_days=90 steampipe check control.ec2_instance_running_max_age
   ```
 
   - Note: When using environment variables, if the variable is defined in `steampipe.spvars` or passed in through the command line, either of those will take precedence over the environment variable value. For more information on variable definition precedence, please see the link below.

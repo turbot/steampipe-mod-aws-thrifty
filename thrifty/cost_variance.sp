@@ -12,7 +12,7 @@ locals {
 
 benchmark "cost_variance" {
   title         = "Cost Variance"
-  description   = "."
+  description   = "Thrifty developers keep an eye on the service usage and the accompanied cost variance over a period of time. They pay close attention to the cost spikes and check if per-service costs have changed more than allowed between this month and last month. By asking the right questions one can often justify the cost or prompt review and optimization."
   documentation = file("./thrifty/docs/cost_variance.md")
   children = [
     control.full_month_cost_changes

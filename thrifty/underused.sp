@@ -72,7 +72,7 @@ locals {
 
 benchmark "underused" {
   title         = "Underused"
-  description   = "."
+  description   = "Thrifty developers check underused AWS resources. Large EC2 (or RDS, Redshift, ECS, etc) instances may have been created and sized to handle peak utilization but never reviewed later to see how well the storage, compute, and/or memory is being utilized. Consider rightsizing the instance type if an application is overprovisioned in any of these ways. AWS has different pricing for resources that are compute-optimized or memory-optimized. Analyze your inventory and utilization metrics to find resources that are underused, and prune them as warranted. "
   documentation = file("./thrifty/docs/underused.md")
   children = [
     control.ebs_volume_low_usage,
