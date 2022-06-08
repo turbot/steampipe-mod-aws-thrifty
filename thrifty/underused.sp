@@ -166,7 +166,7 @@ control "ecs_cluster_low_utilization" {
 }
 
 control "elasticache_redis_cluster_low_utilization" {
-  title       = "Elasticache Redis cluster with low CPU utilization should be reviewed"
+  title       = "Elasticache Redis clusters with low CPU utilization should be reviewed"
   description = "Resize or eliminate under utilized clusters."
   sql         = query.elasticache_redis_cluster_low_utilization.sql
   severity    = "low"
