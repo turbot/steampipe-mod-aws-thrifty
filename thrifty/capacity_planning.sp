@@ -28,8 +28,7 @@ benchmark "capacity_planning" {
     control.redshift_cluster_schedule_pause_resume_enabled,
     control.route53_record_higher_ttl,
     control.kinesis_stream_consumer_with_enhanced_fan_out,
-    control.kinesis_stream_high_retention_period,
-
+    control.kinesis_stream_high_retention_period
   ]
 
   tags = merge(local.capacity_planning_common_tags, {
@@ -96,8 +95,8 @@ control "kinesis_stream_consumer_with_enhanced_fan_out" {
 }
 
 control "kinesis_stream_high_retention_period" {
-  title       = "Kinesis streams high retention period should be reviewed"
-  description = "Data retention period should not be high. Additional charges apply for data streams with a retention period over 24 hours."
+  title       = "Kinesis streams with high retention period should be reviewed"
+  description = "Data retention period should not be high. Additional charges apply for data streams with a retention period of over 24 hours."
   sql         = query.kinesis_stream_high_retention_period.sql
   severity    = "low"
 
