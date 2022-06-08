@@ -6,7 +6,7 @@ variable "cost_explorer_service_cost_max_cost_units" {
 
 variable "cost_explorer_forecast_cost_max_cost_units" {
   type        = number
-  description = "The maximum difference in cost units allowed between the forecast and previous month's cost."
+  description = "The maximum difference in cost units allowed between the current month's forecast and previous month's cost."
   default     = 10
 }
 
@@ -21,8 +21,8 @@ benchmark "cost_variance" {
   description   = "."
   documentation = file("./thrifty/docs/cost_variance.md")
   children = [
-    control.full_month_cost_changes,
-    control.full_month_forecast_cost_changes
+    control.cost_explorer_full_month_cost_changes,
+    control.cost_explorer_full_month_forecast_cost_changes
   ]
 
   tags = merge(local.cost_variance_common_tags, {
@@ -30,10 +30,10 @@ benchmark "cost_variance" {
   })
 }
 
-control "full_month_cost_changes" {
+control "cost_explorer_full_month_cost_changes" {
   title       = "What services have changed in cost over last two months?"
   description = "Compares the cost of services between the last two full months of AWS usage."
-  sql         = query.monthly_service_cost_changes.sql
+  sql         = query.cost_explorer_full_month_cost_changes.sql
   severity    = "low"
 
   param "cost_explorer_service_cost_max_cost_units" {
@@ -46,14 +46,14 @@ control "full_month_cost_changes" {
   })
 }
 
-control "full_month_forecast_cost_changes" {
+control "cost_explorer_full_month_forecast_cost_changes" {
   title       = "What is the forecasted monthly cost compared to last month's cost?"
   description = "Compares the current month's forecasted cost with last month's cost."
-  sql         = query.monthly_forecast_cost_changes.sql
+  sql         = query.cost_explorer_full_month_forecast_cost_changes.sql
   severity    = "low"
 
   param "cost_explorer_forecast_cost_max_cost_units" {
-    description = "The maximum difference in cost units allowed between the forecast and previous month's cost."
+    description = "The maximum difference in cost units allowed between the current month's forecast and previous month's cost."
     default     = var.cost_explorer_forecast_cost_max_cost_units
   }
 
