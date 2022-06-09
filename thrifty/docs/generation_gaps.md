@@ -1,4 +1,3 @@
-## Thrifty Generation Gaps Benchmark
 
 Thrifty developers prefer new generation of cloud resources to deliver better performance and capacity at a lower unit price. For instance by simply upgrading from `gp2` EBS volumes to `gp3` EBS volumes you can save up to 20% on your bills.
 

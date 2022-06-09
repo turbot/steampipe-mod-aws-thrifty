@@ -75,7 +75,7 @@ control "ec2_reserved_instance_lease_expiration_days" {
 }
 
 control "redshift_cluster_schedule_pause_resume_enabled" {
-  title       = "Redshift cluster's pause and resume feature should be enabled"
+  title       = "Redshift clusters pause and resume feature should be enabled"
   description = "Redshift clusters should utilise the pause and resume actions to easily suspend on-demand billing while the cluster is not being used."
   sql         = query.redshift_cluster_schedule_pause_resume_enabled.sql
   severity    = "low"
@@ -121,8 +121,8 @@ control "route53_record_higher_ttl" {
 }
 
 control "ecs_service_without_autoscaling" {
-  title       = "ECS service should use auto scaling policy"
-  description = "ECS service should use auto scaling policy to improve service performance in a cost-efficient way."
+  title       = "ECS services should use auto scaling policy"
+  description = "ECS services should use auto scaling policies to improve service performance in a cost-efficient way."
   sql         = query.ecs_service_without_autoscaling.sql
   severity    = "low"
 

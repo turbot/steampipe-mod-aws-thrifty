@@ -32,8 +32,8 @@ benchmark "stale_data" {
 }
 
 control "buckets_with_no_lifecycle" {
-  title       = "Buckets should have lifecycle policies"
-  description = "S3 Buckets should have a lifecycle policy associated for data retention."
+  title       = "S3 buckets should have lifecycle policies"
+  description = "S3 buckets should have a lifecycle policy associated for data retention."
   sql         = query.s3_bucket_without_lifecycle.sql
   severity    = "low"
   tags = merge(local.stale_data_common_tags, {

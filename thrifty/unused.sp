@@ -41,8 +41,8 @@ benchmark "unused" {
 }
 
 control "cloudwatch_log_stream_unused" {
-  title       = "Unused log streams should be removed if not required"
-  description = "Unnecessary log streams should be deleted for storage cost savings."
+  title       = "Unused CloudWatch log streams should be removed if not required"
+  description = "Unnecessary CloudWatch log streams should be deleted for storage cost savings."
   sql         = query.cloudwatch_log_stream_unused.sql
   severity    = "low"
 

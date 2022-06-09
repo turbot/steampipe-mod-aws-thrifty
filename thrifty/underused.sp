@@ -224,7 +224,7 @@ control "rds_db_instance_low_usage" {
 }
 
 control "redshift_cluster_low_utilization" {
-  title       = "Redshift cluster with low CPU utilization should be reviewed"
+  title       = "Redshift clusters with low CPU utilization should be reviewed"
   description = "Resize or eliminate under utilized clusters."
   sql         = query.redshift_cluster_low_utilization.sql
   severity    = "low"

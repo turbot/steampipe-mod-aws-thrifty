@@ -75,7 +75,7 @@ control "lambda_function_with_graviton2" {
 
 control "rds_db_instance_class_prev_gen" {
   title       = "RDS instances should use the latest generation instance types"
-  description = "M5 and T3 instance types are less costly than previous generations"
+  description = "M5 and T3 instance types are less costly than previous generations."
   sql         = query.rds_db_instance_class_prev_gen.sql
   severity    = "low"
   tags = merge(local.generation_gaps_common_tags, {

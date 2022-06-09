@@ -112,7 +112,7 @@ control "cloudtrail_trail_global_multiple" {
 }
 
 control "cloudtrail_trail_regional_multiple" {
-  title       = "ARedundant regional CloudTrail trails should be reviewed"
+  title       = "Redundant regional CloudTrail trails should be reviewed"
   description = "Your first cloudtrail in each region is free, additional trails are expensive."
   sql         = query.cloudtrail_trail_regional_multiple.sql
   severity    = "low"
@@ -229,8 +229,8 @@ control "lambda_function_excessive_timeout" {
 
 
 control "rds_db_instance_age_90" {
-  title       = "Long running RDS DBs should have reserved instances purchased for them"
-  description = "Long running database servers should be associated with a reserve instance."
+  title       = "Long running RDS DB instances should have reserved instances purchased for them"
+  description = "Long running RDS DB instances servers should be associated with a reserve instance."
   sql         = query.rds_db_instance_age_90.sql
   severity    = "low"
 
