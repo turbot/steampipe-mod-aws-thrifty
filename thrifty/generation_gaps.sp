@@ -64,7 +64,6 @@ control "emr_cluster_instance_prev_gen" {
 }
 
 control "lambda_function_with_graviton2" {
-  title       = "Are there any lambda functions without graviton2 processor?"
   title       = "Lambda functions should use the graviton2 processor"
   description = "With graviton2 processor(arm64 – 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   sql         = query.lambda_function_with_graviton2.sql
