@@ -1,6 +1,6 @@
 ## Thrifty Cost Variance Benchmark
 
-Thrifty developers need to pay close attention to cost spikes. When there’s been an increase, either they can justify the cost or review if there is scope for optimization.
+Thrifty developers keep an eye on the service usage and the accompanied cost variance over a period of time. They pay close attention to the cost spikes and check if per-service costs have changed more than allowed between this month and last month. By asking the right questions one can often justify the cost or prompt review and optimization.
 
 ## Variables
 

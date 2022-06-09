@@ -1,6 +1,6 @@
 ## Thrifty Overused Benchmark
 
-Thrifty developers check overused AWS resources.
+Thrifty developers check overused AWS resources. AWS resources can be overused in a few different ways. When you have long-running resources, consider if they can be stopped intermittently. In non-production environments, for example, it can make sense to spin up resources when needed, or only during working hours.
 
 ## Variables
 

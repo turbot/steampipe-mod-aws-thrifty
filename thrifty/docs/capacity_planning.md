@@ -1,6 +1,6 @@
 ## Thrifty Capacity Planning Benchmark
 
-Thrifty developers check their long-running resources; it’s a good idea to prepurchase reserved instances at a lower cost. This can apply to long-running resources, including EC2 instances, RDS instances, and Redshift clusters. They should also keep an eye on EC2 reserved instances that are scheduled for expiration or have expired in the preceding 30 days to verify that these cost-savers are no longer needed.
+Thrifty developers ensure that long running resources are strategically planned. If you have long-running resources, it's a good idea to prepurchase reserved instances at lower cost. This can apply to long-running resources including EC2 instances, RDS instances, and Redshift clusters. You should also keep an eye on EC2 reserved instances that are scheduled for expiration, or have expired in the preceding 30 days, to verify that these cost-savers are in fact no longer needed.
 
 ## Variables
 
