@@ -34,7 +34,7 @@ control "ec2_instance_older_generation" {
 
 control "ebs_volume_using_gp2" {
   title       = "EBS gp3 volumes should be used instead of gp2"
-  description = "EBS gp2 volumes are more costly and lower performance than gp3."
+  description = "EBS gp2 volumes are more costly and have a lower performance than gp3."
   sql         = query.ebs_volume_using_gp2.sql
   severity    = "low"
   tags = merge(local.generation_gaps_common_tags, {
@@ -44,7 +44,7 @@ control "ebs_volume_using_gp2" {
 
 control "ebs_volume_io1" {
   title       = "EBS io2 volumes should be used instead of io1"
-  description = "io1 Volumes are less reliable than io2 for same cost."
+  description = "io1 volumes are less reliable than io2 for same cost."
   sql         = query.ebs_volume_io1.sql
   severity    = "low"
   tags = merge(local.generation_gaps_common_tags, {
@@ -65,6 +65,7 @@ control "emr_cluster_instance_prev_gen" {
 
 control "lambda_function_with_graviton2" {
   title       = "Are there any lambda functions without graviton2 processor?"
+  title       = "Lambda functions should use the graviton2 processor"
   description = "With graviton2 processor(arm64 – 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   sql         = query.lambda_function_with_graviton2.sql
   severity    = "low"
@@ -74,7 +75,7 @@ control "lambda_function_with_graviton2" {
 }
 
 control "rds_db_instance_class_prev_gen" {
-  title       = "Are there RDS instances using previous gen instance types?"
+  title       = "RDS instances should use the latest generation instance types"
   description = "M5 and T3 instance types are less costly than previous generations"
   sql         = query.rds_db_instance_class_prev_gen.sql
   severity    = "low"

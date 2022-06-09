@@ -49,15 +49,14 @@ control "cloudwatch_log_group_no_retention" {
 }
 
 control "ebs_volume_low_iops" {
-  title       = "What provisioned IOPS volumes would be better as GP3?"
-  description = "GP3 provides 3k base IOPS performance, don't use more costly io1 & io2 volumes."
+  title       = "EBS volumes with lower IOPS should be reviewed"
+  description = "EBS volumes with less than 3k base IOPS performance should use GP3 instead of io1 and io2 volumes."
   sql         = query.ebs_volume_low_iops.sql
   severity    = "low"
   tags = merge(local.capacity_planning_common_tags, {
     service = "AWS/EBS"
   })
 }
-
 
 control "ec2_reserved_instance_lease_expiration_days" {
   title       = "EC2 reserved instances scheduled for expiration should be reviewed"
@@ -76,8 +75,8 @@ control "ec2_reserved_instance_lease_expiration_days" {
 }
 
 control "redshift_cluster_schedule_pause_resume_enabled" {
-  title       = "Redshift cluster paused resume should be enabled"
-  description = "Redshift cluster paused resume should be enabled to easily suspend on-demand billing while the cluster is not being used."
+  title       = "Redshift cluster's pause and resume feature should be enabled"
+  description = "Redshift clusters should utilise the pause and resume actions to easily suspend on-demand billing while the cluster is not being used."
   sql         = query.redshift_cluster_schedule_pause_resume_enabled.sql
   severity    = "low"
   tags = merge(local.capacity_planning_common_tags, {
@@ -112,7 +111,7 @@ control "kinesis_stream_high_retention_period" {
 }
 
 control "route53_record_higher_ttl" {
-  title       = "Higher TTL should be configured"
+  title       = "Route 53 records should have higher TTL configured"
   description = "If you configure a higher TTL for your records, the intermediate resolvers cache the records for longer time. As a result, there are fewer queries received by the name servers. This configuration reduces the charges corresponding to the DNS queries answered. A value between an hour (3600s) and a day (86,400s) is a common choice."
   sql         = query.route53_record_higher_ttl.sql
   severity    = "low"
@@ -122,8 +121,8 @@ control "route53_record_higher_ttl" {
 }
 
 control "ecs_service_without_autoscaling" {
-  title       = "ECS service should use autoscaling policy"
-  description = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
+  title       = "ECS service should use auto scaling policy"
+  description = "ECS service should use auto scaling policy to improve service performance in a cost-efficient way."
   sql         = query.ecs_service_without_autoscaling.sql
   severity    = "low"
 

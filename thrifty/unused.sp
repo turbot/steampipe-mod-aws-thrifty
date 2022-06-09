@@ -128,7 +128,7 @@ control "ec2_eips_unattached" {
 
 control "emr_cluster_is_idle_30_minutes" {
   title       = "EMR clusters idle for more than 30 minutes should be reviewed"
-  description = "EMR clusters which is live but not currently running tasks should be reviewed and checked whether the cluster has been idle for more than 30 minutes."
+  description = "EMR clusters which are live but not currently running tasks should be reviewed and checked whether the clusters have been idle for more than 30 minutes."
   sql         = query.emr_cluster_is_idle_30_minutes.sql
   severity    = "low"
 
@@ -138,7 +138,7 @@ control "emr_cluster_is_idle_30_minutes" {
 }
 
 control "route53_health_check_unused" {
-  title       = "Unnecessary health checks should be deleted"
+  title       = "Unnecessary Route 53 health checks should be deleted"
   description = "When you associate health checks with an endpoint, health check requests are sent to the endpoint's IP address. These health check requests are sent to validate that the requests are operating as intended. Health check charges are incurred based on their associated endpoints. To avoid health check charges, delete any health checks that aren't used with an RRset record and are no longer required."
   sql         = query.route53_health_check_unused.sql
   severity    = "low"
@@ -148,7 +148,7 @@ control "route53_health_check_unused" {
 }
 
 control "secretsmanager_secret_unused" {
-  title       = "Unused secrets manager secret should be deleted"
+  title       = "Unused Secrets Manager secrets should be deleted"
   description = "AWS Secrets Manager secrets should have been accessed within a specified number of days. The default value is 90 days."
   sql         = query.secretsmanager_secret_unused.sql
   severity    = "low"
@@ -165,7 +165,7 @@ control "secretsmanager_secret_unused" {
 
 control "vpc_nat_gateway_unused" {
   title       = "Unused NAT gateways should be deleted"
-  description = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
+  description = "NAT gateways are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
   sql         = query.vpc_nat_gateway_unused.sql
   severity    = "low"
   tags = merge(local.unused_common_tags, {

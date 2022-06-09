@@ -76,6 +76,7 @@ benchmark "overused" {
     control.ebs_volume_high_iops,
     control.ec2_instances_large,
     control.ec2_instance_running_max_age,
+    control.elasticache_cluster_running_max_age,
     control.lambda_function_high_error_rate,
     control.lambda_function_excessive_timeout,
     control.rds_db_instance_age_90,
@@ -100,7 +101,7 @@ control "cloudfront_distribution_pricing_class" {
 }
 
 control "cloudtrail_trail_global_multiple" {
-  title       = "Are there redundant global CloudTrail trails?"
+  title       = "Redundant global CloudTrail trails should be reviewed"
   description = "Your first cloudtrail in each account is free, additional trails are expensive."
   sql         = query.cloudtrail_trail_global_multiple.sql
   severity    = "low"
@@ -111,7 +112,7 @@ control "cloudtrail_trail_global_multiple" {
 }
 
 control "cloudtrail_trail_regional_multiple" {
-  title       = "Are there redundant regional CloudTrail trails?"
+  title       = "ARedundant regional CloudTrail trails should be reviewed"
   description = "Your first cloudtrail in each region is free, additional trails are expensive."
   sql         = query.cloudtrail_trail_regional_multiple.sql
   severity    = "low"
@@ -171,7 +172,7 @@ control "ec2_instances_large" {
 
 control "ec2_instance_running_max_age" {
   title       = "Long running EC2 instances should be reviewed"
-  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long."
+  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long. Long running instances should be replaced with reserved instances, which provide a significant discount."
   sql         = query.ec2_instance_running_max_age.sql
   severity    = "low"
 
@@ -185,10 +186,10 @@ control "ec2_instance_running_max_age" {
   })
 }
 
-control "elasticache_cluster_long_running" {
-  title       = "Long running ElastiCache clusters should have reserved nodes purchased for them"
-  description = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
-  sql         = query.elasticache_cluster_long_running.sql
+control "elasticache_cluster_running_max_age" {
+  title       = "Long running ElastiCache clusters should be reviewed"
+  description = "Long running clusters should be reviewed and if they are needed they should be associated with reserved nodes, which provide a significant discount."
+  sql         = query.elasticache_cluster_running_max_age.sql
   severity    = "low"
 
   param "elasticache_running_cluster_age_max_days" {
@@ -207,7 +208,7 @@ control "elasticache_cluster_long_running" {
 }
 
 control "lambda_function_high_error_rate" {
-  title       = "Are there any lambda functions with high error rate?"
+  title       = "Lambda functions with high error rate should be reviewed"
   description = "Function errors may result in retries that incur extra charges. The control checks for functions with an error rate of more than 10% a day in one of the last 7 days."
   sql         = query.lambda_function_high_error_rate.sql
   severity    = "low"
@@ -217,7 +218,7 @@ control "lambda_function_high_error_rate" {
 }
 
 control "lambda_function_excessive_timeout" {
-  title       = "Are there any lambda functions with excessive timeout?"
+  title       = "Lambda functions with excessive timeout should be reviewed"
   description = "Excessive timeouts result in retries and additional execution time for the function, incurring request charges and billed duration. The control checks for functions with a timeout rate of more than 10% a day in one of the last 7 days."
   sql         = query.lambda_function_excessive_timeout.sql
   severity    = "low"

@@ -103,7 +103,7 @@ benchmark "underused" {
 }
 
 control "ebs_volume_low_usage" {
-  title       = "Are there any EBS volumes with low usage?"
+  title       = "EBS volumes with low usage should be reviewed"
   description = "Volumes that are underused should be archived and deleted"
   sql         = query.ebs_volume_low_usage.sql
   severity    = "low"
@@ -124,7 +124,7 @@ control "ebs_volume_low_usage" {
 }
 
 control "ec2_instance_avg_cpu_utilization_low" {
-  title       = "Which EC2 instances have very low CPU utilization?"
+  title       = "EC2 instances with very low CPU utilization should be reviewed"
   description = "Resize or eliminate under utilized instances."
   sql         = query.ec2_instance_avg_cpu_utilization_low.sql
   severity    = "low"
