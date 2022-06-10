@@ -2,10 +2,11 @@ Thrifty developers need to keep an eye on data which is no longer required. It's
 
 ## Variables
 
-| Variable                              | Description                                                                           | Default |
-| ------------------------------------- | ------------------------------------------------------------------------------------- | ------- |
-| dynamodb_table_stale_data_max_days    | The maximum number of days table data can be unchanged before it is considered stale. | 90 days |
-| ebs_snapshot_age_max_days             | The maximum number of days EBS snapshots can be retained.                             | 90 days |
-| rds_db_instance_snapshot_age_max_days | The maximum number of days RDS DB instance snapshots can be retained.                 | 90 days |
-| rds_db_cluster_snapshot_age_max_days  | The maximum number of days RDS DB cluster snapshots can be retained.                  | 90 days |
-| redshift_snapshot_age_max_days        | The maximum number of days redshift snapshots can be retained.                        | 90 days |
+| Variable                                  | Description                                                                           | Default |
+| ----------------------------------------- | ------------------------------------------------------------------------------------- | ------- |
+| dynamodb_table_stale_data_max_days        | The maximum number of days table data can be unchanged before it is considered stale. | 90 days |
+| ebs_snapshot_age_max_days                 | The maximum number of days EBS snapshots can be retained.                             | 90 days |
+| rds_db_instance_snapshot_age_max_days     | The maximum number of days RDS DB instance snapshots can be retained.                 | 90 days |
+| rds_db_cluster_snapshot_age_max_days      | The maximum number of days RDS DB cluster snapshots can be retained.                  | 90 days |
+| redshift_snapshot_age_max_days            | The maximum number of days redshift snapshots can be retained.                        | 90 days |
+| kinesis_stream_high_retention_period_days | The number of days for the data retention period to be considered as maximum.         | 1 day   |
