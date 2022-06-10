@@ -10,10 +10,10 @@ variable "ebs_snapshot_age_max_days" {
   default     = 90
 }
 
-locals {
-  stale_data_common_tags = merge(local.aws_thrifty_common_tags, {
-    stale_data = "true"
-  })
+variable "kinesis_stream_high_retention_period_days" {
+  type        = number
+  description = "The number of days for the data retention period to be considered as maximum."
+  default     = 1
 }
 
 benchmark "stale_data" {
@@ -21,22 +21,35 @@ benchmark "stale_data" {
   description   = "Thrifty developers need to keep an eye on data which is no longer required. It's great to be able to programmatically create backups and snapshots, but these too can become a source of unchecked cost if not watched closely. It's easy to delete an individual snapshot with a few clicks, but challenging to manage snapshots programmatically across multiple accounts. Over time, dozens of snapshots can turn into hundreds or thousands."
   documentation = file("./thrifty/docs/stale_data.md")
   children = [
-    control.buckets_with_no_lifecycle,
+    control.cloudwatch_log_group_no_retention,
     control.dynamodb_table_stale_data,
-    control.ebs_snapshot_age_90
+    control.ebs_snapshot_age_90,
+    control.kinesis_stream_high_retention_period,
+    control.s3_bucket_with_no_lifecycle
   ]
 
-  tags = merge(local.stale_data_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     type = "Benchmark"
   })
 }
 
-control "buckets_with_no_lifecycle" {
+control "cloudwatch_log_group_no_retention" {
+  title       = "CloudWatch Log Groups retention should be enabled"
+  description = "All log groups should have a defined retention configuration."
+  sql         = query.cloudwatch_log_group_no_retention.sql
+  severity    = "low"
+
+  tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/CloudWatch"
+  })
+}
+
+control "s3_bucket_with_no_lifecycle" {
   title       = "S3 buckets should have lifecycle policies"
   description = "S3 buckets should have a lifecycle policy associated for data retention."
   sql         = query.s3_bucket_without_lifecycle.sql
   severity    = "low"
-  tags = merge(local.stale_data_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/S3"
   })
 }
@@ -52,7 +65,7 @@ control "dynamodb_table_stale_data" {
     default     = var.dynamodb_table_stale_data_max_days
   }
 
-  tags = merge(local.stale_data_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/DynamoDB"
   })
 }
@@ -68,7 +81,23 @@ control "ebs_snapshot_age_90" {
     default     = var.ebs_snapshot_age_max_days
   }
 
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EBS"
+  })
+}
+
+control "kinesis_stream_high_retention_period" {
+  title       = "Kinesis streams with high retention period should be reviewed"
+  description = "Data retention period should not be high. Additional charges apply for data streams with a retention period of over 24 hours."
+  sql         = query.kinesis_stream_high_retention_period.sql
+  severity    = "low"
+
+  param "kinesis_stream_high_retention_period_days" {
+    description = "The number of days for the data retention period to be considered as maximum."
+    default     = var.kinesis_stream_high_retention_period_days
+  }
+
+  tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/Kinesis"
   })
 }

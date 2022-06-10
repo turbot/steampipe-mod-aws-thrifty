@@ -76,12 +76,6 @@ variable "elasticache_redis_cluster_avg_cpu_utilization_low" {
   default     = 20
 }
 
-locals {
-  underused_common_tags = merge(local.aws_thrifty_common_tags, {
-    underused = "true"
-  })
-}
-
 benchmark "underused" {
   title         = "Underused"
   description   = "Thrifty developers check underused AWS resources. Large EC2 (or RDS, Redshift, ECS, etc) instances may have been created and sized to handle peak utilization but never reviewed later to see how well the storage, compute, and/or memory is being utilized. Consider rightsizing the instance type if an application is overprovisioned in any of these ways. AWS has different pricing for resources that are compute-optimized or memory-optimized. Analyze your inventory and utilization metrics to find underused resources, and prune them as warranted."
@@ -94,10 +88,9 @@ benchmark "underused" {
     control.rds_db_instance_low_connections,
     control.rds_db_instance_low_usage,
     control.redshift_cluster_low_utilization
-
   ]
 
-  tags = merge(local.underused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     type = "Benchmark"
   })
 }
@@ -118,7 +111,7 @@ control "ebs_volume_low_usage" {
     default     = var.ebs_volume_avg_read_write_ops_high
   }
 
-  tags = merge(local.underused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EBS"
   })
 }
@@ -139,7 +132,7 @@ control "ec2_instance_avg_cpu_utilization_low" {
     default     = var.ec2_instance_avg_cpu_utilization_high
   }
 
-  tags = merge(local.underused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EC2"
   })
 }
@@ -160,7 +153,7 @@ control "ecs_cluster_low_utilization" {
     default     = var.ecs_cluster_avg_cpu_utilization_high
   }
 
-  tags = merge(local.underused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/ECS"
   })
 }
@@ -181,7 +174,7 @@ control "elasticache_redis_cluster_low_utilization" {
     default     = var.elasticache_redis_cluster_avg_cpu_utilization_high
   }
 
-  tags = merge(local.underused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/ElastiCache"
   })
 }
@@ -197,7 +190,7 @@ control "rds_db_instance_low_connections" {
     default     = var.rds_db_instance_avg_connections
   }
 
-  tags = merge(local.underused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/RDS"
   })
 }
@@ -218,7 +211,7 @@ control "rds_db_instance_low_usage" {
     default     = var.rds_db_instance_avg_cpu_utilization_high
   }
 
-  tags = merge(local.underused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/RDS"
   })
 }
@@ -239,7 +232,7 @@ control "redshift_cluster_low_utilization" {
     default     = var.redshift_cluster_avg_cpu_utilization_high
   }
 
-  tags = merge(local.underused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/Redshift"
   })
 }
