@@ -10,6 +10,24 @@ variable "ebs_snapshot_age_max_days" {
   default     = 90
 }
 
+variable "rds_db_instance_snapshot_age_max_days" {
+  type        = number
+  description = "The maximum number of days RDS DB instance snapshots can be retained."
+  default     = 90
+}
+
+variable "rds_db_cluster_snapshot_age_max_days" {
+  type        = number
+  description = "The maximum number of days RDS DB cluster snapshots can be retained."
+  default     = 90
+}
+
+variable "redshift_snapshot_age_max_days" {
+  type        = number
+  description = "The maximum number of days redshift snapshots can be retained."
+  default     = 90
+}
+
 locals {
   stale_data_common_tags = merge(local.aws_thrifty_common_tags, {
     stale_data = "true"
@@ -23,7 +41,10 @@ benchmark "stale_data" {
   children = [
     control.buckets_with_no_lifecycle,
     control.dynamodb_table_stale_data,
-    control.ebs_snapshot_age_90
+    control.ebs_snapshot_age_90,
+    control.rds_db_cluster_snapshot_age_90,
+    control.rds_db_instance_snapshot_age_90,
+    control.redshift_snapshot_age_90
   ]
 
   tags = merge(local.stale_data_common_tags, {
@@ -68,7 +89,55 @@ control "ebs_snapshot_age_90" {
     default     = var.ebs_snapshot_age_max_days
   }
 
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.stale_data_common_tags, {
     service = "AWS/EBS"
+  })
+}
+
+control "rds_db_cluster_snapshot_age_90" {
+  title       = "Old RDS DB cluster snapshots should be deleted if not required"
+  description = "Old RDS DB cluster snapshots are likely unnecessary and costly to maintain."
+  sql         = query.rds_db_cluster_snapshot_age_90.sql
+  severity    = "low"
+
+  param "rds_db_cluster_snapshot_age_max_days" {
+    description = "The maximum number of days RDS DB cluster snapshots can be retained."
+    default     = var.rds_db_cluster_snapshot_age_max_days
+  }
+
+  tags = merge(local.stale_data_common_tags, {
+    service = "AWS/RDS"
+  })
+}
+
+control "rds_db_instance_snapshot_age_90" {
+  title       = "Old RDS DB instance snapshots should be deleted if not required"
+  description = "Old RDS DB instance snapshots are likely unnecessary and costly to maintain."
+  sql         = query.rds_db_instance_snapshot_age_90.sql
+  severity    = "low"
+
+  param "rds_db_instance_snapshot_age_max_days" {
+    description = "The maximum number of days RDS DB instance snapshots can be retained."
+    default     = var.rds_db_instance_snapshot_age_max_days
+  }
+
+  tags = merge(local.stale_data_common_tags, {
+    service = "AWS/RDS"
+  })
+}
+
+control "redshift_snapshot_age_90" {
+  title       = "Old redshift snapshots should be deleted if not required"
+  description = "Old redshift snapshots are likely unnecessary and costly to maintain."
+  sql         = query.redshift_snapshot_age_90.sql
+  severity    = "low"
+
+  param "redshift_snapshot_age_max_days" {
+    description = "The maximum number of days redshift snapshots can be retained."
+    default     = var.redshift_snapshot_age_max_days
+  }
+
+  tags = merge(local.stale_data_common_tags, {
+    service = "AWS/Redshift"
   })
 }
