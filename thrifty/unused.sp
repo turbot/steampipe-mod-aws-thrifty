@@ -10,12 +10,6 @@ variable "secretsmanager_secret_last_used" {
   default     = 90
 }
 
-locals {
-  unused_common_tags = merge(local.aws_thrifty_common_tags, {
-    unused = "true"
-  })
-}
-
 benchmark "unused" {
   title         = "Unused"
   description   = "Thrifty developers need to pay close attention to unused resources. It’s possible to end up with resources that aren’t being used. Load balancers may not have associated resources or targets; RDS databases may have low or no connection counts; a NAT gateway may not have any resources routing to it. And most commonly, EBS volumes may not be attached to running instances. The ability to easily create, attach and unattached disk volumes is a key benefit of working in the cloud, but it can also become a source of unchecked cost if not watched closely. Even if an Amazon EBS volume is unattached, you are still billed for the provisioned storage."
@@ -35,7 +29,7 @@ benchmark "unused" {
     control.vpc_nat_gateway_unused
   ]
 
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     type = "Benchmark"
   })
 }
@@ -51,7 +45,7 @@ control "cloudwatch_log_stream_unused" {
     default     = var.cloudwatch_log_stream_age_max_days
   }
 
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/CloudWatch"
   })
 }
@@ -61,7 +55,7 @@ control "ebs_volume_unattached" {
   description = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
   sql         = query.ebs_volume_unattached.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EBS"
   })
 }
@@ -71,7 +65,7 @@ control "ebs_volume_on_stopped_instances" {
   description = "Instances that are stopped may no longer need any attached EBS volumes"
   sql         = query.ebs_volume_inactive.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EBS"
   })
 }
@@ -81,7 +75,7 @@ control "ec2_application_lb_unused" {
   description = "Application load balancers with no targets attached still cost money and should be deleted."
   sql         = query.ec2_application_lb_unused.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EC2"
   })
 }
@@ -91,7 +85,7 @@ control "ec2_classic_lb_unused" {
   description = "Classic load balancers with no instances attached still cost money should be deleted."
   sql         = query.ec2_classic_lb_unused.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EC2"
   })
 }
@@ -101,7 +95,7 @@ control "ec2_gateway_lb_unused" {
   description = "Gateway load balancers with no targets attached still cost money and should be deleted."
   sql         = query.ec2_gateway_lb_unused.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EC2"
   })
 }
@@ -111,7 +105,7 @@ control "ec2_network_lb_unused" {
   description = "Network load balancers with no targets attached still cost money and should be deleted."
   sql         = query.ec2_network_lb_unused.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EC2"
   })
 }
@@ -121,7 +115,7 @@ control "ec2_eips_unattached" {
   description = "Unattached Elastic IPs are charged by AWS, they should be released."
   sql         = query.ec2_eips_unattached.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EC2"
   })
 }
@@ -132,7 +126,7 @@ control "emr_cluster_is_idle_30_minutes" {
   sql         = query.emr_cluster_is_idle_30_minutes.sql
   severity    = "low"
 
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EMR"
   })
 }
@@ -142,7 +136,7 @@ control "route53_health_check_unused" {
   description = "When you associate health checks with an endpoint, health check requests are sent to the endpoint's IP address. These health check requests are sent to validate that the requests are operating as intended. Health check charges are incurred based on their associated endpoints. To avoid health check charges, delete any health checks that aren't used with an RRset record and are no longer required."
   sql         = query.route53_health_check_unused.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/Route53"
   })
 }
@@ -158,7 +152,7 @@ control "secretsmanager_secret_unused" {
     default     = var.secretsmanager_secret_last_used
   }
 
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/SecretsManager"
   })
 }
@@ -168,7 +162,7 @@ control "vpc_nat_gateway_unused" {
   description = "NAT gateways are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
   sql         = query.vpc_nat_gateway_unused.sql
   severity    = "low"
-  tags = merge(local.unused_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/VPC"
   })
 }

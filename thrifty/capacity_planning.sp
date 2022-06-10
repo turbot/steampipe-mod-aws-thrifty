@@ -4,16 +4,46 @@ variable "ec2_reserved_instance_expiration_warning_days" {
   default     = 30
 }
 
-variable "kinesis_stream_high_retention_period_days" {
+variable "ec2_running_instance_age_max_days" {
   type        = number
-  description = "The number of days for the data retention period to be considered as maximum."
-  default     = 1
+  description = "The maximum number of days instances are allowed to run."
+  default     = 90
 }
 
-locals {
-  capacity_planning_common_tags = merge(local.aws_thrifty_common_tags, {
-    capacity_planning = "true"
-  })
+variable "elasticache_running_cluster_age_max_days" {
+  type        = number
+  description = "The maximum number of days clusters are allowed to run."
+  default     = 90
+}
+
+variable "elasticache_running_cluster_age_warning_days" {
+  type        = number
+  description = "The number of days clusters can be running before sending a warning."
+  default     = 30
+}
+
+variable "rds_running_db_instance_age_max_days" {
+  type        = number
+  description = "The maximum number of days DB instances are allowed to run."
+  default     = 90
+}
+
+variable "rds_running_db_instance_age_warning_days" {
+  type        = number
+  description = "The number of days DB instances can be running before sending a warning."
+  default     = 30
+}
+
+variable "redshift_running_cluster_age_max_days" {
+  type        = number
+  description = "The maximum number of days clusters are allowed to run."
+  default     = 90
+}
+
+variable "redshift_running_cluster_age_warning_days" {
+  type        = number
+  description = "The number of days clusters can be running before sending a warning."
+  default     = 30
 }
 
 benchmark "capacity_planning" {
@@ -21,30 +51,22 @@ benchmark "capacity_planning" {
   description   = "Thrifty developers ensure that long running resources are strategically planned. If you have long-running resources, it's a good idea to prepurchase reserved instances at lower cost. This can apply to long-running resources including EC2 instances, RDS instances, and Redshift clusters. You should also keep an eye on EC2 reserved instances that are scheduled for expiration, or have expired in the preceding 30 days, to verify that these cost-savers are in fact no longer needed."
   documentation = file("./thrifty/docs/capacity_planning.md")
   children = [
-    control.cloudwatch_log_group_no_retention,
+    
     control.dynamodb_table_autoscaling_disabled,
     control.ebs_volume_low_iops,
+    control.ec2_instance_running_max_age,
     control.ec2_reserved_instance_lease_expiration_days,
     control.ecs_service_without_autoscaling,
+    control.elasticache_cluster_running_max_age,
     control.kinesis_stream_consumer_with_enhanced_fan_out,
-    control.kinesis_stream_high_retention_period,
+    control.rds_db_instance_age_90,
+    control.redshift_cluster_max_age,
     control.redshift_cluster_schedule_pause_resume_enabled,
     control.route53_record_higher_ttl
   ]
 
-  tags = merge(local.capacity_planning_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     type = "Benchmark"
-  })
-}
-
-control "cloudwatch_log_group_no_retention" {
-  title       = "CloudWatch Log Groups retention should be enabled"
-  description = "All log groups should have a defined retention configuration."
-  sql         = query.cloudwatch_log_group_no_retention.sql
-  severity    = "low"
-
-  tags = merge(local.capacity_planning_common_tags, {
-    service = "AWS/CloudWatch"
   })
 }
 
@@ -53,7 +75,7 @@ control "ebs_volume_low_iops" {
   description = "EBS volumes with less than 3k base IOPS performance should use GP3 instead of io1 and io2 volumes."
   sql         = query.ebs_volume_low_iops.sql
   severity    = "low"
-  tags = merge(local.capacity_planning_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EBS"
   })
 }
@@ -69,7 +91,7 @@ control "ec2_reserved_instance_lease_expiration_days" {
     default     = var.ec2_reserved_instance_expiration_warning_days
   }
 
-  tags = merge(local.capacity_planning_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/EC2"
   })
 }
@@ -79,7 +101,7 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
   description = "Redshift clusters should utilise the pause and resume actions to easily suspend on-demand billing while the cluster is not being used."
   sql         = query.redshift_cluster_schedule_pause_resume_enabled.sql
   severity    = "low"
-  tags = merge(local.capacity_planning_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/Redshift"
   })
 }
@@ -89,23 +111,7 @@ control "kinesis_stream_consumer_with_enhanced_fan_out" {
   description = "The enhanced fan-out feature should be avoided. Enhanced fan-out shard hours cost $36.00 (USD) per day."
   sql         = query.kinesis_stream_consumer_with_enhanced_fan_out.sql
   severity    = "low"
-  tags = merge(local.capacity_planning_common_tags, {
-    service = "AWS/Kinesis"
-  })
-}
-
-control "kinesis_stream_high_retention_period" {
-  title       = "Kinesis streams with high retention period should be reviewed"
-  description = "Data retention period should not be high. Additional charges apply for data streams with a retention period of over 24 hours."
-  sql         = query.kinesis_stream_high_retention_period.sql
-  severity    = "low"
-
-  param "kinesis_stream_high_retention_period_days" {
-    description = "The number of days for the data retention period to be considered as maximum."
-    default     = var.kinesis_stream_high_retention_period_days
-  }
-
-  tags = merge(local.capacity_planning_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/Kinesis"
   })
 }
@@ -115,7 +121,7 @@ control "route53_record_higher_ttl" {
   description = "If you configure a higher TTL for your records, the intermediate resolvers cache the records for longer time. As a result, there are fewer queries received by the name servers. This configuration reduces the charges corresponding to the DNS queries answered. A value between an hour (3600s) and a day (86,400s) is a common choice."
   sql         = query.route53_record_higher_ttl.sql
   severity    = "low"
-  tags = merge(local.capacity_planning_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/Route53"
   })
 }
@@ -126,7 +132,7 @@ control "ecs_service_without_autoscaling" {
   sql         = query.ecs_service_without_autoscaling.sql
   severity    = "low"
 
-  tags = merge(local.capacity_planning_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/ECS"
   })
 }
@@ -137,7 +143,86 @@ control "dynamodb_table_autoscaling_disabled" {
   sql         = query.dynamodb_table_autoscaling_disabled.sql
   severity    = "low"
 
-  tags = merge(local.capacity_planning_common_tags, {
+  tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/DynamoDB"
+  })
+}
+
+control "ec2_instance_running_max_age" {
+  title       = "Long running EC2 instances should be reviewed"
+  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long. Long running instances should be replaced with reserved instances, which provide a significant discount."
+  sql         = query.ec2_instance_running_max_age.sql
+  severity    = "low"
+
+  param "ec2_running_instance_age_max_days" {
+    description = "The maximum number of days instances are allowed to run."
+    default     = var.ec2_running_instance_age_max_days
+  }
+
+  tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/EC2"
+  })
+}
+
+control "elasticache_cluster_running_max_age" {
+  title       = "Long running ElastiCache clusters should be reviewed"
+  description = "Long running clusters should be reviewed and if they are needed they should be associated with reserved nodes, which provide a significant discount."
+  sql         = query.elasticache_cluster_running_max_age.sql
+  severity    = "low"
+
+  param "elasticache_running_cluster_age_max_days" {
+    description = "The maximum number of days clusters are allowed to run."
+    default     = var.elasticache_running_cluster_age_max_days
+  }
+
+  param "elasticache_running_cluster_age_warning_days" {
+    description = "The number of days clusters can be running before sending a warning."
+    default     = var.elasticache_running_cluster_age_warning_days
+  }
+
+  tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/ElastiCache"
+  })
+}
+
+control "rds_db_instance_age_90" {
+  title       = "Long running RDS DB instances should have reserved instances purchased for them"
+  description = "Long running RDS DB instances servers should be associated with a reserve instance."
+  sql         = query.rds_db_instance_age_90.sql
+  severity    = "low"
+
+  param "rds_running_db_instance_age_max_days" {
+    description = "The maximum number of days DB instances are allowed to run."
+    default     = var.rds_running_db_instance_age_max_days
+  }
+
+  param "rds_running_db_instance_age_warning_days" {
+    description = "The number of days DB instances can be running before sending a warning."
+    default     = var.rds_running_db_instance_age_warning_days
+  }
+
+  tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/RDS"
+  })
+}
+
+control "redshift_cluster_max_age" {
+  title       = "Long running Redshift clusters should have reserved nodes purchased for them"
+  description = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
+  sql         = query.redshift_cluster_max_age.sql
+  severity    = "low"
+
+  param "redshift_running_cluster_age_max_days" {
+    description = "The maximum number of days clusters are allowed to run."
+    default     = var.redshift_running_cluster_age_max_days
+  }
+
+  param "redshift_running_cluster_age_warning_days" {
+    description = "The number of days clusters can be running before sending a warning."
+    default     = var.redshift_running_cluster_age_warning_days
+  }
+
+  tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/Redshift"
   })
 }
