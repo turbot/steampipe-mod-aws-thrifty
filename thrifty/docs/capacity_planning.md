@@ -1,5 +1,11 @@
 Thrifty developers ensure that long running resources are strategically planned. If you have long-running resources, it's a good idea to prepurchase reserved instances at lower cost. This can apply to long-running resources including EC2 instances, RDS instances, and Redshift clusters. You should also keep an eye on EC2 reserved instances that are scheduled for expiration, or have expired in the preceding 30 days, to verify that these cost-savers are in fact no longer needed.
 
+This dashboard answers the following questions:
+
+- What EC2 instances, Elasticache clusters, RDS DB instances, Redshift clusters have been running for a long time?
+- What DynamoDB tables have auto scaling disabled?
+- What EBS volumes have less than 3k base IOPS performance?
+
 ## Variables
 
 | Variable                                      | Description                                                                    | Default |

@@ -1,5 +1,12 @@
 Thrifty developers need to keep an eye on data which is no longer required. It's great to be able to programmatically create backups and snapshots, but these too can become a source of unchecked cost if not watched closely. It's easy to delete an individual snapshot with a few clicks, but challenging to manage snapshots programmatically across multiple accounts. Over time, dozens of snapshots can turn into hundreds or thousands.
 
+This dashboard answers the following questions:
+
+- What CloudWatch log groups do not have any retention period enabled?
+- What DynamoDB tables have stale data?
+- What EBS snapshots, RDS snapshots and Redshift snapshots are no longer required? 
+- What S3 buckets do not have any associated lifecycle policies?
+
 ## Variables
 
 | Variable                                  | Description                                                                           | Default |

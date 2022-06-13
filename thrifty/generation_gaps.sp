@@ -39,7 +39,7 @@ control "ebs_volume_using_gp2" {
 
 control "ebs_volume_io1" {
   title       = "EBS io2 volumes should be used instead of io1"
-  description = "io1 volumes are less reliable than io2 for same cost."
+  description = "EBS io1 volumes are less reliable than io2 for same cost."
   sql         = query.ebs_volume_io1.sql
   severity    = "low"
   tags = merge(local.aws_thrifty_common_tags, {
