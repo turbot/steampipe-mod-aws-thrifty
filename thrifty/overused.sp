@@ -123,7 +123,7 @@ control "lambda_function_high_error_rate" {
   sql         = query.lambda_function_high_error_rate.sql
   severity    = "low"
   tags = merge(local.aws_thrifty_common_tags, {
-    service = "AWS/Lamda"
+    service = "AWS/Lambda"
   })
 }
 
@@ -133,6 +133,6 @@ control "lambda_function_excessive_timeout" {
   sql         = query.lambda_function_excessive_timeout.sql
   severity    = "low"
   tags = merge(local.aws_thrifty_common_tags, {
-    service = "AWS/Lamda"
+    service = "AWS/Lambda"
   })
 }
