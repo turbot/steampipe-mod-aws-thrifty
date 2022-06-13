@@ -76,3 +76,13 @@ control "rds_db_instance_class_prev_gen" {
     service = "AWS/RDS"
   })
 }
+
+control "redshift_cluster_node_type_prev_gen" {
+  title       = "Redshift clusters should use the latest generation node types"
+  description = "Ensure that all Redshift clusters provisioned within your AWS account are using the latest generation of nodes (ds2.xlarge or ds2.8xlarge) in order to get higher performance with lower costs."
+  sql         = query.redshift_cluster_node_type_prev_gen.sql
+  severity    = "low"
+  tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/Redshift"
+  })
+}
