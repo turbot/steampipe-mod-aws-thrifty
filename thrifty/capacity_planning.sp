@@ -50,8 +50,7 @@ benchmark "capacity_planning" {
   title         = "Capacity Planning"
   description   = "Thrifty developers ensure that long running resources are strategically planned. If you have long-running resources, it's a good idea to prepurchase reserved instances at lower cost. This can apply to long-running resources including EC2 instances, RDS instances, and Redshift clusters. You should also keep an eye on EC2 reserved instances that are scheduled for expiration, or have expired in the preceding 30 days, to verify that these cost-savers are in fact no longer needed."
   documentation = file("./thrifty/docs/capacity_planning.md")
-  children = [
-    
+  children = [  
     control.dynamodb_table_autoscaling_disabled,
     control.ebs_volume_low_iops,
     control.ec2_instance_running_max_age,
@@ -59,7 +58,7 @@ benchmark "capacity_planning" {
     control.ecs_service_without_autoscaling,
     control.elasticache_cluster_running_max_age,
     control.kinesis_stream_consumer_with_enhanced_fan_out,
-    control.rds_db_instance_age_90,
+    control.rds_db_instance_max_age,
     control.redshift_cluster_max_age,
     control.redshift_cluster_schedule_pause_resume_enabled,
     control.route53_record_higher_ttl
@@ -185,10 +184,10 @@ control "elasticache_cluster_running_max_age" {
   })
 }
 
-control "rds_db_instance_age_90" {
+control "rds_db_instance_max_age" {
   title       = "Long running RDS DB instances should have reserved instances purchased for them"
   description = "Long running RDS DB instances servers should be associated with a reserve instance."
-  sql         = query.rds_db_instance_age_90.sql
+  sql         = query.rds_db_instance_max_age.sql
   severity    = "low"
 
   param "rds_running_db_instance_age_max_days" {

@@ -4,7 +4,7 @@ select
     when retention_period_hours > $1 * 24 then 'alarm'
     else 'ok'
   end as status,
-  title || ' data retention period is ' || retention_period_hours/24 || ' day.' as reason,
+  title || ' data retention period is ' || retention_period_hours/24 || ' day(s).' as reason,
   region,
   account_id
 from

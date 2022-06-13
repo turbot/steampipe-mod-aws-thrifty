@@ -7,7 +7,6 @@ with table_with_autocaling as (
     group by t.resource_id
 )
 select
-  -- Required Columns
   d.arn as resource,
   case
     when d.billing_mode = 'PAY_PER_REQUEST' then 'ok'
@@ -21,7 +20,6 @@ select
     when t.count < 2 then d.title || ' auto scaling not enabled for both read and write capacity.'
     else d.title || ' auto scaling enabled for both read and write capacity.'
   end as reason,
-  -- Additional Dimensions
   d.region,
   d.account_id
 from

@@ -4,8 +4,8 @@ select
     when start_time > current_timestamp - ($1 || ' days')::interval then 'ok'
     else 'alarm'
   end as status,
-  snapshot_id || ' created at ' || start_time || '.' as reason,
+  snapshot_id || ' created on ' || start_time || '.' as reason,
   region,
   account_id
 from
-  aws_ebs_snapshot
+  aws_ebs_snapshot;

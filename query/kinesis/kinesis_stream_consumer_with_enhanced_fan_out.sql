@@ -4,7 +4,7 @@ select
     when consumer_count > 0 then 'alarm'
     else 'ok'
   end as status,
-  title || ' has '|| consumer_count || ' consumers using enhanced fan-out.' as reason,
+  title || ' has ' || consumer_count || ' consumers using enhanced fan-out.' as reason,
   region,
   account_id
 from

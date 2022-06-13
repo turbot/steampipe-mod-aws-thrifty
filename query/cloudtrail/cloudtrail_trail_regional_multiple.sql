@@ -37,7 +37,7 @@ select
   end as status,
   case
     when global_trails.total > 0 then name || ' is redundant to a global trail.'
-    when org_trails.total > 0 then name || ' is redundant to a organizational trail.'
+    when org_trails.total > 0 then name || ' is redundant to an organizational trail.'
     when regional_trails.total > 1 then name || ' is one of ' || regional_trails.total || ' trails in ' || t.region || '.'
     else name || ' is the only global trail.'
   end as reason,

@@ -42,10 +42,10 @@ benchmark "stale_data" {
     control.cloudwatch_log_group_no_retention,
     control.dynamodb_table_stale_data,
     control.ebs_snapshot_age_90,
+    control.kinesis_stream_high_retention_period,
     control.rds_db_cluster_snapshot_age_90,
     control.rds_db_instance_snapshot_age_90,
     control.redshift_snapshot_age_90,
-    control.kinesis_stream_high_retention_period,
     control.s3_bucket_with_no_lifecycle
   ]
 

@@ -4,7 +4,7 @@ select
     when snapshot_create_time > current_timestamp - ($1 || ' days')::interval then 'ok'
     else 'alarm'
   end as status,
-  snapshot_identifier || ' created at ' || snapshot_create_time || '.' as reason,
+  snapshot_identifier || ' created on ' || snapshot_create_time || '.' as reason,
   region,
   account_id
 from
