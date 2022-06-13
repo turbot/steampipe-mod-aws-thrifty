@@ -8,6 +8,7 @@ benchmark "generation_gaps" {
     control.ec2_instance_older_generation,
     control.emr_cluster_instance_prev_gen,
     control.lambda_function_with_graviton2,
+    control.redshift_cluster_node_type_prev_gen,
     control.rds_db_instance_class_prev_gen
   ]
 
