@@ -2,7 +2,7 @@ Thrifty developers check underused AWS resources. Large EC2 (or RDS, Redshift, E
 
 This dashboard answers the following questions:
 
-- What EBS volumes, EC2 instances, ECS clusters, RDS DB instances, Redshift clusters have low CPU utilization?
+- What resources have low CPU utilization?
 
 ## Variables
 

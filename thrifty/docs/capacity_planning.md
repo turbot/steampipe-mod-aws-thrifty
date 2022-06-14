@@ -2,9 +2,8 @@ Thrifty developers ensure that long running resources are strategically planned.
 
 This dashboard answers the following questions:
 
-- What EC2 instances, Elasticache clusters, RDS DB instances, Redshift clusters have been running for a long time?
-- What DynamoDB tables have auto scaling disabled?
-- What EBS volumes have less than 3k base IOPS performance?
+- What resources have been in running state for a very long time?
+- What resources do not have auto scaling enabled?
 
 ## Variables
 

@@ -2,8 +2,8 @@ Thrifty developers check overused AWS resources. AWS resources can be overused i
 
 This dashboard answers the following questions:
 
-- What global and regional CloudTrail trails are redundant?
-- What EC2 instances and EBS volumes are operating at higher than defined size limits?  
+- What resources are expensive and redundant?
+- What resources are operating at higher than defined size limits?  
 
 ## Variables
 

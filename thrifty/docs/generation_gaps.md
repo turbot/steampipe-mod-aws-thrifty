@@ -7,7 +7,5 @@ Upgrading to the latest generation is often a quick configuration change, with l
 
 This dashboard answers the following questions:
 
-- What EC2 instances are using older generation t2, m3, and m4 instance types?
-- What EBS volumes are using gp2 volumes instead of gp3?
-- What EMR clusters, RDS DB instances and Redshift clusters are using previous generation instance and node types?
-- What Lambda functions are not using the latest graviton2 processor?
+- What resources are using legacy instance types or legacy node types?
+- What resources are using legacy processors?

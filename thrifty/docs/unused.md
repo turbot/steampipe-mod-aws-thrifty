@@ -3,10 +3,8 @@ Thrifty developers need to pay close attention to unused resources. It’s possi
 
 This dashboard answers the following questions:
 
-- What CloudWatch log streams are no longer being used?
-- What EBS volumes are unattached or attached to stopped EC2 instances?
-- What EC2 application load balancers, network load balancers and gateway load balancers are not associated with any target group?
-- What VPC NAT gateways are unused?
+- What resources are no longer being used?
+- What resources do not have any attachments or associations?
 
 ## Variables
 

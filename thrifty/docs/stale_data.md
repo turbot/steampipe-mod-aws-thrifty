@@ -2,10 +2,9 @@ Thrifty developers need to keep an eye on data which is no longer required. It's
 
 This dashboard answers the following questions:
 
-- What CloudWatch log groups do not have any retention period enabled?
-- What DynamoDB tables have stale data?
-- What EBS snapshots, RDS snapshots and Redshift snapshots are no longer required? 
-- What S3 buckets do not have any associated lifecycle policies?
+- What resources do not have data retention period defined?
+- What resource snapshots are no longer required?
+- What resources do not have any associated lifecycle policies?
 
 ## Variables
 

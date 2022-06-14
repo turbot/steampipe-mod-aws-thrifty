@@ -82,7 +82,7 @@ benchmark "underused" {
   documentation = file("./thrifty/docs/underused.md")
   children = [
     control.ebs_volume_low_usage,
-    control.ec2_instance_avg_cpu_utilization_low,
+    control.ec2_instance_low_utilization,
     control.ecs_cluster_low_utilization,
     control.elasticache_redis_cluster_low_utilization,
     control.rds_db_instance_low_connections,
@@ -116,10 +116,10 @@ control "ebs_volume_low_usage" {
   })
 }
 
-control "ec2_instance_avg_cpu_utilization_low" {
+control "ec2_instance_low_utilization" {
   title       = "EC2 instances with very low CPU utilization should be reviewed"
   description = "Resize or eliminate under utilized instances."
-  sql         = query.ec2_instance_avg_cpu_utilization_low.sql
+  sql         = query.ec2_instance_low_utilization.sql
   severity    = "low"
 
   param "ec2_instance_avg_cpu_utilization_low" {
