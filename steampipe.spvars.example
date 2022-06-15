@@ -1,43 +1,45 @@
-# CloudWatch
-cloudwatch_log_stream_age_max_days = 90
-
-# Cost Explorer
-cost_explorer_service_cost_max_cost_units = 10
-
-# DynamoDB
-dynamodb_table_stale_data_max_days = 90
-
-# EBS
-ebs_snapshot_age_max_days          = 90
-ebs_volume_avg_read_write_ops_high = 500
-ebs_volume_avg_read_write_ops_low  = 100
-ebs_volume_max_iops                = 32000
-ebs_volume_max_size_gb             = 100
-
-# EC2
-ec2_instance_allowed_types                    = ["%.nano", "%.micro", "%.small", "%.medium", "%.large", "%.xlarge", "%._xlarge"]
-ec2_instance_avg_cpu_utilization_high         = 35
-ec2_instance_avg_cpu_utilization_low          = 20
+# Capacity Planning
 ec2_reserved_instance_expiration_warning_days = 30
-ec2_running_instance_age_max_days             = 90
-
-# ECS
-ecs_cluster_avg_cpu_utilization_high = 35
-ecs_cluster_avg_cpu_utilization_low  = 20
-
-# Elasticache
-elasticache_running_cluster_age_max_days     = 90
+ec2_running_instance_age_max_days = 90
+elasticache_running_cluster_age_max_days = 90
 elasticache_running_cluster_age_warning_days = 30
-
-# RDS
-rds_db_instance_avg_connections          = 2
-rds_db_instance_avg_cpu_utilization_high = 50
-rds_db_instance_avg_cpu_utilization_low  = 25
-rds_running_db_instance_age_max_days     = 90
+rds_running_db_instance_age_max_days = 90
 rds_running_db_instance_age_warning_days = 30
-
-# Redshift
-redshift_cluster_avg_cpu_utilization_high = 35
-redshift_cluster_avg_cpu_utilization_low  = 20
-redshift_running_cluster_age_max_days     = 90
+redshift_running_cluster_age_max_days = 90
 redshift_running_cluster_age_warning_days = 30
+
+# Cost Variance
+cost_explorer_service_cost_max_cost_units = 10
+cost_explorer_forecast_cost_max_cost_units = 10
+
+# Overused
+ebs_volume_max_iops = 32000
+ebs_volume_max_size_gb = 100
+ec2_instance_allowed_types = ["%.nano", "%.micro", "%.small", "%.medium", "%.large", "%.xlarge", "%._xlarge"]
+
+# Stale Data
+dynamodb_table_stale_data_max_days = 90
+ebs_snapshot_age_max_days = 90
+rds_db_instance_snapshot_age_max_days = 90
+rds_db_cluster_snapshot_age_max_days = 90
+redshift_snapshot_age_max_days = 90
+kinesis_stream_high_retention_period_days = 1
+
+# Underused
+ebs_volume_avg_read_write_ops_high = 500
+ebs_volume_avg_read_write_ops_low = 100
+ec2_instance_avg_cpu_utilization_high = 35
+ec2_instance_avg_cpu_utilization_low = 20
+ecs_cluster_avg_cpu_utilization_high = 35
+ecs_cluster_avg_cpu_utilization_low = 20
+rds_db_instance_avg_connections = 2
+rds_db_instance_avg_cpu_utilization_high = 50
+rds_db_instance_avg_cpu_utilization_low = 25
+redshift_cluster_avg_cpu_utilization_high = 35
+redshift_cluster_avg_cpu_utilization_low = 20
+elasticache_redis_cluster_avg_cpu_utilization_high = 35
+elasticache_redis_cluster_avg_cpu_utilization_low = 20
+
+# Unused
+cloudwatch_log_stream_age_max_days = 90
+secretsmanager_secret_last_used = 90

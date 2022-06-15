@@ -1,0 +1,31 @@
+with elasticache_redis_cluster_utilization as (
+  select
+    cache_cluster_id,
+    round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
+    count(maximum) days
+  from
+    aws_elasticache_redis_metric_engine_cpu_utilization_daily
+  where
+    date_part('day', now() - timestamp) <= 30
+  group by
+    cache_cluster_id
+)
+select
+  c.cache_cluster_id as resource,
+  case
+    when avg_max is null then 'error'
+    when avg_max < $1 then 'alarm'
+    when avg_max > $2 then 'info'
+    else 'ok'
+  end as status,
+  case
+    when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
+    else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
+  end as reason,
+  region,
+  account_id
+from
+  aws_elasticache_cluster as c
+  left join elasticache_redis_cluster_utilization as u on u.cache_cluster_id = c.cache_cluster_id
+where
+  engine = 'redis';

@@ -16,8 +16,8 @@ select
   end as status,
   case
     when s.launch_type != 'FARGATE' then s.title || ' task not running on FARGATE.'
-    when a.service_name is null then s.title || ' autoscaling disabled.'
-    else s.title || ' autoscaling enabled.'
+    when a.service_name is null then s.title || ' auto scaling disabled.'
+    else s.title || ' auto scaling enabled.'
   end as reason,
   s.region,
   s.account_id
