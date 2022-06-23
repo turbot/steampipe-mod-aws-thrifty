@@ -49,7 +49,7 @@ locals {
 benchmark "rds" {
   title         = "RDS Checks"
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
-  documentation = file("./thrifty/docs/rds.md")
+  documentation = file("./controls/docs/rds.md")
   children = [
     control.rds_db_cluster_snapshot_max_age,
     control.rds_db_instance_class_prev_gen,

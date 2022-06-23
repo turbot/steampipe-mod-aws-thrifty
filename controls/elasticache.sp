@@ -31,7 +31,7 @@ locals {
 benchmark "elasticache" {
   title         = "ElastiCache Checks"
   description   = "Thrifty developers check their long running ElastiCache clusters are associated with reserved nodes."
-  documentation = file("./thrifty/docs/elasticache.md")
+  documentation = file("./controls/docs/elasticache.md")
   children = [
     control.elasticache_cluster_running_max_age,
     control.elasticache_redis_cluster_low_utilization

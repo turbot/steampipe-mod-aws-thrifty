@@ -37,7 +37,7 @@ locals {
 benchmark "ebs" {
   title         = "EBS Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
-  documentation = file("./thrifty/docs/ebs.md")
+  documentation = file("./controls/docs/ebs.md")
   children = [
     control.ebs_snapshot_max_age,
     control.ebs_volume_high_iops,

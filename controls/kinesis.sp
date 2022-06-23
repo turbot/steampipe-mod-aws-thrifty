@@ -13,7 +13,7 @@ locals {
 benchmark "kinesis" {
   title         = "Kinesis Checks"
   description   = "Thrifty developers actively manage their Kinesis stream resources."
-  documentation = file("./thrifty/docs/kinesis.md")
+  documentation = file("./controls/docs/kinesis.md")
   children = [
     control.kinesis_stream_consumer_with_enhanced_fan_out,
     control.kinesis_stream_high_retention_period

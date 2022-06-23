@@ -7,7 +7,7 @@ locals {
 benchmark "vpc" {
   title         = "VPC Checks"
   description   = "Thrifty developers ensure that they delete unused network resources."
-  documentation = file("./thrifty/docs/vpc.md")
+  documentation = file("./controls/docs/vpc.md")
   children = [
     control.vpc_nat_gateway_unused
   ]

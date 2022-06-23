@@ -7,7 +7,7 @@ locals {
 benchmark "route53" {
   title         = "Route 53 Checks"
   description   = "Thrifty developers keep a careful eye on the actual usage of Route 53 service."
-  documentation = file("./thrifty/docs/route53.md")
+  documentation = file("./controls/docs/route53.md")
   children = [
     control.route53_health_check_unused,
     control.route53_record_higher_ttl

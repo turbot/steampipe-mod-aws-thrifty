@@ -13,7 +13,7 @@ locals {
 benchmark "cloudwatch" {
   title         = "CloudWatch Checks"
   description   = "Thrifty developers actively manage the retention of their Cloudtrail logs."
-  documentation = file("./thrifty/docs/cloudwatch.md")
+  documentation = file("./controls/docs/cloudwatch.md")
   children = [
     control.cloudwatch_log_group_no_retention,
     control.cloudwatch_log_stream_unused,

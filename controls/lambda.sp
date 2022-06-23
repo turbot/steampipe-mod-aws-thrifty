@@ -7,7 +7,7 @@ locals {
 benchmark "lambda" {
   title         = "Lambda Checks"
   description   = "Thrifty developers ensure their Lambda functions are optimized."
-  documentation = file("./thrifty/docs/lambda.md")
+  documentation = file("./controls/docs/lambda.md")
   children = [
     control.lambda_function_excessive_timeout,
     control.lambda_function_high_error_rate,

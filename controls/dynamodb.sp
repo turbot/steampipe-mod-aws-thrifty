@@ -13,7 +13,7 @@ locals {
 benchmark "dynamodb" {
   title         = "DynamoDB Checks"
   description   = "Thrifty developers delete DynamoDB tables with stale data."
-  documentation = file("./thrifty/docs/dynamodb.md")
+  documentation = file("./controls/docs/dynamodb.md")
   children = [
     control.dynamodb_table_autoscaling_disabled,
     control.dynamodb_table_stale_data

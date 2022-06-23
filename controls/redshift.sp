@@ -37,7 +37,7 @@ locals {
 benchmark "redshift" {
   title         = "Redshift Checks"
   description   = "Thrifty developers check their long running Redshift clusters are associated with reserved nodes."
-  documentation = file("./thrifty/docs/redshift.md")
+  documentation = file("./controls/docs/redshift.md")
   children = [
     control.redshift_cluster_low_utilization,
     control.redshift_cluster_max_age,

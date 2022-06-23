@@ -37,7 +37,7 @@ locals {
 benchmark "ec2" {
   title         = "EC2 Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
-  documentation = file("./thrifty/docs/ec2.md")
+  documentation = file("./controls/docs/ec2.md")
   children = [
     control.ec2_application_lb_unused,
     control.ec2_classic_lb_unused,

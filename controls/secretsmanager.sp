@@ -13,7 +13,7 @@ locals {
 benchmark "secretsmanager" {
   title         = "Secrets Manager Checks"
   description   = "Thrifty developers ensure their secretsmanager secret is in use."
-  documentation = file("./thrifty/docs/secretsmanager.md")
+  documentation = file("./controls/docs/secretsmanager.md")
   children = [
     control.secretsmanager_secret_unused
   ]

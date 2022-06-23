@@ -19,7 +19,7 @@ locals {
 benchmark "cost_explorer" {
   title         = "Cost Explorer Checks"
   description   = "Thrifty developers keep an eye on the service usage and the accompanied cost variance over a period of time. They pay close attention to the cost spikes and check if per-service costs have changed more than allowed between this month and last month. By asking the right questions one can often justify the cost or prompt review and optimization."
-  documentation = file("./thrifty/docs/cost-explorer.md")
+  documentation = file("./controls/docs/cost_explorer.md")
   children = [
     control.cost_explorer_full_month_cost_changes,
     control.cost_explorer_full_month_forecast_cost_changes

@@ -7,7 +7,7 @@ locals {
 benchmark "emr" {
   title         = "EMR Checks"
   description   = "Thrifty developers checks EMR clusters of previous generation instances and idle clusters."
-  documentation = file("./thrifty/docs/emr.md")
+  documentation = file("./controls/docs/emr.md")
   children = [
     control.emr_cluster_instance_prev_gen,
     control.emr_cluster_idle_30_minutes,

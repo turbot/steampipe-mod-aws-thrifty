@@ -19,7 +19,7 @@ locals {
 benchmark "ecs" {
   title         = "ECS Checks"
   description   = "Thrifty developers checks under-utilized ECS clusters and ECS service without autoscaling configuration."
-  documentation = file("./thrifty/docs/ecs.md")
+  documentation = file("./controls/docs/ecs.md")
   children = [
     control.ecs_cluster_low_utilization,
     control.ecs_service_without_autoscaling
