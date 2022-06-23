@@ -10,16 +10,22 @@ variable "cost_explorer_forecast_cost_max_cost_units" {
   default     = 10
 }
 
-benchmark "cost_variance" {
-  title         = "Cost Variance"
+locals {
+  cost_explorer_common_tags = merge(local.aws_thrifty_common_tags, {
+    service = "AWS/CostExplorer"
+  })
+}
+
+benchmark "cost_explorer" {
+  title         = "Cost Explorer Checks"
   description   = "Thrifty developers keep an eye on the service usage and the accompanied cost variance over a period of time. They pay close attention to the cost spikes and check if per-service costs have changed more than allowed between this month and last month. By asking the right questions one can often justify the cost or prompt review and optimization."
-  documentation = file("./thrifty/docs/cost_variance.md")
+  documentation = file("./thrifty/docs/cost-explorer.md")
   children = [
     control.cost_explorer_full_month_cost_changes,
     control.cost_explorer_full_month_forecast_cost_changes
   ]
 
-  tags = merge(local.aws_thrifty_common_tags, {
+  tags = merge(local.cost_explorer_common_tags, {
     type = "Benchmark"
   })
 }
@@ -35,8 +41,8 @@ control "cost_explorer_full_month_cost_changes" {
     default     = var.cost_explorer_service_cost_max_cost_units
   }
 
-  tags = merge(local.aws_thrifty_common_tags, {
-    service = "AWS/CostExplorer"
+  tags = merge(local.cost_explorer_common_tags, {
+    class = "cost_variance"
   })
 }
 
@@ -51,7 +57,7 @@ control "cost_explorer_full_month_forecast_cost_changes" {
     default     = var.cost_explorer_forecast_cost_max_cost_units
   }
 
-  tags = merge(local.aws_thrifty_common_tags, {
-    service = "AWS/CostExplorer"
+  tags = merge(local.cost_explorer_common_tags, {
+    class = "cost_variance"
   })
 }
