@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "s3" {
-  title         = "S3 Checks"
+  title         = "S3 Cost Checks"
   description   = "Thrifty developers ensure their S3 buckets have a managed lifecycle."
   documentation = file("./controls/docs/s3.md")
   children = [

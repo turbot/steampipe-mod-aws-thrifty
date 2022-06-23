@@ -35,7 +35,7 @@ locals {
 }
 
 benchmark "ec2" {
-  title         = "EC2 Checks"
+  title         = "EC2 Cost Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
   documentation = file("./controls/docs/ec2.md")
   children = [

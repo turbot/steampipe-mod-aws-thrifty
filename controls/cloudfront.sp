@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "cloudfront" {
-  title         = "CloudFront Checks"
+  title         = "CloudFront Cost Checks"
   description   = "Thrifty developers checks price class of cloudfront distribution for cost optimization."
   documentation = file("./controls/docs/cloudfront.md")
   children = [

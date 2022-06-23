@@ -35,7 +35,7 @@ locals {
 }
 
 benchmark "ebs" {
-  title         = "EBS Checks"
+  title         = "EBS Cost Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
   documentation = file("./controls/docs/ebs.md")
   children = [

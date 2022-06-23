@@ -47,7 +47,7 @@ locals {
 }
 
 benchmark "rds" {
-  title         = "RDS Checks"
+  title         = "RDS Cost Checks"
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
   documentation = file("./controls/docs/rds.md")
   children = [

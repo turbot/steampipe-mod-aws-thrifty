@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "route53" {
-  title         = "Route 53 Checks"
+  title         = "Route 53 Cost Checks"
   description   = "Thrifty developers keep a careful eye on the actual usage of Route 53 service."
   documentation = file("./controls/docs/route53.md")
   children = [

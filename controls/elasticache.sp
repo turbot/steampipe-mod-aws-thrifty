@@ -29,7 +29,7 @@ locals {
 }
 
 benchmark "elasticache" {
-  title         = "ElastiCache Checks"
+  title         = "ElastiCache Cost Checks"
   description   = "Thrifty developers check their long running ElastiCache clusters are associated with reserved nodes."
   documentation = file("./controls/docs/elasticache.md")
   children = [

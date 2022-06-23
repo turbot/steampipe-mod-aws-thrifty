@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "vpc" {
-  title         = "VPC Checks"
+  title         = "VPC Cost Checks"
   description   = "Thrifty developers ensure that they delete unused network resources."
   documentation = file("./controls/docs/vpc.md")
   children = [

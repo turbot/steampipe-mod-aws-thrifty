@@ -11,7 +11,7 @@ locals {
 }
 
 benchmark "kinesis" {
-  title         = "Kinesis Checks"
+  title         = "Kinesis Cost Checks"
   description   = "Thrifty developers actively manage their Kinesis stream resources."
   documentation = file("./controls/docs/kinesis.md")
   children = [
