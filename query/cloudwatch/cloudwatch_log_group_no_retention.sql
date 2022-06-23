@@ -11,4 +11,4 @@ select
   region,
   account_id
 from
-  aws_cloudwatch_log_group
+  aws_cloudwatch_log_group;

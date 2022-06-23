@@ -7,7 +7,6 @@ with instance_data as (
     aws_ec2_instance
 )
 select
-  -- Required Columns
   nat.arn as resource,
   case
     when nat.state <> 'available' then 'alarm'
@@ -21,7 +20,6 @@ select
     when i.instance_state <> 'running' then nat.title || ' associated with ' || i.instance_id || ', which is in ' || i.instance_state || ' state.'
     else nat.title || ' in-use.'
   end as reason,
-  -- Additional Dimensions
   nat.region,
   nat.account_id
 from

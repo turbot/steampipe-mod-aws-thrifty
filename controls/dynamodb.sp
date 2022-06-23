@@ -11,11 +11,12 @@ locals {
 }
 
 benchmark "dynamodb" {
-  title         = "DynamoDB Checks"
+  title         = "DynamoDB Cost Checks"
   description   = "Thrifty developers delete DynamoDB tables with stale data."
   documentation = file("./controls/docs/dynamodb.md")
   children = [
-    control.stale_dynamodb_table_data
+    control.dynamodb_table_autoscaling_disabled,
+    control.dynamodb_table_stale_data
   ]
 
   tags = merge(local.dynamodb_common_tags, {
@@ -23,11 +24,11 @@ benchmark "dynamodb" {
   })
 }
 
-control "stale_dynamodb_table_data" {
-  title         = "Tables with stale data should be reviewed"
-  description   = "If the data has not changed recently and has become stale, the table should be reviewed."
-  sql           = query.dynamodb_stale_data.sql
-  severity      = "low"
+control "dynamodb_table_stale_data" {
+  title       = "DynamoDB tables with stale data should be reviewed"
+  description = "If the data has not changed recently and has become stale, the table should be reviewed."
+  sql         = query.dynamodb_table_stale_data.sql
+  severity    = "low"
 
   param "dynamodb_table_stale_data_max_days" {
     description = "The maximum number of days table data can be unchanged before it is considered stale."
@@ -35,6 +36,17 @@ control "stale_dynamodb_table_data" {
   }
 
   tags = merge(local.dynamodb_common_tags, {
-    class = "unused"
+    class = "stale_data"
+  })
+}
+
+control "dynamodb_table_autoscaling_disabled" {
+  title       = "DynamoDB tables should have auto scaling enabled"
+  description = "Amazon DynamoDB auto scaling uses the AWS Application Auto Scaling service to adjust provisioned throughput capacity that automatically responds to actual traffic patterns. Turning on the auto scaling feature will help to improve service performance in a cost-efficient way."
+  sql         = query.dynamodb_table_autoscaling_disabled.sql
+  severity    = "low"
+
+  tags = merge(local.dynamodb_common_tags, {
+    class = "overused"
   })
 }

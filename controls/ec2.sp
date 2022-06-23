@@ -35,19 +35,19 @@ locals {
 }
 
 benchmark "ec2" {
-  title         = "EC2 Checks"
+  title         = "EC2 Cost Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
   documentation = file("./controls/docs/ec2.md")
   children = [
     control.ec2_application_lb_unused,
     control.ec2_classic_lb_unused,
+    control.ec2_eips_unattached,
     control.ec2_gateway_lb_unused,
+    control.ec2_instance_low_utilization,
+    control.ec2_instance_older_generation,
+    control.ec2_instance_running_max_age,
     control.ec2_network_lb_unused,
-    control.ec2_reserved_instance_lease_expiration_days,
-    control.instances_with_low_utilization,
-    control.large_ec2_instances,
-    control.long_running_ec2_instances,
-    control.aws_ec2_instance_older_generation
+    control.ec2_reserved_instance_lease_expiration_days
   ]
 
   tags = merge(local.ec2_common_tags, {
@@ -60,6 +60,7 @@ control "ec2_application_lb_unused" {
   description = "Application load balancers with no targets attached still cost money and should be deleted."
   sql         = query.ec2_application_lb_unused.sql
   severity    = "low"
+
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
@@ -70,6 +71,7 @@ control "ec2_classic_lb_unused" {
   description = "Classic load balancers with no instances attached still cost money should be deleted."
   sql         = query.ec2_classic_lb_unused.sql
   severity    = "low"
+
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
@@ -80,6 +82,7 @@ control "ec2_gateway_lb_unused" {
   description = "Gateway load balancers with no targets attached still cost money and should be deleted."
   sql         = query.ec2_gateway_lb_unused.sql
   severity    = "low"
+
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
@@ -90,31 +93,27 @@ control "ec2_network_lb_unused" {
   description = "Network load balancers with no targets attached still cost money and should be deleted."
   sql         = query.ec2_network_lb_unused.sql
   severity    = "low"
+
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
 }
 
-control "large_ec2_instances" {
-  title       = "Large EC2 instances should be reviewed"
-  description = "Large EC2 instances are unusual, expensive and should be reviewed."
-  sql         = query.large_ec2_instances.sql
+control "ec2_eips_unattached" {
+  title       = "Unattached elastic IP addresses (EIPs) should be released"
+  description = "Unattached Elastic IPs are charged by AWS, they should be released."
+  sql         = query.ec2_eips_unattached.sql
   severity    = "low"
 
-  param "ec2_instance_allowed_types" {
-    description = "A list of allowed instance types. PostgreSQL wildcards are supported."
-    default     = var.ec2_instance_allowed_types
-  }
-
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "unused"
   })
 }
 
-control "long_running_ec2_instances" {
+control "ec2_instance_running_max_age" {
   title       = "Long running EC2 instances should be reviewed"
-  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long."
-  sql         = query.long_running_instances.sql
+  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long. Long running instances should be replaced with reserved instances, which provide a significant discount."
+  sql         = query.ec2_instance_running_max_age.sql
   severity    = "low"
 
   param "ec2_running_instance_age_max_days" {
@@ -123,14 +122,30 @@ control "long_running_ec2_instances" {
   }
 
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "capacity_planning"
   })
 }
 
-control "instances_with_low_utilization" {
-  title       = "Which EC2 instances have very low CPU utilization?"
+control "ec2_instance_large" {
+  title       = "Large EC2 instances should be reviewed"
+  description = "Large EC2 instances are unusual, expensive and should be reviewed."
+  sql         = query.ec2_instance_large.sql
+  severity    = "low"
+
+  param "ec2_instance_allowed_types" {
+    description = "A list of allowed instance types. PostgreSQL wildcards are supported."
+    default     = var.ec2_instance_allowed_types
+  }
+
+  tags = merge(local.ec2_common_tags, {
+    class = "overused"
+  })
+}
+
+control "ec2_instance_low_utilization" {
+  title       = "EC2 instances with very low CPU utilization should be reviewed"
   description = "Resize or eliminate under utilized instances."
-  sql         = query.low_utilization_ec2_instance.sql
+  sql         = query.ec2_instance_low_utilization.sql
   severity    = "low"
 
   param "ec2_instance_avg_cpu_utilization_low" {
@@ -144,7 +159,7 @@ control "instances_with_low_utilization" {
   }
 
   tags = merge(local.ec2_common_tags, {
-    class = "unused"
+    class = "underused"
   })
 }
 
@@ -160,16 +175,17 @@ control "ec2_reserved_instance_lease_expiration_days" {
   }
 
   tags = merge(local.ec2_common_tags, {
-    class = "managed"
+    class = "capacity_planning"
   })
 }
 
-control "aws_ec2_instance_older_generation" {
+control "ec2_instance_older_generation" {
   title       = "EC2 instances should not use older generation t2, m3, and m4 instance types"
   description = "EC2 instances should not use older generation t2, m3, and m4 instance types as t3 and m5 are more cost effective."
-  sql         = query.aws_ec2_instance_older_generation.sql
+  sql         = query.ec2_instance_older_generation.sql
   severity    = "low"
+
   tags = merge(local.ec2_common_tags, {
-    class = "unused"
+    class = "generation_gaps"
   })
 }

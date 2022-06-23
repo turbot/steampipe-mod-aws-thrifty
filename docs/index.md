@@ -4,7 +4,7 @@ repository: "https://github.com/turbot/steampipe-mod-aws-thrifty"
 
 # AWS Thrifty Mod
 
-Be Thrifty on AWS! This mod checks for unused resources and opportunities to optimize your spend on AWS.
+Be Thrifty on AWS! This mod checks for overused, underutilized and unused resources, and provides opportunities to optimize your spend on AWS.
 
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-aws-thrifty/main/docs/aws_thrifty_dashboard.png" width="50%" type="thumbnail"/>
 <img src="https://raw.githubusercontent.com/turbot/steampipe-mod-aws-thrifty/main/docs/aws_thrifty_ebs_dashboard.png" width="50%" type="thumbnail"/>
@@ -77,7 +77,7 @@ steampipe check benchmark.ec2
 Run a specific control:
 
 ```sh
-steampipe check control.control.instances_with_low_utilization
+steampipe check control.ec2_application_lb_unused
 ```
 
 Different output formats are also available, for more information please see
@@ -89,7 +89,7 @@ This mod uses the credentials configured in the [Steampipe AWS plugin](https://h
 
 ### Configuration
 
-Several benchmarks have [input variables](https://steampipe.io/docs/using-steampipe/mod-variables) that can be configured to better match your environment and requirements. Each variable has a default defined in its source file, e.g., `controls/rds.sp`, but these can be overwritten in several ways:
+Several benchmarks have [input variables](https://steampipe.io/docs/using-steampipe/mod-variables) that can be configured to better match your environment and requirements. Each variable has a default defined in its source file, e.g., `controls/ec2.sp`, but these can be overwritten in several ways:
 
 - Copy and rename the `steampipe.spvars.example` file to `steampipe.spvars`, and then modify the variable values inside that file
 - Pass in a value on the command line:
@@ -101,7 +101,7 @@ Several benchmarks have [input variables](https://steampipe.io/docs/using-steamp
 - Set an environment variable:
 
   ```shell
-  SP_VAR_ec2_running_instance_age_max_days=90 steampipe check control.long_running_ec2_instances
+  SP_VAR_ec2_running_instance_age_max_days=90 steampipe check control.ec2_instance_running_max_age
   ```
 
   - Note: When using environment variables, if the variable is defined in `steampipe.spvars` or passed in through the command line, either of those will take precedence over the environment variable value. For more information on variable definition precedence, please see the link below.

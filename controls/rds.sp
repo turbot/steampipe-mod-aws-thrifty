@@ -28,6 +28,18 @@ variable "rds_running_db_instance_age_warning_days" {
   default     = 30
 }
 
+variable "rds_db_instance_snapshot_age_max_days" {
+  type        = number
+  description = "The maximum number of days RDS DB instance snapshots can be retained."
+  default     = 90
+}
+
+variable "rds_db_cluster_snapshot_age_max_days" {
+  type        = number
+  description = "The maximum number of days RDS DB cluster snapshots can be retained."
+  default     = 90
+}
+
 locals {
   rds_common_tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/RDS"
@@ -35,14 +47,16 @@ locals {
 }
 
 benchmark "rds" {
-  title         = "RDS Checks"
+  title         = "RDS Cost Checks"
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
   documentation = file("./controls/docs/rds.md")
   children = [
-    control.latest_rds_instance_types,
-    control.long_running_rds_db_instances,
-    control.rds_db_low_connection_count,
-    control.rds_db_low_utilization
+    control.rds_db_cluster_snapshot_max_age,
+    control.rds_db_instance_class_prev_gen,
+    control.rds_db_instance_low_connections,
+    control.rds_db_instance_low_usage,
+    control.rds_db_instance_max_age,
+    control.rds_db_instance_snapshot_max_age
   ]
 
   tags = merge(local.rds_common_tags, {
@@ -50,11 +64,11 @@ benchmark "rds" {
   })
 }
 
-control "long_running_rds_db_instances" {
-  title         = "Long running RDS DBs should have reserved instances purchased for them"
-  description   = "Long running database servers should be associated with a reserve instance."
-  sql           = query.old_rds_db_instances.sql
-  severity      = "low"
+control "rds_db_instance_max_age" {
+  title       = "Long running RDS DB instances should have reserved instances purchased for them"
+  description = "Long running RDS DB instances servers should be associated with a reserved instance."
+  sql         = query.rds_db_instance_max_age.sql
+  severity    = "low"
 
   param "rds_running_db_instance_age_max_days" {
     description = "The maximum number of days DB instances are allowed to run."
@@ -67,25 +81,58 @@ control "long_running_rds_db_instances" {
   }
 
   tags = merge(local.rds_common_tags, {
-    class = "managed"
+    class = "capacity_planning"
   })
 }
 
-control "latest_rds_instance_types" {
-  title         = "Are there RDS instances using previous gen instance types?"
-  description   = "M5 and T3 instance types are less costly than previous generations"
-  sql           = query.prev_gen_rds_instances.sql
-  severity      = "low"
+control "rds_db_instance_class_prev_gen" {
+  title       = "RDS instances should use the latest generation instance types"
+  description = "M5 and T3 instance types are less costly than previous generations."
+  sql         = query.rds_db_instance_class_prev_gen.sql
+  severity    = "low"
+
   tags = merge(local.rds_common_tags, {
-    class = "managed"
+    class = "generation_gaps"
   })
 }
 
-control "rds_db_low_connection_count" {
-  title         = "RDS DB instances with a low number connections per day should be reviewed"
-  description   = "DB instances having less usage in last 30 days should be reviewed."
-  sql           = query.low_connections_rds_metrics.sql
-  severity      = "high"
+control "rds_db_cluster_snapshot_max_age" {
+  title       = "Old RDS DB cluster snapshots should be deleted if not required"
+  description = "Old RDS DB cluster snapshots are likely unnecessary and costly to maintain."
+  sql         = query.rds_db_cluster_snapshot_max_age.sql
+  severity    = "low"
+
+  param "rds_db_cluster_snapshot_age_max_days" {
+    description = "The maximum number of days RDS DB cluster snapshots can be retained."
+    default     = var.rds_db_cluster_snapshot_age_max_days
+  }
+
+  tags = merge(local.rds_common_tags, {
+    class = "stale_data"
+  })
+}
+
+control "rds_db_instance_snapshot_max_age" {
+  title       = "Old RDS DB instance snapshots should be deleted if not required"
+  description = "Old RDS DB instance snapshots are likely unnecessary and costly to maintain."
+  sql         = query.rds_db_instance_snapshot_max_age.sql
+  severity    = "low"
+
+  param "rds_db_instance_snapshot_age_max_days" {
+    description = "The maximum number of days RDS DB instance snapshots can be retained."
+    default     = var.rds_db_instance_snapshot_age_max_days
+  }
+
+  tags = merge(local.rds_common_tags, {
+    class = "stale_data"
+  })
+}
+
+control "rds_db_instance_low_connections" {
+  title       = "RDS DB instances with a low number connections per day should be reviewed"
+  description = "These databases have very little usage in last 30 days. Should this instance be shutdown when not in use?"
+  sql         = query.rds_db_instance_low_connections.sql
+  severity    = "high"
 
   param "rds_db_instance_avg_connections" {
     description = "The minimum number of average connections per day required for DB instances to be considered in-use."
@@ -93,15 +140,15 @@ control "rds_db_low_connection_count" {
   }
 
   tags = merge(local.rds_common_tags, {
-    class = "unused"
+    class = "underused"
   })
 }
 
-control "rds_db_low_utilization" {
-  title         = "RDS DB instance having low CPU utilization should be reviewed"
-  description   = "DB instances may be oversized for their usage."
-  sql           = query.low_usage_rds_metrics.sql
-  severity      = "low"
+control "rds_db_instance_low_usage" {
+  title       = "RDS DB instance having low CPU utilization should be reviewed"
+  description = "These databases may be oversized for their usage."
+  sql         = query.rds_db_instance_low_usage.sql
+  severity    = "low"
 
   param "rds_db_instance_avg_cpu_utilization_low" {
     description = "The average CPU utilization required for DB instances to be considered infrequently used. This value should be lower than rds_db_instance_avg_cpu_utilization_high."
@@ -114,6 +161,6 @@ control "rds_db_low_utilization" {
   }
 
   tags = merge(local.rds_common_tags, {
-    class = "unused"
+    class = "underused"
   })
 }

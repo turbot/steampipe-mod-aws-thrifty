@@ -2,7 +2,8 @@
 cloudwatch_log_stream_age_max_days = 90
 
 # Cost Explorer
-cost_explorer_service_cost_max_cost_units = 10
+cost_explorer_forecast_cost_max_cost_units = 10
+cost_explorer_service_cost_max_cost_units  = 10
 
 # DynamoDB
 dynamodb_table_stale_data_max_days = 90
@@ -26,13 +27,17 @@ ecs_cluster_avg_cpu_utilization_high = 35
 ecs_cluster_avg_cpu_utilization_low  = 20
 
 # Elasticache
-elasticache_running_cluster_age_max_days     = 90
-elasticache_running_cluster_age_warning_days = 30
+elasticache_redis_cluster_avg_cpu_utilization_high = 35
+elasticache_redis_cluster_avg_cpu_utilization_low  = 20
+elasticache_running_cluster_age_max_days           = 90
+elasticache_running_cluster_age_warning_days       = 30
 
 # RDS
+rds_db_cluster_snapshot_age_max_days     = 90
 rds_db_instance_avg_connections          = 2
 rds_db_instance_avg_cpu_utilization_high = 50
 rds_db_instance_avg_cpu_utilization_low  = 25
+rds_db_instance_snapshot_age_max_days    = 90
 rds_running_db_instance_age_max_days     = 90
 rds_running_db_instance_age_warning_days = 30
 
@@ -41,3 +46,10 @@ redshift_cluster_avg_cpu_utilization_high = 35
 redshift_cluster_avg_cpu_utilization_low  = 20
 redshift_running_cluster_age_max_days     = 90
 redshift_running_cluster_age_warning_days = 30
+redshift_snapshot_age_max_days            = 90
+
+# Secrets Manager
+secretsmanager_secret_last_used = 90
+
+# Kinesis
+kinesis_stream_high_retention_period_days = 1

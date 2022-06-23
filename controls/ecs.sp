@@ -17,7 +17,7 @@ locals {
 }
 
 benchmark "ecs" {
-  title         = "ECS Checks"
+  title         = "ECS Cost Checks"
   description   = "Thrifty developers checks under-utilized ECS clusters and ECS service without autoscaling configuration."
   documentation = file("./controls/docs/ecs.md")
   children = [
@@ -31,10 +31,10 @@ benchmark "ecs" {
 }
 
 control "ecs_cluster_low_utilization" {
-  title         = "ECS clusters with low CPU utilization should be reviewed"
-  description   = "Resize or eliminate under utilized clusters."
-  sql           = query.ecs_cluster_low_utilization.sql
-  severity      = "low"
+  title       = "ECS clusters with low CPU utilization should be reviewed"
+  description = "Resize or eliminate under utilized clusters."
+  sql         = query.ecs_cluster_low_utilization.sql
+  severity    = "low"
 
   param "ecs_cluster_avg_cpu_utilization_low" {
     description = "The average CPU utilization required for clusters to be considered infrequently used. This value should be lower than ecs_cluster_avg_cpu_utilization_high."
@@ -47,17 +47,17 @@ control "ecs_cluster_low_utilization" {
   }
 
   tags = merge(local.ecs_common_tags, {
-    class = "unused"
+    class = "underused"
   })
 }
 
 control "ecs_service_without_autoscaling" {
-  title         = "ECS service should use autoscaling policy"
-  description   = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
-  sql           = query.ecs_service_without_autoscaling.sql
-  severity      = "low"
+  title       = "ECS services should use auto scaling policies"
+  description = "ECS services should use auto scaling policies to improve service performance in a cost-efficient way."
+  sql         = query.ecs_service_without_autoscaling.sql
+  severity    = "low"
 
   tags = merge(local.ecs_common_tags, {
-    class = "managed"
+    class = "capacity_planning"
   })
 }

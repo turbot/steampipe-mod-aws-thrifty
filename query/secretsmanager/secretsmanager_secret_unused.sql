@@ -6,7 +6,7 @@ select
   end as status,
   case
     when last_accessed_date is null then title || ' is never used.'
-    else title || ' is last used ' || age(current_date, last_accessed_date) || ' ago.'
+    else title || ' was last used ' || age(current_date, last_accessed_date) || ' ago.'
   end as reason,
   region,
   account_id
