@@ -12,13 +12,22 @@ Or in a terminal:
 
 Includes checks for:
 
-- [Capacity planning](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls/benchmark.capacity_planning)
-- [Cost variance](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls/benchmark.cost_variance)
-- [Generation gaps](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls/benchmark.generation_gaps)
-- [Overused](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls/benchmark.overused)
-- [Stale data](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls/benchmark.stale_data)
-- [Underused](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls/benchmark.underused)
-- [Unused](https://hub.steampipe.io/mods/turbot/aws_thrifty/controls/benchmark.unused)
+Includes checks for:
+
+- Month to month swings in service cost from **AWS Cost Explorer**
+- Underused and oversized **RDS** Databases
+- Unused, underused and oversized **EC2 Instances**
+- Unused, underused and oversized **EBS Volumes** and **Snapshots**
+- **CloudWatch Log Groups** without retention policies
+- **CloudWatch Log Streams** with stale data
+- **CloudFront Distribution** pricing classes
+- Unused **EMR Clusters** with previous generation instances
+- Unused **ECS Clusters**
+- Stale **DynamoDB** Tables
+- Unused and underused **Redshift Clusters**
+- **S3 Buckets** without lifecycle policies
+- Unattached **Elastic IPs**
+- [#TODO List](https://github.com/turbot/steampipe-mod-aws-thrifty/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 ## Getting started
 
@@ -68,13 +77,13 @@ steampipe check all
 Run a single benchmark:
 
 ```sh
-steampipe check benchmark.underused
+steampipe check benchmark.ec2
 ```
 
 Run a specific control:
 
 ```sh
-steampipe check control.ebs_volume_low_usage
+steampipe check control.ec2_application_lb_unused
 ```
 
 Different output formats are also available, for more information please see
@@ -86,13 +95,13 @@ This mod uses the credentials configured in the [Steampipe AWS plugin](https://h
 
 ### Configuration
 
-Several benchmarks have [input variables](https://steampipe.io/docs/using-steampipe/mod-variables) that can be configured to better match your environment and requirements. Each variable has a default defined in its source file, e.g., `thrifty/capacity_planning.sp`, but these can be overwritten in several ways:
+Several benchmarks have [input variables](https://steampipe.io/docs/using-steampipe/mod-variables) that can be configured to better match your environment and requirements. Each variable has a default defined in its source file, e.g., `thrifty/ec2.sp`, but these can be overwritten in several ways:
 
 - Copy and rename the `steampipe.spvars.example` file to `steampipe.spvars`, and then modify the variable values inside that file
 - Pass in a value on the command line:
 
   ```shell
-  steampipe check benchmark.capacity_planning --var=ec2_running_instance_age_max_days=90
+  steampipe check benchmark.ec2 --var=ec2_running_instance_age_max_days=90
   ```
 
 - Set an environment variable:
