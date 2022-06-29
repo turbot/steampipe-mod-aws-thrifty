@@ -1,4 +1,4 @@
-# AWS Thrifty
+# AWS Thrifty Mod for Steampipe
 
 An AWS cost savings and waste checking tool.
 
