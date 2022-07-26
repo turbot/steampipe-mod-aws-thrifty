@@ -1,9 +1,9 @@
 with ec2_instance_utilization as (
-  select 
+  select
     instance_id,
-    round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
-    count(maximum) days
-  from 
+    max(average) as avg_max,
+    count(average) days
+  from
     aws_ec2_instance_metric_cpu_utilization_daily
   where
     date_part('day', now() - timestamp) <= 30
