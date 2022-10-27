@@ -2,12 +2,12 @@
 
 _What's new?_
 
-- New benchmarks added: ([#83](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/83))([#85](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/85))
-  - Route 53 Checks (`steampipe check benchmark.route53`)
-  - Secrets Manager Checks (`steampipe check benchmark.secretsmanager`)
-- New controls added: ([#79](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/79))([#82](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/82))
-  - ec2_instance_older_generation
-  - lambda_function_with_graviton2
+- New benchmarks added:
+  - Route 53 Checks (`steampipe check benchmark.route53`) ([#83](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/83))
+  - Secrets Manager Checks (`steampipe check benchmark.secretsmanager`) ([#85](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/85))
+- New controls added:
+  - ec2_instance_older_generation ([#79](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/79))
+  - lambda_function_with_graviton2 ([#82](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/82))
 
 _Enhancements_
 
@@ -15,7 +15,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed the 'low_utilization_ec2_instance` query to check for max(average) instead of avg(max) utilization. ([#78](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/78))
+- Fixed the `low_utilization_ec2_instance` query to check for max(average) instead of avg(max) utilization. ([#78](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/78))
 
 ## v0.14 [2022-05-09]
 
