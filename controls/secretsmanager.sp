@@ -11,7 +11,7 @@ locals {
 }
 
 benchmark "secretsmanager" {
-  title         = "Secrets Manager Cost Checks"
+  title         = "Secrets Manager Checks"
   description   = "Thrifty developers ensure their secrets manager secret is in use."
   documentation = file("./controls/docs/secretsmanager.md")
   children = [
