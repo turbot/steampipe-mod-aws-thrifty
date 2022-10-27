@@ -17,6 +17,10 @@ _Bug fixes_
 
 - Fixed the `low_utilization_ec2_instance` query to check for max(average) instead of avg(max) utilization. ([#78](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/78))
 
+_Dependencies_
+
+- AWS plugin `v0.80.0` or higher is now required. ([#104](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/104))
+
 ## v0.14 [2022-05-09]
 
 _Enhancements_
