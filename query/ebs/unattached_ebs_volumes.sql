@@ -1,12 +1,12 @@
 select
   arn as resource,
   case
-    when attachments is null then 'alarm'
-    else 'ok'
+    when jsonb_array_length(attachments) > 0 then 'ok'
+    else 'alarm'
   end as status,
   case
-    when attachments is null then volume_id || ' has no attachments.'
-    else volume_id || ' has attachments.'
+    when jsonb_array_length(attachments) > 0 then volume_id || ' has attachments.'
+    else volume_id || ' has no attachments.'
   end as reason,
   region,
   account_id
