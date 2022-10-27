@@ -11,11 +11,11 @@ locals {
 }
 
 benchmark "secretsmanager" {
-  title         = "Secrets Manager Checks"
-  description   = "Thrifty developers ensure their secretsmanager secret is in use."
+  title         = "Secrets Manager Cost Checks"
+  description   = "Thrifty developers ensure their secrets manager secret is in use."
   documentation = file("./controls/docs/secretsmanager.md")
   children = [
-    control.aws_secretsmanager_secret_unused
+    control.secretsmanager_secret_unused
   ]
 
   tags = merge(local.secretsmanager_common_tags, {
@@ -23,10 +23,10 @@ benchmark "secretsmanager" {
   })
 }
 
-control "aws_secretsmanager_secret_unused" {
-  title       = "Unused secrets manager secret should be deleted"
-  description = "AWS Secrets Manager secrets should have been accessed within a specified number of days. The default value is 90 days."
-  sql         = query.aws_secretsmanager_secret_unused.sql
+control "secretsmanager_secret_unused" {
+  title       = "Unused Secrets Manager secrets should be deleted"
+  description = "AWS Secrets Manager secrets should be accessed within a specified number of days. The default value is 90 days."
+  sql         = query.secretsmanager_secret_unused.sql
   severity    = "low"
 
   param "secretsmanager_secret_last_used" {

@@ -42,12 +42,12 @@ benchmark "ec2" {
     control.ec2_application_lb_unused,
     control.ec2_classic_lb_unused,
     control.ec2_gateway_lb_unused,
+    control.ec2_instance_older_generation,
     control.ec2_network_lb_unused,
     control.ec2_reserved_instance_lease_expiration_days,
     control.instances_with_low_utilization,
     control.large_ec2_instances,
-    control.long_running_ec2_instances,
-    control.aws_ec2_instance_older_generation
+    control.long_running_ec2_instances
   ]
 
   tags = merge(local.ec2_common_tags, {
@@ -164,10 +164,10 @@ control "ec2_reserved_instance_lease_expiration_days" {
   })
 }
 
-control "aws_ec2_instance_older_generation" {
+control "ec2_instance_older_generation" {
   title       = "EC2 instances should not use older generation t2, m3, and m4 instance types"
   description = "EC2 instances should not use older generation t2, m3, and m4 instance types as t3 and m5 are more cost effective."
-  sql         = query.aws_ec2_instance_older_generation.sql
+  sql         = query.ec2_instance_older_generation.sql
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
