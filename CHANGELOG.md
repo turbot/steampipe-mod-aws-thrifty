@@ -1,3 +1,22 @@
+## v0.15 [2022-10-27]
+
+_What's new?_
+
+- New benchmarks added:
+  - Route 53 Checks (`steampipe check benchmark.route53`) ([#83](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/83))
+  - Secrets Manager Checks (`steampipe check benchmark.secretsmanager`) ([#85](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/85))
+- New controls added:
+  - ec2_instance_older_generation ([#79](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/79))
+  - lambda_function_with_graviton2 ([#82](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/82))
+
+_Enhancements_
+
+- Updated the `unattached_ebs_volumes` query to handle the `attachments` column correctly when empty in the `aws_ebs_volume` table. ([#102](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/102))
+
+_Bug fixes_
+
+- Fixed the `low_utilization_ec2_instance` query to check for max(average) instead of avg(max) utilization. ([#78](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/78))
+
 ## v0.14 [2022-05-09]
 
 _Enhancements_
