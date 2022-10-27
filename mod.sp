@@ -21,4 +21,10 @@ mod "aws_thrifty" {
     description = "Are you a Thrifty AWS dev? This Steampipe mod checks your AWS account(s) for unused and under-utilized resources."
     image       = "/images/mods/turbot/aws-thrifty-social-graphic.png"
   }
+
+  require {
+    plugin "aws" {
+      version = "0.80.0"
+    }
+  }
 }
