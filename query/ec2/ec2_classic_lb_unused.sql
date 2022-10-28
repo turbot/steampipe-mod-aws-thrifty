@@ -1,12 +1,12 @@
 select
   arn as resource,
   case
-    when instances is null then 'alarm'
-    else 'ok'
+    when jsonb_array_length(instances) > 0 then 'ok'
+    else 'alarm'
   end as status,
   case
-    when instances is null then title || ' has no instances registered.'
-    else title || ' has registered instances.'
+    when jsonb_array_length(instances) > 0 then title || ' has registered instances.'
+    else title || ' has no instances registered.'
   end as reason,
   region,
   account_id
