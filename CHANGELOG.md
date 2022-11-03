@@ -1,3 +1,9 @@
+## v0.16 [2022-11-03]
+
+_Bug fixes_
+
+- Fixed the `ec2_classic_lb_unused` query to handle the `instances` column correctly when empty in the `aws_ec2_classic_load_balancer` table. ([#106](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/106)) (Thanks [@JoshRosen](https://github.com/JoshRosen) for the fix!)
+
 ## v0.15 [2022-10-27]
 
 _What's new?_
