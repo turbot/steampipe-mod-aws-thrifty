@@ -1,3 +1,13 @@
+## v0.17 [2022-11-04]
+
+_Enhancements_
+
+- Updated `ec2_gateway_lb_unused` and `ec2_network_lb_unused` queries to correctly handle empty column data. ([#109](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/109))
+
+_Dependencies_
+
+- AWS plugin `v0.81.0` or higher is now required.
+
 ## v0.16 [2022-11-03]
 
 _Bug fixes_
