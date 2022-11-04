@@ -10,11 +10,11 @@ with target_resource as (
 select
   a.arn as resource,
   case
-    when b.target_health_descriptions is null then 'alarm'
+    when jsonb_array_length(b.target_health_descriptions) = 0 then 'alarm'
     else 'ok'
   end as status,
   case
-    when b.target_health_descriptions is null then a.title || ' has no target registered.'
+    when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered.'
     else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
   end as reason,
   a.region,
