@@ -41,10 +41,28 @@ control "lambda_function_excessive_timeout" {
 
 control "lambda_function_with_graviton2" {
   title       = "Are there any lambda functions without graviton2 processor?"
-  description = "With graviton2 processor(arm64 – 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
-  sql         = query.lambda_function_with_graviton2.sql
+  description = "With graviton2 processor (arm64 – 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   severity    = "low"
   tags = merge(local.lambda_common_tags, {
     class = "deprecated"
   })
+  sql = <<-EOQ
+    select
+      arn as resource,
+      case
+        when architecture = 'arm64' then 'ok'
+        else 'alarm'
+      end as status,
+      case
+        when architecture = 'arm64' then title || ' is using Graviton2 processor.'
+        else title || ' is not using Graviton2 processor.'
+      end as reason,
+      region,
+      account_id,
+      _ctx ->> 'connection_name' as connection
+      ${local.tag_dimensions_sql}
+    from
+      aws_lambda_function,
+      jsonb_array_elements_text(architectures) as architecture
+  EOQ
 }

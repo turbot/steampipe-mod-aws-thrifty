@@ -7,6 +7,20 @@ locals {
   }
 }
 
+variable "tag_dimensions" {
+  type        = list(string)
+  description = "A list of tags to add as dimensions to each control."
+  # Owner is a commonly used tag to identify who is responsible for the resource.
+  # See https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html#tag-categories
+  default     = [ "Owner" ]
+}
+
+locals {
+  tag_dimensions_sql = <<-EOQ
+    %{ for dim in var.tag_dimensions }, tags ->> '${dim}' as "${replace(dim, "\"", "\"\"")}"%{ endfor }
+  EOQ
+}
+
 mod "aws_thrifty" {
   # hub metadata
   title         = "AWS Thrifty"
