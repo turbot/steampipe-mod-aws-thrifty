@@ -161,7 +161,6 @@ control "ebs_with_low_usage" {
 control "ebs_snapshot_max_age" {
   title         = "Old EBS snapshots should be deleted if not required"
   description   = "Old EBS snapshots are likely unnecessary and costly to maintain."
-  sql           = query.old_ebs_snapshots.sql
   severity      = "low"
 
   param "ebs_snapshot_age_max_days" {
@@ -172,4 +171,19 @@ control "ebs_snapshot_max_age" {
   tags = merge(local.ebs_common_tags, {
     class = "unused"
   })
+
+  sql = <<-EOQ
+    select
+      'arn:' || partition || ':ec2:' || region || ':' || account_id || ':snapshot/' || snapshot_id as resource,
+      case
+        when start_time > current_timestamp - ($1 || ' days')::interval then 'ok'
+        else 'alarm'
+      end as status,
+      snapshot_id || ' created at ' || start_time || '.' as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_ebs_snapshot
+  EOQ
+
 }

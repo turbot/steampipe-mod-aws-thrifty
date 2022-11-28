@@ -14,6 +14,7 @@ benchmark "dynamodb" {
   title         = "DynamoDB Checks"
   description   = "Thrifty developers delete DynamoDB tables with stale data."
   documentation = file("./controls/docs/dynamodb.md")
+
   children = [
     control.stale_dynamodb_table_data
   ]
@@ -26,7 +27,6 @@ benchmark "dynamodb" {
 control "stale_dynamodb_table_data" {
   title         = "Tables with stale data should be reviewed"
   description   = "If the data has not changed recently and has become stale, the table should be reviewed."
-  sql           = query.dynamodb_stale_data.sql
   severity      = "low"
 
   param "dynamodb_table_stale_data_max_days" {
@@ -37,4 +37,23 @@ control "stale_dynamodb_table_data" {
   tags = merge(local.dynamodb_common_tags, {
     class = "unused"
   })
+
+  sql = <<-EOQ
+    select
+      'arn:' || partition || ':dynamodb:' || region || ':' || account_id || ':table/' || name as resource,
+      case
+        when latest_stream_label is null then 'info'
+        when date_part('day', now() - (latest_stream_label::timestamptz)) > $1 then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when latest_stream_label is null then name || ' is not configured for change data capture.'
+        else name || ' was changed ' || date_part('day', now() - (latest_stream_label::timestamptz)) || ' days ago.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_dynamodb_table;
+  EOQ
+
 }
