@@ -77,7 +77,7 @@ steampipe check benchmark.ec2
 Run a specific control:
 
 ```sh
-steampipe check control.control.instances_with_low_utilization
+steampipe check control.instances_with_low_utilization
 ```
 
 Different output formats are also available, for more information please see
