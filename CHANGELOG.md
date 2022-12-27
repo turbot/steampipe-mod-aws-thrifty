@@ -1,3 +1,9 @@
+## v0.18 [2022-12-27]
+
+_Bug fixes_
+
+- Fixed typo in the [Usage](https://hub.steampipe.io/mods/turbot/aws_thrifty#usage) section of `docs/index.md` to use `steampipe check control.instances_with_low_utilization` instead of `steampipe check control.control.instances_with_low_utilization`. ([#115](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/115)) (Thanks [@PranavPeshwe](https://github.com/PranavPeshwe) for the contribution!)
+
 ## v0.17 [2022-11-04]
 
 _Enhancements_
