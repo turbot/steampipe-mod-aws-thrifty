@@ -26,7 +26,6 @@ benchmark "cost_explorer" {
 control "full_month_cost_changes" {
   title         = "What services have changed in cost over last two months?"
   description   = "Compares the cost of services between the last two full months of AWS usage."
-  // sql           = query.monthly_service_cost_changes.sql
   severity      = "low"
 
   param "cost_explorer_service_cost_max_cost_units" {

@@ -58,7 +58,6 @@ benchmark "ec2" {
 control "ec2_application_lb_unused" {
   title       = "Application load balancers having no targets attached should be deleted"
   description = "Application load balancers with no targets attached still cost money and should be deleted."
-  // sql         = query.ec2_application_lb_unused.sql
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -83,7 +82,7 @@ control "ec2_application_lb_unused" {
       case
         when b.load_balancer_arn is null then a.title || ' has no target registered.'
         else a.title || ' has registered target of type ' || b.target_type || '.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
@@ -95,7 +94,6 @@ control "ec2_application_lb_unused" {
 control "ec2_classic_lb_unused" {
   title       = "Classic load balancers having no instances attached should be deleted"
   description = "Classic load balancers with no instances attached still cost money should be deleted."
-  // sql         = query.ec2_classic_lb_unused.sql
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -111,7 +109,7 @@ control "ec2_classic_lb_unused" {
       case
         when jsonb_array_length(instances) > 0 then title || ' has registered instances.'
         else title || ' has no instances registered.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -122,7 +120,6 @@ control "ec2_classic_lb_unused" {
 control "ec2_gateway_lb_unused" {
   title       = "Gateway load balancers having no targets attached should be deleted"
   description = "Gateway load balancers with no targets attached still cost money and should be deleted."
-  // sql         = query.ec2_gateway_lb_unused.sql
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -147,7 +144,7 @@ control "ec2_gateway_lb_unused" {
       case
         when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered.'
         else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
@@ -160,7 +157,6 @@ control "ec2_gateway_lb_unused" {
 control "ec2_network_lb_unused" {
   title       = "Network load balancers having no targets attached should be deleted"
   description = "Network load balancers with no targets attached still cost money and should be deleted."
-  // sql         = query.ec2_network_lb_unused.sql
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -185,7 +181,7 @@ control "ec2_network_lb_unused" {
       case
         when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered.'
         else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
@@ -197,7 +193,6 @@ control "ec2_network_lb_unused" {
 control "large_ec2_instances" {
   title       = "Large EC2 instances should be reviewed"
   description = "Large EC2 instances are unusual, expensive and should be reviewed."
-  // sql         = query.large_ec2_instances.sql
   severity    = "low"
 
   param "ec2_instance_allowed_types" {
@@ -217,7 +212,7 @@ control "large_ec2_instances" {
         when instance_type like any ($1) then 'ok'
         else 'alarm'
       end as status,
-      title || ' has type ' || instance_type || ' and is ' || instance_state || '.' as reason,
+      title || ' has type ' || instance_type || ' and is ' || instance_state || '.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -228,7 +223,6 @@ control "large_ec2_instances" {
 control "long_running_ec2_instances" {
   title       = "Long running EC2 instances should be reviewed"
   description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long."
-  // sql         = query.long_running_instances.sql
   severity    = "low"
 
   param "ec2_running_instance_age_max_days" {
@@ -247,7 +241,7 @@ control "long_running_ec2_instances" {
         when date_part('day', now()-launch_time) > $1 then 'alarm'
         else 'ok'
       end as status,
-      title || ' has been running ' || date_part('day', now()-launch_time) || ' days.' as reason,
+      title || ' has been running ' || date_part('day', now()-launch_time) || ' days.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -261,7 +255,6 @@ control "long_running_ec2_instances" {
 control "instances_with_low_utilization" {
   title       = "Which EC2 instances have very low CPU utilization?"
   description = "Resize or eliminate under utilized instances."
-  // sql         = query.low_utilization_ec2_instance.sql
   severity    = "low"
 
   param "ec2_instance_avg_cpu_utilization_low" {
@@ -302,7 +295,7 @@ control "instances_with_low_utilization" {
       case
         when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
         else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -314,7 +307,6 @@ control "instances_with_low_utilization" {
 control "ec2_reserved_instance_lease_expiration_days" {
   title       = "EC2 reserved instances scheduled for expiration should be reviewed"
   description = "EC2 reserved instances that are scheduled for expiration or have expired in the preceding 30 days should be reviewed."
-  // sql         = query.ec2_reserved_instance_lease_expiration_days.sql
   severity    = "low"
 
   param "ec2_reserved_instance_expiration_warning_days" {
@@ -333,7 +325,7 @@ control "ec2_reserved_instance_lease_expiration_days" {
         when date_part('day', end_time - now()) <= $1 then 'alarm'
         else 'ok'
       end as status,
-      title || ' lease expires in ' || date_part('day', end_time-now()) || ' days.' as reason,
+      title || ' lease expires in ' || date_part('day', end_time-now()) || ' days.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -344,7 +336,6 @@ control "ec2_reserved_instance_lease_expiration_days" {
 control "ec2_instance_older_generation" {
   title       = "EC2 instances should not use older generation t2, m3, and m4 instance types"
   description = "EC2 instances should not use older generation t2, m3, and m4 instance types as t3 and m5 are more cost effective."
-  // sql         = query.ec2_instance_older_generation.sql
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -357,7 +348,7 @@ control "ec2_instance_older_generation" {
         when instance_type like 't2.%' or instance_type like 'm3.%' or instance_type like 'm4.%' then 'alarm'
         else 'ok'
       end as status,
-      title || ' has used ' || instance_type || '.' as reason,
+      title || ' has used ' || instance_type || '.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

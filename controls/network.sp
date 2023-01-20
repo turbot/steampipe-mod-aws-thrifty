@@ -49,7 +49,6 @@ control "unattached_eips" {
 control "vpc_nat_gateway_unused" {
   title         = "Unused NAT gateways should be deleted"
   description   = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
-  // sql           = query.vpc_nat_gateway_unused.sql
   severity      = "low"
   tags = merge(local.vpc_common_tags, {
     class = "unused"
@@ -78,7 +77,7 @@ control "vpc_nat_gateway_unused" {
         when i.subnet_id is null then nat.title || ' not in-use.'
         when i.instance_state <> 'running' then nat.title || ' associated with ' || i.instance_id || ', which is in ' || i.instance_state || ' state.'
         else nat.title || ' in-use.'
-      end as reason,
+      end as reason
       -- Additional Dimensions
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "nat.")}

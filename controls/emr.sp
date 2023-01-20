@@ -21,7 +21,6 @@ benchmark "emr" {
 control "emr_cluster_instance_prev_gen" {
   title         = "EMR clusters of previous generation instances should be reviewed"
   description   = "EMR clusters of previous generations instance types (c1,cc2,cr1,m2,g2,i2,m1) should be replaced by latest generation instance types for better hardware performance."
-  // sql           = query.emr_cluster_instance_prev_gen.sql
   severity      = "low"
 
   tags = merge(local.emr_common_tags, {
@@ -44,7 +43,7 @@ control "emr_cluster_instance_prev_gen" {
       case
       when ig.state = 'TERMINATED' then ig.cluster_id || ' is ' || ig.state || '.'
       else ig.cluster_id || ' has ' || ig.instance_type || ' instance type.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "c.")}
     from
@@ -59,7 +58,6 @@ control "emr_cluster_instance_prev_gen" {
 control "emr_cluster_is_idle_30_minutes" {
   title         = "EMR clusters idle for more than 30 minutes should be reviewed"
   description   = "EMR clusters which is live but not currently running tasks should be reviewed and checked whether the cluster has been idle for more than 30 minutes."
-  // sql           = query.emr_cluster_is_idle_30_minutes.sql
   severity      = "low"
 
   tags = merge(local.emr_common_tags, {
@@ -95,7 +93,7 @@ control "emr_cluster_is_idle_30_minutes" {
         case
           when u.id is null then 'CloudWatch metrics not available for ' || i.title || '.'
           else i.title || ' is idle from last ' || (count*5 - 5) ||  ' minutes.'
-        end as reason,
+        end as reason
         ${local.tag_dimensions_sql}
         ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "i.")}
       from

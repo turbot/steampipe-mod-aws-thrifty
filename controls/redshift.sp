@@ -46,7 +46,6 @@ benchmark "redshift" {
 control "redshift_cluster_max_age" {
   title         = "Long running Redshift clusters should have reserved nodes purchased for them"
   description   = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
-  // sql           = query.redshift_cluster_max_age.sql
   severity      = "low"
 
   param "redshift_running_cluster_age_max_days" {
@@ -72,7 +71,7 @@ control "redshift_cluster_max_age" {
         else 'ok'
       end as status,
       title || ' created on ' || cluster_create_time || ' (' || date_part('day', now() - cluster_create_time) || ' days).'
-      as reason,
+      as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -83,7 +82,6 @@ control "redshift_cluster_max_age" {
 control "redshift_cluster_schedule_pause_resume_enabled" {
   title         = "Redshift cluster paused resume should be enabled"
   description   = "Redshift cluster paused resume should be enabled to easily suspend on-demand billing while the cluster is not being used."
-  // sql           = query.redshift_cluster_schedule_pause_resume_enabled.sql
   severity      = "low"
   tags = merge(local.redshift_common_tags, {
     class = "managed"
@@ -128,7 +126,7 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
     case
       when b.arn is not null then a.title || ' pause-resume action enabled.'
       else a.title || ' pause-resume action not enabled.'
-    end as reason,
+    end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
   from
@@ -140,7 +138,6 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
 control "redshift_cluster_low_utilization" {
   title         = "Redshift cluster with low CPU utilization should be reviewed"
   description   = "Resize or eliminate under utilized clusters."
-  // sql           = query.redshift_cluster_low_utilization.sql
   severity      = "low"
 
   param "redshift_cluster_avg_cpu_utilization_low" {
@@ -181,7 +178,7 @@ control "redshift_cluster_low_utilization" {
       case
         when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
         else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

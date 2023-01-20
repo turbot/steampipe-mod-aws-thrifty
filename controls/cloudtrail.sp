@@ -22,7 +22,6 @@ benchmark "cloudtrail" {
 control "multiple_global_trails" {
   title = "Are there redundant global CloudTrail trails?"
   description   = "Your first cloudtrail in each account is free, additional trails are expensive."
-  // sql           = query.multiple_cloudtrail_trails.sql
   severity      = "low"
 
   tags = merge(local.cloudtrail_common_tags, {
@@ -47,7 +46,7 @@ control "multiple_global_trails" {
       case
         when total > 1 then name || ' is one of ' || total || ' global trails.'
         else name || ' is the only global trail.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from 

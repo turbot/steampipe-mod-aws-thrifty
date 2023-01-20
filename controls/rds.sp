@@ -53,7 +53,6 @@ benchmark "rds" {
 control "long_running_rds_db_instances" {
   title         = "Long running RDS DBs should have reserved instances purchased for them"
   description   = "Long running database servers should be associated with a reserve instance."
-  // sql           = query.old_rds_db_instances.sql
   severity      = "low"
 
   param "rds_running_db_instance_age_max_days" {
@@ -78,7 +77,7 @@ control "long_running_rds_db_instances" {
         when date_part('day', now()-create_time) > $2 then 'info'
         else 'ok'
       end as status,
-      title || ' has been in use for ' || date_part('day', now()-create_time) || ' days.' as reason,
+      title || ' has been in use for ' || date_part('day', now()-create_time) || ' days.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -89,7 +88,6 @@ control "long_running_rds_db_instances" {
 control "latest_rds_instance_types" {
   title         = "Are there RDS instances using previous gen instance types?"
   description   = "M5 and T3 instance types are less costly than previous generations"
-  // sql           = query.prev_gen_rds_instances.sql
   severity      = "low"
   tags = merge(local.rds_common_tags, {
     class = "managed"
@@ -106,7 +104,7 @@ control "latest_rds_instance_types" {
         when class like '%.t3.%' then 'ok'
         else 'info'
       end as status,
-      title || ' has a ' || class || ' instance class.' as reason,
+      title || ' has a ' || class || ' instance class.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -117,7 +115,6 @@ control "latest_rds_instance_types" {
 control "rds_db_low_connection_count" {
   title         = "RDS DB instances with a low number connections per day should be reviewed"
   description   = "DB instances having less usage in last 30 days should be reviewed."
-  // sql           = query.low_connections_rds_metrics.sql
   severity      = "high"
 
   param "rds_db_instance_avg_connections" {
@@ -154,7 +151,7 @@ control "rds_db_low_connection_count" {
         when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
         when avg_max = 0 then title || ' has not been connected to in the last ' || days || ' days.'
         else title || ' is averaging ' || avg_max || ' max connections/day in the last ' || days || ' days.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -166,7 +163,6 @@ control "rds_db_low_connection_count" {
 control "rds_db_low_utilization" {
   title         = "RDS DB instance having low CPU utilization should be reviewed"
   description   = "DB instances may be oversized for their usage."
-  // sql           = query.low_usage_rds_metrics.sql
   severity      = "low"
 
   param "rds_db_instance_avg_cpu_utilization_low" {
@@ -207,7 +203,7 @@ control "rds_db_low_utilization" {
       case
         when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
         else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

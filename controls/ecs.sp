@@ -33,7 +33,6 @@ benchmark "ecs" {
 control "ecs_cluster_low_utilization" {
   title         = "ECS clusters with low CPU utilization should be reviewed"
   description   = "Resize or eliminate under utilized clusters."
-  // sql           = query.ecs_cluster_low_utilization.sql
   severity      = "low"
 
   param "ecs_cluster_avg_cpu_utilization_low" {
@@ -74,7 +73,7 @@ control "ecs_cluster_low_utilization" {
     case
       when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
       else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
-    end as reason,
+    end as reason
     ${local.tag_dimensions_sql}
     ${local.common_dimensions_sql}
   from
@@ -86,7 +85,6 @@ control "ecs_cluster_low_utilization" {
 control "ecs_service_without_autoscaling" {
   title         = "ECS service should use autoscaling policy"
   description   = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
-  // sql           = query.ecs_service_without_autoscaling.sql
   severity      = "low"
 
   tags = merge(local.ecs_common_tags, {
@@ -114,7 +112,7 @@ control "ecs_service_without_autoscaling" {
         when s.launch_type != 'FARGATE' then s.title || ' task not running on FARGATE.'
         when a.service_name is null then s.title || ' autoscaling disabled.'
         else s.title || ' autoscaling enabled.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "s.")}
     from

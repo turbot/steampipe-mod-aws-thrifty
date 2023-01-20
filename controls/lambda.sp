@@ -23,7 +23,6 @@ benchmark "lambda" {
 control "lambda_function_high_error_rate" {
   title       = "Are there any lambda functions with high error rate?"
   description = "Function errors may result in retries that incur extra charges. The control checks for functions with an error rate of more than 10% a day in one of the last 7 days."
-  // sql         = query.lambda_function_high_error_rate.sql
   severity    = "low"
   tags = merge(local.lambda_common_tags, {
     class = "managed"
@@ -51,9 +50,9 @@ control "lambda_function_high_error_rate" {
       case
         when error_rate is null then 'CloudWatch Lambda function metrics not available for ' || title || '.'
         else title || ' error rate is ' || error_rate || '% the last ' || '7  days.'
-      end as reason,
-      region,
-      account_id
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
     from
       aws_lambda_function f
       left join error_rate as er on f.name = er.name;
@@ -63,7 +62,6 @@ control "lambda_function_high_error_rate" {
 control "lambda_function_excessive_timeout" {
   title       = "Are there any lambda functions with excessive timeout?"
   description = "Excessive timeouts result in retries and additional execution time for the function, incurring request charges and billed duration. The control checks for functions with a timeout rate of more than 10% a day in one of the last 7 days."
-  // sql         = query.lambda_function_excessive_timeout.sql
   severity    = "low"
   tags = merge(local.lambda_common_tags, {
     class = "managed"
@@ -91,7 +89,7 @@ control "lambda_function_excessive_timeout" {
       case
         when avg_duration is null then 'CloudWatch lambda metrics not available for ' || title || '.'
         else title || ' Timeout of ' || timeout::numeric*1000 || ' milliseconds is ' || round(((timeout :: numeric*1000)-avg_duration)/(timeout :: numeric*1000)*100,1) || '% more as compared to average of ' || round(avg_duration,0) || ' milliseconds.'
-      end as reason,
+      end as reason
         ${local.tag_dimensions_sql}
         ${local.common_dimensions_sql}
     from

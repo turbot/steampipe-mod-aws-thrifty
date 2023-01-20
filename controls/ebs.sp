@@ -58,7 +58,6 @@ benchmark "ebs" {
 control "gp2_volumes" {
   title         = "Still using gp2 EBS volumes? Should use gp3 instead."
   description   = "EBS gp2 volumes are more costly and lower performance than gp3."
-  // sql           = query.gp2_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
@@ -72,9 +71,9 @@ control "gp2_volumes" {
         when volume_type = 'gp3' then 'ok'
         else 'skip'
       end as status,
-      volume_id || ' type is ' || volume_type || '.' as reason,
-      region,
-      account_id
+      volume_id || ' type is ' || volume_type || '.' as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
     from
       aws_ebs_volume;
   EQQ
@@ -83,7 +82,6 @@ control "gp2_volumes" {
 control "io1_volumes" {
   title         = "Still using io1 EBS volumes? Should use io2 instead."
   description   = "io1 Volumes are less reliable than io2 for same cost."
-  // sql           = query.io1_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
@@ -97,9 +95,9 @@ control "io1_volumes" {
         when volume_type = 'io2' then 'ok'
         else 'skip'
       end as status,
-      volume_id || ' type is ' || volume_type || '.' as reason,
-      region,
-      account_id
+      volume_id || ' type is ' || volume_type || '.' as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
     from
       aws_ebs_volume;
   EQQ
@@ -108,7 +106,6 @@ control "io1_volumes" {
 control "unattached_ebs_volumes" {
   title         = "Are there any unattached EBS volumes?"
   description   = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
-  // sql           = query.unattached_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "unused"
@@ -123,9 +120,9 @@ control "unattached_ebs_volumes" {
       case
         when jsonb_array_length(attachments) > 0 then volume_id || ' has attachments.'
         else volume_id || ' has no attachments.'
-      end as reason,
-      region,
-      account_id
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
     from
       aws_ebs_volume
   EQQ
@@ -134,7 +131,6 @@ control "unattached_ebs_volumes" {
 control "large_ebs_volumes" {
   title         = "EBS volumes should be resized if too large"
   description   = "Large EBS volumes are unusual, expensive and should be reviewed."
-  // sql           = query.large_ebs_volumes.sql
   severity      = "low"
 
   param "ebs_volume_max_size_gb" {
@@ -153,7 +149,7 @@ control "large_ebs_volumes" {
         when size <= $1 then 'ok'
         else 'alarm'
       end as status,
-      volume_id || ' is ' || size || 'GB.' as reason,
+      volume_id || ' is ' || size || 'GB.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -164,7 +160,6 @@ control "large_ebs_volumes" {
 control "high_iops_ebs_volumes" {
   title         = "EBS volumes with high IOPS should be resized if too large"
   description   = "High IOPS io1 and io2 volumes are costly and usage should be reviewed."
-  // sql           = query.high_iops_volumes.sql
   severity      = "low"
 
   param "ebs_volume_max_iops" {
@@ -187,7 +182,7 @@ control "high_iops_ebs_volumes" {
       case
         when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
         else volume_id || ' has ' || iops || ' iops.'
-      end as reason,
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -198,7 +193,6 @@ control "high_iops_ebs_volumes" {
 control "low_iops_ebs_volumes" {
   title         = "What provisioned IOPS volumes would be better as GP3?"
   description   = "GP3 provides 3k base IOPS performance, don't use more costly io1 & io2 volumes."
-  // sql           = query.low_iops_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "management"
@@ -216,7 +210,7 @@ control "low_iops_ebs_volumes" {
       when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
       when iops <= 3000 then volume_id || ' only has ' || iops || ' iops.'
       else volume_id || ' has ' || iops || ' iops.'
-    end as reason,
+    end as reason
     ${local.tag_dimensions_sql}
     ${local.common_dimensions_sql}
   from
@@ -227,7 +221,6 @@ control "low_iops_ebs_volumes" {
 control "ebs_volumes_on_stopped_instances" {
   title         = "EBS volumes attached to stopped instances should be reviewed"
   description   = "Instances that are stopped may no longer need any attached EBS volumes"
-  // sql           = query.inactive_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
@@ -265,8 +258,7 @@ control "ebs_volumes_on_stopped_instances" {
         when running_instances > 0 then 'ok'
         else 'alarm'
       end as status,
-      volume_id || ' is attached to ' || running_instances || ' running instances.' as reason,
-      ${local.tag_dimensions_sql}
+      volume_id || ' is attached to ' || running_instances || ' running instances.' as reason
       ${local.common_dimensions_sql}
     from 
       vols_and_instances
@@ -276,7 +268,6 @@ control "ebs_volumes_on_stopped_instances" {
 control "ebs_with_low_usage" {
   title         = "Are there any EBS volumes with low usage?"
   description   = "Volumes that are unused should be archived and deleted"
-  // sql           = query.low_usage_ebs_volumes.sql
   severity      = "low"
 
   param "ebs_volume_avg_read_write_ops_low" {
@@ -338,8 +329,7 @@ control "ebs_with_low_usage" {
         when avg_max <= $2 then 'info'
         else 'ok'
       end as status,
-      volume_id || ' is averaging ' || avg_max || ' read and write ops over the last ' || days || ' days.' as reason,
-      ${local.tag_dimensions_sql}
+      volume_id || ' is averaging ' || avg_max || ' read and write ops over the last ' || days || ' days.' as reason
       ${local.common_dimensions_sql}
     from
       ebs_usage
