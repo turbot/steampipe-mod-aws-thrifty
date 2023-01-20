@@ -22,12 +22,40 @@ benchmark "cloudtrail" {
 control "multiple_global_trails" {
   title = "Are there redundant global CloudTrail trails?"
   description   = "Your first cloudtrail in each account is free, additional trails are expensive."
-  sql           = query.multiple_cloudtrail_trails.sql
+  // sql           = query.multiple_cloudtrail_trails.sql
   severity      = "low"
 
   tags = merge(local.cloudtrail_common_tags, {
     class = "managed"
   })
+
+  sql = <<-EOQ
+    with global_trails as (
+      select
+        count(*) as total
+      from
+        aws_cloudtrail_trail
+      where
+        is_multi_region_trail
+      )
+    select
+      arn as resource,
+      case
+        when total > 1 then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when total > 1 then name || ' is one of ' || total || ' global trails.'
+        else name || ' is the only global trail.'
+      end as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from 
+      aws_cloudtrail_trail,
+      global_trails
+    where 
+      is_multi_region_trail
+  EOQ
 }
 
 control "multiple_regional_trails" {

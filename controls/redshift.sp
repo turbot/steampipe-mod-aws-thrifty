@@ -46,7 +46,7 @@ benchmark "redshift" {
 control "redshift_cluster_max_age" {
   title         = "Long running Redshift clusters should have reserved nodes purchased for them"
   description   = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
-  sql           = query.redshift_cluster_max_age.sql
+  // sql           = query.redshift_cluster_max_age.sql
   severity      = "low"
 
   param "redshift_running_cluster_age_max_days" {
@@ -62,22 +62,85 @@ control "redshift_cluster_max_age" {
   tags = merge(local.redshift_common_tags, {
     class = "managed"
   })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+      case
+        when date_part('day', now() - cluster_create_time) > $1 then 'alarm'
+        when date_part('day', now() - cluster_create_time) > $2 then 'info'
+        else 'ok'
+      end as status,
+      title || ' created on ' || cluster_create_time || ' (' || date_part('day', now() - cluster_create_time) || ' days).'
+      as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_redshift_cluster;
+  EOQ
 }
 
 control "redshift_cluster_schedule_pause_resume_enabled" {
   title         = "Redshift cluster paused resume should be enabled"
   description   = "Redshift cluster paused resume should be enabled to easily suspend on-demand billing while the cluster is not being used."
-  sql           = query.redshift_cluster_schedule_pause_resume_enabled.sql
+  // sql           = query.redshift_cluster_schedule_pause_resume_enabled.sql
   severity      = "low"
   tags = merge(local.redshift_common_tags, {
     class = "managed"
   })
+
+  sql = <<-EOQ
+    with cluster_pause_enabled as (
+    select
+      arn,
+      s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' as pause_cluster
+    from
+      aws_redshift_cluster,
+      jsonb_array_elements(scheduled_actions) as s
+    where
+      s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' is not null
+  ),
+  cluster_resume_enabled as (
+    select
+      arn,
+      s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' as resume_cluster
+    from
+      aws_redshift_cluster,
+      jsonb_array_elements(scheduled_actions) as s
+    where
+      s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' is not null
+  ),
+  pause_and_resume_enabled as (
+    select
+      p.arn
+    from
+      cluster_pause_enabled as p
+      left join cluster_resume_enabled as r on r.arn = p.arn
+    where
+      p.pause_cluster = r.resume_cluster
+  )
+  select
+    a.arn as resource,
+    case
+      when b.arn is not null then 'ok'
+      else 'info'
+    end as status,
+    case
+      when b.arn is not null then a.title || ' pause-resume action enabled.'
+      else a.title || ' pause-resume action not enabled.'
+    end as reason,
+      ${local.tag_dimensions_sql}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
+  from
+    aws_redshift_cluster as a
+    left join pause_and_resume_enabled as b on a.arn = b.arn;
+  EOQ
 }
 
 control "redshift_cluster_low_utilization" {
   title         = "Redshift cluster with low CPU utilization should be reviewed"
   description   = "Resize or eliminate under utilized clusters."
-  sql           = query.redshift_cluster_low_utilization.sql
+  // sql           = query.redshift_cluster_low_utilization.sql
   severity      = "low"
 
   param "redshift_cluster_avg_cpu_utilization_low" {
@@ -93,4 +156,36 @@ control "redshift_cluster_low_utilization" {
   tags = merge(local.redshift_common_tags, {
     class = "unused"
   })
+
+  sql = <<-EOQ
+    with redshift_cluster_utilization as (
+      select
+        cluster_identifier,
+        round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
+        count(maximum) days
+      from
+        aws_redshift_cluster_metric_cpu_utilization_daily
+      where
+        date_part('day', now() - timestamp) <= 30
+      group by
+        cluster_identifier
+    )
+    select
+      i.cluster_identifier as resource,
+      case
+        when avg_max is null then 'error'
+        when avg_max < $1 then 'alarm'
+        when avg_max < $2 then 'info'
+        else 'ok'
+      end as status,
+      case
+        when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
+        else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
+      end as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_redshift_cluster as i
+      left join redshift_cluster_utilization as u on u.cluster_identifier = i.cluster_identifier;
+  EOQ
 }

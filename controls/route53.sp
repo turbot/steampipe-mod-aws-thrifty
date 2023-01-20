@@ -30,7 +30,7 @@ control "route53_record_higher_ttl" {
 
   sql = <<-EOQ
     select
-       'arn:' || r.partition || ':route53:::hostedzone/' || r.zone_id || '/recordset/' || r.name || '/' || r.type as resource,
+      'arn:' || r.partition || ':route53:::hostedzone/' || r.zone_id || '/recordset/' || r.name || '/' || r.type as resource,
       case
         when ttl::int < 3600 then 'alarm'
         else 'ok'

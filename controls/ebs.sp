@@ -58,37 +58,83 @@ benchmark "ebs" {
 control "gp2_volumes" {
   title         = "Still using gp2 EBS volumes? Should use gp3 instead."
   description   = "EBS gp2 volumes are more costly and lower performance than gp3."
-  sql           = query.gp2_ebs_volumes.sql
+  // sql           = query.gp2_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
+
+  sql = <<-EQQ
+    select
+      arn as resource,
+      case
+        when volume_type = 'gp2' then 'alarm'
+        when volume_type = 'gp3' then 'ok'
+        else 'skip'
+      end as status,
+      volume_id || ' type is ' || volume_type || '.' as reason,
+      region,
+      account_id
+    from
+      aws_ebs_volume;
+  EQQ
 }
 
 control "io1_volumes" {
   title         = "Still using io1 EBS volumes? Should use io2 instead."
   description   = "io1 Volumes are less reliable than io2 for same cost."
-  sql           = query.io1_ebs_volumes.sql
+  // sql           = query.io1_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
+
+  sql = <<-EQQ
+    select
+      arn as resource,
+      case
+        when volume_type = 'io1' then 'alarm'
+        when volume_type = 'io2' then 'ok'
+        else 'skip'
+      end as status,
+      volume_id || ' type is ' || volume_type || '.' as reason,
+      region,
+      account_id
+    from
+      aws_ebs_volume;
+  EQQ
 }
 
 control "unattached_ebs_volumes" {
   title         = "Are there any unattached EBS volumes?"
   description   = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
-  sql           = query.unattached_ebs_volumes.sql
+  // sql           = query.unattached_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "unused"
   })
+  sql = <<-EQQ
+    select
+      arn as resource,
+      case
+        when jsonb_array_length(attachments) > 0 then 'ok'
+        else 'alarm'
+      end as status,
+      case
+        when jsonb_array_length(attachments) > 0 then volume_id || ' has attachments.'
+        else volume_id || ' has no attachments.'
+      end as reason,
+      region,
+      account_id
+    from
+      aws_ebs_volume
+  EQQ
 }
 
 control "large_ebs_volumes" {
   title         = "EBS volumes should be resized if too large"
   description   = "Large EBS volumes are unusual, expensive and should be reviewed."
-  sql           = query.large_ebs_volumes.sql
+  // sql           = query.large_ebs_volumes.sql
   severity      = "low"
 
   param "ebs_volume_max_size_gb" {
@@ -99,12 +145,26 @@ control "large_ebs_volumes" {
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
+
+  sql = <<-EQQ
+    select
+      arn as resource,
+      case
+        when size <= $1 then 'ok'
+        else 'alarm'
+      end as status,
+      volume_id || ' is ' || size || 'GB.' as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_ebs_volume
+  EQQ
 }
 
 control "high_iops_ebs_volumes" {
   title         = "EBS volumes with high IOPS should be resized if too large"
   description   = "High IOPS io1 and io2 volumes are costly and usage should be reviewed."
-  sql           = query.high_iops_volumes.sql
+  // sql           = query.high_iops_volumes.sql
   severity      = "low"
 
   param "ebs_volume_max_iops" {
@@ -115,32 +175,108 @@ control "high_iops_ebs_volumes" {
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
+
+  sql = <<-EQQ
+    select
+      arn as resource,
+      case
+        when volume_type not in ('io1', 'io2') then 'skip'
+        when iops > $1 then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
+        else volume_id || ' has ' || iops || ' iops.'
+      end as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_ebs_volume;
+  EQQ
 }
 
 control "low_iops_ebs_volumes" {
   title         = "What provisioned IOPS volumes would be better as GP3?"
   description   = "GP3 provides 3k base IOPS performance, don't use more costly io1 & io2 volumes."
-  sql           = query.low_iops_volumes.sql
+  // sql           = query.low_iops_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "management"
   })
+
+  sql = <<-EQQ
+    select
+    arn as resource,
+    case
+      when volume_type not in ('io1', 'io2') then 'skip'
+      when iops <= 3000 then 'alarm'
+      else 'ok'
+    end as status,
+    case
+      when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
+      when iops <= 3000 then volume_id || ' only has ' || iops || ' iops.'
+      else volume_id || ' has ' || iops || ' iops.'
+    end as reason,
+    ${local.tag_dimensions_sql}
+    ${local.common_dimensions_sql}
+  from
+    aws_ebs_volume;
+  EQQ
 }
 
 control "ebs_volumes_on_stopped_instances" {
   title         = "EBS volumes attached to stopped instances should be reviewed"
   description   = "Instances that are stopped may no longer need any attached EBS volumes"
-  sql           = query.inactive_ebs_volumes.sql
+  // sql           = query.inactive_ebs_volumes.sql
   severity      = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
+
+  sql = <<-EQQ
+      with vols_and_instances as (
+        select
+          v.arn,
+          v.volume_id,
+          i.instance_id,
+          v.region,
+          v.account_id,
+          sum(
+            case 
+              when i.instance_state = 'stopped' then 0
+              else 1
+            end
+          ) as running_instances
+        from
+          aws_ebs_volume as v
+          left join jsonb_array_elements(v.attachments) as va on true
+          left join aws_ec2_instance as i on va ->> 'InstanceId' = i.instance_id
+        group by
+          v.arn, 
+          v.volume_id,
+          i.instance_id,
+          i.instance_id,
+          v.region,
+          v.account_id
+    )
+    select
+      arn as resource,
+      case
+        when running_instances > 0 then 'ok'
+        else 'alarm'
+      end as status,
+      volume_id || ' is attached to ' || running_instances || ' running instances.' as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from 
+      vols_and_instances
+  EQQ
 }
 
 control "ebs_with_low_usage" {
   title         = "Are there any EBS volumes with low usage?"
   description   = "Volumes that are unused should be archived and deleted"
-  sql           = query.low_usage_ebs_volumes.sql
+  // sql           = query.low_usage_ebs_volumes.sql
   severity      = "low"
 
   param "ebs_volume_avg_read_write_ops_low" {
@@ -156,6 +292,58 @@ control "ebs_with_low_usage" {
   tags = merge(local.ebs_common_tags, {
     class = "unused"
   })
+
+  sql = <<-EQQ
+    with ebs_usage as (
+      select
+        partition,
+        account_id,
+        region,
+        volume_id,
+        round(avg(max)) as avg_max,
+        count(max) as days
+        from (
+          (
+            select 
+              partition,
+              account_id,
+              region,
+              volume_id,
+              cast(maximum as numeric) as max
+            from 
+              aws_ebs_volume_metric_read_ops_daily
+            where
+              date_part('day', now() - timestamp) <= 30
+          )
+          UNION
+          (
+            select 
+              partition,
+              account_id,
+              region,
+              volume_id,
+              cast(maximum as numeric) as max
+            from 
+              aws_ebs_volume_metric_write_ops_daily
+            where
+              date_part('day', now() - timestamp) <= 30
+          ) 
+        ) as read_and_write_ops
+        group by 1,2,3,4
+    )
+    select
+      'arn:' || partition || ':ec2:' || region || ':' || account_id || ':volume/' || volume_id as resource,
+      case
+        when avg_max <= $1 then 'alarm'
+        when avg_max <= $2 then 'info'
+        else 'ok'
+      end as status,
+      volume_id || ' is averaging ' || avg_max || ' read and write ops over the last ' || days || ' days.' as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      ebs_usage
+  EQQ
 }
 
 control "ebs_snapshot_max_age" {

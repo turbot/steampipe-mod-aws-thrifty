@@ -53,7 +53,7 @@ benchmark "rds" {
 control "long_running_rds_db_instances" {
   title         = "Long running RDS DBs should have reserved instances purchased for them"
   description   = "Long running database servers should be associated with a reserve instance."
-  sql           = query.old_rds_db_instances.sql
+  // sql           = query.old_rds_db_instances.sql
   severity      = "low"
 
   param "rds_running_db_instance_age_max_days" {
@@ -69,22 +69,55 @@ control "long_running_rds_db_instances" {
   tags = merge(local.rds_common_tags, {
     class = "managed"
   })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+      case
+        when date_part('day', now()-create_time) > $1 then 'alarm'
+        when date_part('day', now()-create_time) > $2 then 'info'
+        else 'ok'
+      end as status,
+      title || ' has been in use for ' || date_part('day', now()-create_time) || ' days.' as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_rds_db_instance;
+  EOQ
 }
 
 control "latest_rds_instance_types" {
   title         = "Are there RDS instances using previous gen instance types?"
   description   = "M5 and T3 instance types are less costly than previous generations"
-  sql           = query.prev_gen_rds_instances.sql
+  // sql           = query.prev_gen_rds_instances.sql
   severity      = "low"
   tags = merge(local.rds_common_tags, {
     class = "managed"
   })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+      case
+        when class like '%.t2.%' then 'alarm'
+        when class like '%.m3.%' then 'alarm'
+        when class like '%.m4.%' then 'alarm'
+        when class like '%.m5.%' then 'ok'
+        when class like '%.t3.%' then 'ok'
+        else 'info'
+      end as status,
+      title || ' has a ' || class || ' instance class.' as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_rds_db_instance;
+  EOQ
 }
 
 control "rds_db_low_connection_count" {
   title         = "RDS DB instances with a low number connections per day should be reviewed"
   description   = "DB instances having less usage in last 30 days should be reviewed."
-  sql           = query.low_connections_rds_metrics.sql
+  // sql           = query.low_connections_rds_metrics.sql
   severity      = "high"
 
   param "rds_db_instance_avg_connections" {
@@ -95,12 +128,45 @@ control "rds_db_low_connection_count" {
   tags = merge(local.rds_common_tags, {
     class = "unused"
   })
+
+  sql = <<-EOQ
+    with rds_db_usage as (
+      select 
+        db_instance_identifier,
+        round(sum(maximum)/count(maximum)) as avg_max,
+        count(maximum) days
+      from 
+        aws_rds_db_instance_metric_connections_daily
+      where
+        date_part('day', now() - timestamp) <= 30
+      group by
+        db_instance_identifier
+    )
+    select
+      arn as resource,
+      case
+        when avg_max is null then 'error'
+        when avg_max = 0 then 'alarm'
+        when avg_max < $1 then 'info'
+        else 'ok'
+      end as status,
+      case
+        when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
+        when avg_max = 0 then title || ' has not been connected to in the last ' || days || ' days.'
+        else title || ' is averaging ' || avg_max || ' max connections/day in the last ' || days || ' days.'
+      end as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_rds_db_instance i
+      left join rds_db_usage as u on u.db_instance_identifier = i.db_instance_identifier;
+  EOQ
 }
 
 control "rds_db_low_utilization" {
   title         = "RDS DB instance having low CPU utilization should be reviewed"
   description   = "DB instances may be oversized for their usage."
-  sql           = query.low_usage_rds_metrics.sql
+  // sql           = query.low_usage_rds_metrics.sql
   severity      = "low"
 
   param "rds_db_instance_avg_cpu_utilization_low" {
@@ -116,4 +182,36 @@ control "rds_db_low_utilization" {
   tags = merge(local.rds_common_tags, {
     class = "unused"
   })
+
+  sql = <<-EOQ
+    with rds_db_usage as (
+      select 
+        db_instance_identifier,
+        round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
+        count(maximum) days
+      from 
+        aws_rds_db_instance_metric_cpu_utilization_daily
+      where
+        date_part('day', now() - timestamp) <= 30
+      group by
+        db_instance_identifier
+    )
+    select
+      arn as resource,
+      case
+        when avg_max is null then 'error'
+        when avg_max <= $1 then 'alarm'
+        when avg_max <= $2 then 'info'
+        else 'ok'
+      end as status,
+      case
+        when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
+        else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
+      end as reason,
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_rds_db_instance i
+      left join rds_db_usage as u on u.db_instance_identifier = i.db_instance_identifier;
+  EOQ
 }
