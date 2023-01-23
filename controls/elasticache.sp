@@ -52,6 +52,7 @@ control "elasticache_cluster_long_running" {
     select
       distinct c.replication_group_id as name,
       c.cache_cluster_create_time,
+      c._ctx,
       c.region,
       c.account_id,
       'redis' as engine,
@@ -63,6 +64,7 @@ control "elasticache_cluster_long_running" {
     select
       cache_cluster_id as name,
       cache_cluster_create_time,
+      _ctx,
       region,
       account_id,
       engine,

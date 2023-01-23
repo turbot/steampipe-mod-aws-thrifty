@@ -230,6 +230,7 @@ control "ebs_volumes_on_stopped_instances" {
       with vols_and_instances as (
         select
           v.arn,
+          v._ctx,
           v.volume_id,
           i.instance_id,
           v.region,
@@ -245,7 +246,8 @@ control "ebs_volumes_on_stopped_instances" {
           left join jsonb_array_elements(v.attachments) as va on true
           left join aws_ec2_instance as i on va ->> 'InstanceId' = i.instance_id
         group by
-          v.arn, 
+          v.arn,
+          v._ctx, 
           v.volume_id,
           i.instance_id,
           i.instance_id,
@@ -289,6 +291,7 @@ control "ebs_with_low_usage" {
       select
         partition,
         account_id,
+        _ctx,
         region,
         volume_id,
         round(avg(max)) as avg_max,
@@ -298,6 +301,7 @@ control "ebs_with_low_usage" {
             select 
               partition,
               account_id,
+              _ctx,
               region,
               volume_id,
               cast(maximum as numeric) as max
@@ -311,6 +315,7 @@ control "ebs_with_low_usage" {
             select 
               partition,
               account_id,
+              _ctx,
               region,
               volume_id,
               cast(maximum as numeric) as max
@@ -320,7 +325,7 @@ control "ebs_with_low_usage" {
               date_part('day', now() - timestamp) <= 30
           ) 
         ) as read_and_write_ops
-        group by 1,2,3,4
+        group by 1,2,3,4,5
     )
     select
       'arn:' || partition || ':ec2:' || region || ':' || account_id || ':volume/' || volume_id as resource,
@@ -352,16 +357,19 @@ control "ebs_snapshot_max_age" {
 
   sql = <<-EOQ
     select
-      'arn:' || partition || ':ec2:' || region || ':' || account_id || ':snapshot/' || snapshot_id as resource,
+      arn as resource,
       case
-        when start_time > current_timestamp - ($1 || ' days')::interval then 'ok'
+        when date_part('day', now()-last_accessed_date) > $1 then 'ok'
         else 'alarm'
       end as status,
-      snapshot_id || ' created at ' || start_time || '.' as reason
+      case
+        when last_accessed_date is null then title || ' is never used.'
+        else title || ' is last used ' || age(current_date, last_accessed_date) || ' ago.'
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_snapshot
+      aws_secretsmanager_secret
   EOQ
 
 }
