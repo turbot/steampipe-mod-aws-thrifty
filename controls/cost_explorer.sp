@@ -100,7 +100,7 @@ control "full_month_cost_changes" {
     case 
       when prev_month.service_name is null then base_month.account_id 
       else prev_month.account_id
-    end as ${local.common_dimensions_sql}
+    end as account_id
   from 
     base_month
     full outer join prev_month on base_month.service_name = prev_month.service_name
