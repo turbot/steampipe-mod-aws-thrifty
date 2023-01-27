@@ -44,6 +44,7 @@ control "full_month_cost_changes" {
         replace(lower(trim(dimension_1)), ' ', '-') as service,
         partition,
         account_id,
+        _ctx,
         net_unblended_cost_unit as unit,
         sum(net_unblended_cost_amount) as cost
       from 
@@ -56,7 +57,7 @@ control "full_month_cost_changes" {
         and period_start >= date_trunc('month', current_date - interval '2' month)
         and period_start < date_trunc('month', current_date - interval '1' month)
       group by
-        1,2,3,4,5
+        1,2,3,4,5, unit
     ),
     prev_month as (
       select 
@@ -64,6 +65,7 @@ control "full_month_cost_changes" {
         replace(lower(trim(dimension_1)), ' ', '-') as service,
         partition,
         account_id,
+        _ctx,
         net_unblended_cost_unit as unit,
         sum(net_unblended_cost_amount) as cost
       from 
@@ -76,7 +78,7 @@ control "full_month_cost_changes" {
         and period_start >= date_trunc('month', current_date - interval '1' month)
         and period_start < date_trunc('month', current_date )
       group by
-        1,2,3,4,5
+        1,2,3,4,5, unit
     )
   select
     case 
@@ -100,7 +102,11 @@ control "full_month_cost_changes" {
     case 
       when prev_month.service_name is null then base_month.account_id 
       else prev_month.account_id
-    end as account_id
+    end as account_id,
+    case 
+      when prev_month.service_name is null then base_month._ctx -> 'connection_name'
+      else prev_month._ctx -> 'connection_name'
+    end as connection_name    
   from 
     base_month
     full outer join prev_month on base_month.service_name = prev_month.service_name
