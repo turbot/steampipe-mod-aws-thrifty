@@ -108,11 +108,11 @@ Several benchmarks have [input variables](https://steampipe.io/docs/using-steamp
 
 These are only some of the ways you can set variables. For a full list, please see [Passing Input Variables](https://steampipe.io/docs/using-steampipe/mod-variables#passing-input-variables).
 
-## Common and Tag Dimensions
+### Common and Tag Dimensions
 
-Several benchmark queries uses simialar properties and tags which is set as a list of string in `mod.sp` file. These properties can be reused as per need:
+Several benchmark queries use similar properties and tags which is set as a list of strings in `mod.sp` file. These properties can be reused as per need:
 
-1 Set common dimensions:
+1. Set common dimensions:
 
 - Pass in a value on the command line:
 
@@ -126,7 +126,7 @@ Several benchmark queries uses simialar properties and tags which is set as a li
   SP_VAR_common_dimensions='["account_id", "connection_name", "region"]' steampipe check control.large_ebs_volumes
   ```
 
-2 Set tag dimensions:
+2. Set tag dimensions:
 
 - Pass in a value on the command line:
 
