@@ -108,6 +108,39 @@ Several benchmarks have [input variables](https://steampipe.io/docs/using-steamp
 
 These are only some of the ways you can set variables. For a full list, please see [Passing Input Variables](https://steampipe.io/docs/using-steampipe/mod-variables#passing-input-variables).
 
+## Common and Tag Dimensions
+
+Several benchmark queries uses simialar properties and tags which is set as a list of string in `mod.sp` file. These properties can be reused as per need:
+
+1 Set common dimensions:
+
+- Pass in a value on the command line:
+
+  ```shell
+  steampipe check benchmark.lambda --var 'common_dimensions=["account_id", "connection_name", "region"]'
+  ```
+
+- Set an environment variable:
+
+  ```shell
+  SP_VAR_common_dimensions='["account_id", "connection_name", "region"]' steampipe check control.large_ebs_volumes
+  ```
+
+2 Set tag dimensions:
+
+- Pass in a value on the command line:
+
+  ```shell
+  steampipe check benchmark.lambda --var 'tag_dimensions=["Environment", "Owner"]'
+  ```
+
+- Set an environment variable:
+
+  ```shell
+  SP_VAR_tag_dimensions='["Environment", "Owner"]' steampipe check control.large_ebs_volumes
+  ```
+
+
 ## Contributing
 
 If you have an idea for additional controls or just want to help maintain and extend this mod ([or others](https://github.com/topics/steampipe-mod)) we would love you to join the community and start contributing.
