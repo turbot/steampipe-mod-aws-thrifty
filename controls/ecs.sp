@@ -33,7 +33,6 @@ benchmark "ecs" {
 control "ecs_cluster_low_utilization" {
   title         = "ECS clusters with low CPU utilization should be reviewed"
   description   = "Resize or eliminate under utilized clusters."
-  sql           = query.ecs_cluster_low_utilization.sql
   severity      = "low"
 
   param "ecs_cluster_avg_cpu_utilization_low" {
@@ -49,15 +48,75 @@ control "ecs_cluster_low_utilization" {
   tags = merge(local.ecs_common_tags, {
     class = "unused"
   })
+
+  sql = <<-EQQ
+    with ecs_cluster_utilization as (
+    select
+      cluster_name,
+      round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
+      count(maximum) days
+    from
+      aws_ecs_cluster_metric_cpu_utilization_daily
+    where
+      date_part('day', now() - timestamp) <= 30
+    group by
+      cluster_name
+  )
+  select
+    i.cluster_name as resource,
+    case
+      when avg_max is null then 'error'
+      when avg_max < $1 then 'alarm'
+      when avg_max < $2 then 'info'
+      else 'ok'
+    end as status,
+    case
+      when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
+      else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
+    end as reason
+    ${local.tag_dimensions_sql}
+    ${local.common_dimensions_sql}
+  from
+    aws_ecs_cluster as i
+    left join ecs_cluster_utilization as u on u.cluster_name = i.cluster_name;
+  EQQ
 }
 
 control "ecs_service_without_autoscaling" {
   title         = "ECS service should use autoscaling policy"
   description   = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
-  sql           = query.ecs_service_without_autoscaling.sql
   severity      = "low"
 
   tags = merge(local.ecs_common_tags, {
     class = "managed"
   })
+
+  sql = <<-EQQ
+    with service_with_autoscaling as (
+      select
+        distinct split_part(t.resource_id, '/', 2) as cluster_name,
+        split_part(t.resource_id, '/', 3) as service_name
+      from
+        aws_appautoscaling_target as t
+      where
+        t.service_namespace = 'ecs'
+    )
+    select
+      s.arn as resource,
+      case
+        when s.launch_type != 'FARGATE' then 'skip'
+        when a.service_name is null then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when s.launch_type != 'FARGATE' then s.title || ' task not running on FARGATE.'
+        when a.service_name is null then s.title || ' autoscaling disabled.'
+        else s.title || ' autoscaling enabled.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "s.")}
+    from
+      aws_ecs_service as s
+      left join service_with_autoscaling as a on s.service_name = a.service_name and a.cluster_name = split_part(s.cluster_arn, '/', 2);
+  EQQ
 }
