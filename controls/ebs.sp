@@ -63,7 +63,7 @@ control "gp2_volumes" {
     class = "deprecated"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -76,7 +76,7 @@ control "gp2_volumes" {
       ${local.common_dimensions_sql}
     from
       aws_ebs_volume;
-  EQQ
+  EOQ
 }
 
 control "io1_volumes" {
@@ -87,7 +87,7 @@ control "io1_volumes" {
     class = "deprecated"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -100,7 +100,7 @@ control "io1_volumes" {
       ${local.common_dimensions_sql}
     from
       aws_ebs_volume;
-  EQQ
+  EOQ
 }
 
 control "unattached_ebs_volumes" {
@@ -110,7 +110,7 @@ control "unattached_ebs_volumes" {
   tags = merge(local.ebs_common_tags, {
     class = "unused"
   })
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -125,7 +125,7 @@ control "unattached_ebs_volumes" {
       ${local.common_dimensions_sql}
     from
       aws_ebs_volume
-  EQQ
+  EOQ
 }
 
 control "large_ebs_volumes" {
@@ -142,7 +142,7 @@ control "large_ebs_volumes" {
     class = "deprecated"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -154,7 +154,7 @@ control "large_ebs_volumes" {
       ${local.common_dimensions_sql}
     from
       aws_ebs_volume
-  EQQ
+  EOQ
 }
 
 control "high_iops_ebs_volumes" {
@@ -171,7 +171,7 @@ control "high_iops_ebs_volumes" {
     class = "deprecated"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -187,7 +187,7 @@ control "high_iops_ebs_volumes" {
       ${local.common_dimensions_sql}
     from
       aws_ebs_volume;
-  EQQ
+  EOQ
 }
 
 control "low_iops_ebs_volumes" {
@@ -198,7 +198,7 @@ control "low_iops_ebs_volumes" {
     class = "management"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
     arn as resource,
     case
@@ -215,7 +215,7 @@ control "low_iops_ebs_volumes" {
     ${local.common_dimensions_sql}
   from
     aws_ebs_volume;
-  EQQ
+  EOQ
 }
 
 control "ebs_volumes_on_stopped_instances" {
@@ -226,7 +226,7 @@ control "ebs_volumes_on_stopped_instances" {
     class = "deprecated"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
       with vols_and_instances as (
         select
           v.arn,
@@ -264,7 +264,7 @@ control "ebs_volumes_on_stopped_instances" {
       ${local.common_dimensions_sql}
     from 
       vols_and_instances
-  EQQ
+  EOQ
 }
 
 control "ebs_with_low_usage" {
@@ -286,7 +286,7 @@ control "ebs_with_low_usage" {
     class = "unused"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     with ebs_usage as (
       select
         partition,
@@ -338,7 +338,7 @@ control "ebs_with_low_usage" {
       ${local.common_dimensions_sql}
     from
       ebs_usage
-  EQQ
+  EOQ
 }
 
 control "ebs_snapshot_max_age" {

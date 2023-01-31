@@ -63,7 +63,7 @@ control "ec2_application_lb_unused" {
     class = "unused"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     with target_resource as (
       select
         load_balancer_arn,
@@ -88,7 +88,7 @@ control "ec2_application_lb_unused" {
     from
       aws_ec2_application_load_balancer a
       left join target_resource b on a.arn = b.load_balancer_arn;
-  EQQ
+  EOQ
 }
 
 control "ec2_classic_lb_unused" {
@@ -99,7 +99,7 @@ control "ec2_classic_lb_unused" {
     class = "unused"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -114,7 +114,7 @@ control "ec2_classic_lb_unused" {
       ${local.common_dimensions_sql}
     from
       aws_ec2_classic_load_balancer;
-  EQQ
+  EOQ
 }
 
 control "ec2_gateway_lb_unused" {
@@ -125,7 +125,7 @@ control "ec2_gateway_lb_unused" {
     class = "unused"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     with target_resource as (
       select
         load_balancer_arn,
@@ -150,7 +150,7 @@ control "ec2_gateway_lb_unused" {
     from
       aws_ec2_gateway_load_balancer a
       left join target_resource b on a.arn = b.load_balancer_arn;
-  EQQ
+  EOQ
 
 }
 
@@ -162,7 +162,7 @@ control "ec2_network_lb_unused" {
     class = "unused"
   })
   
-  sql = <<-EQQ
+  sql = <<-EOQ
     with target_resource as (
       select
         load_balancer_arn,
@@ -187,7 +187,7 @@ control "ec2_network_lb_unused" {
     from
       aws_ec2_network_load_balancer a
       left join target_resource b on a.arn = b.load_balancer_arn;
-  EQQ
+  EOQ
 }
 
 control "large_ec2_instances" {
@@ -204,7 +204,7 @@ control "large_ec2_instances" {
     class = "deprecated"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -217,7 +217,7 @@ control "large_ec2_instances" {
       ${local.common_dimensions_sql}
     from
       aws_ec2_instance;
-  EQQ
+  EOQ
 }
 
 control "long_running_ec2_instances" {
@@ -234,7 +234,7 @@ control "long_running_ec2_instances" {
     class = "deprecated"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -249,7 +249,7 @@ control "long_running_ec2_instances" {
     where
       -- Instance is running
       instance_state in ('running', 'pending', 'rebooting');
-  EQQ
+  EOQ
 }
 
 control "instances_with_low_utilization" {
@@ -271,7 +271,7 @@ control "instances_with_low_utilization" {
     class = "unused"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     with ec2_instance_utilization as (
       select
         instance_id,
@@ -301,7 +301,7 @@ control "instances_with_low_utilization" {
     from
       aws_ec2_instance i
       left join ec2_instance_utilization as u on u.instance_id = i.instance_id;
-  EQQ
+  EOQ
 }
 
 control "ec2_reserved_instance_lease_expiration_days" {
@@ -318,7 +318,7 @@ control "ec2_reserved_instance_lease_expiration_days" {
     class = "managed"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       reserved_instance_id as resource,
       case
@@ -330,7 +330,7 @@ control "ec2_reserved_instance_lease_expiration_days" {
       ${local.common_dimensions_sql}
     from
       aws_ec2_reserved_instance;
-  EQQ  
+  EOQ  
 }
 
 control "ec2_instance_older_generation" {
@@ -341,7 +341,7 @@ control "ec2_instance_older_generation" {
     class = "unused"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       arn as resource,
       case
@@ -353,5 +353,5 @@ control "ec2_instance_older_generation" {
       ${local.common_dimensions_sql}
     from
       aws_ec2_instance;
-  EQQ
+  EOQ
 }

@@ -26,7 +26,7 @@ control "emr_cluster_instance_prev_gen" {
   tags = merge(local.emr_common_tags, {
     class = "managed"
   })
-  sql = <<-EQQ
+  sql = <<-EOQ
     select
       ig.id as resource,
       case
@@ -52,7 +52,7 @@ control "emr_cluster_instance_prev_gen" {
     where
       ig.cluster_id = c.id
     and ig.instance_group_type = 'MASTER';
-  EQQ
+  EOQ
 }
 
 control "emr_cluster_is_idle_30_minutes" {
@@ -63,7 +63,7 @@ control "emr_cluster_is_idle_30_minutes" {
   tags = merge(local.emr_common_tags, {
     class = "unused"
   })
-  sql = <<-EQQ
+  sql = <<-EOQ
     with cluster_metrics as (
       select
         id,
@@ -99,5 +99,5 @@ control "emr_cluster_is_idle_30_minutes" {
       from
         aws_emr_cluster as i
         left join emr_cluster_isidle as u on u.id = i.id;
-  EQQ
+  EOQ
 }

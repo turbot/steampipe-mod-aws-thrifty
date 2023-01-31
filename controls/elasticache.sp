@@ -47,7 +47,7 @@ control "elasticache_cluster_long_running" {
   tags = merge(local.redshift_common_tags, {
     class = "managed"
   })
-  sql = <<-EQQ
+  sql = <<-EOQ
     with filter_clusters as (
     select
       distinct c.replication_group_id as name,
@@ -86,5 +86,5 @@ control "elasticache_cluster_long_running" {
     ${local.common_dimensions_sql}
   from
     filter_clusters;
-  EQQ
+  EOQ
 }

@@ -49,7 +49,7 @@ control "ecs_cluster_low_utilization" {
     class = "unused"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     with ecs_cluster_utilization as (
     select
       cluster_name,
@@ -79,7 +79,7 @@ control "ecs_cluster_low_utilization" {
   from
     aws_ecs_cluster as i
     left join ecs_cluster_utilization as u on u.cluster_name = i.cluster_name;
-  EQQ
+  EOQ
 }
 
 control "ecs_service_without_autoscaling" {
@@ -91,7 +91,7 @@ control "ecs_service_without_autoscaling" {
     class = "managed"
   })
 
-  sql = <<-EQQ
+  sql = <<-EOQ
     with service_with_autoscaling as (
       select
         distinct split_part(t.resource_id, '/', 2) as cluster_name,
@@ -118,5 +118,5 @@ control "ecs_service_without_autoscaling" {
     from
       aws_ecs_service as s
       left join service_with_autoscaling as a on s.service_name = a.service_name and a.cluster_name = split_part(s.cluster_arn, '/', 2);
-  EQQ
+  EOQ
 }
