@@ -46,7 +46,8 @@ control "full_month_cost_changes" {
         account_id,
         _ctx,
         net_unblended_cost_unit as unit,
-        sum(net_unblended_cost_amount) as cost
+        sum(net_unblended_cost_amount) as cost,
+        region
       from 
         aws_cost_usage 
       where 
@@ -57,7 +58,7 @@ control "full_month_cost_changes" {
         and period_start >= date_trunc('month', current_date - interval '2' month)
         and period_start < date_trunc('month', current_date - interval '1' month)
       group by
-        1,2,3,4,5, unit
+        1,2,3,4,5,unit,region
     ),
     prev_month as (
       select 
@@ -67,7 +68,8 @@ control "full_month_cost_changes" {
         account_id,
         _ctx,
         net_unblended_cost_unit as unit,
-        sum(net_unblended_cost_amount) as cost
+        sum(net_unblended_cost_amount) as cost,
+        region
       from 
         aws_cost_usage 
       where 
@@ -78,7 +80,7 @@ control "full_month_cost_changes" {
         and period_start >= date_trunc('month', current_date - interval '1' month)
         and period_start < date_trunc('month', current_date )
       group by
-        1,2,3,4,5, unit
+        1,2,3,4,5,unit,region
     )
   select
     case 
@@ -98,15 +100,8 @@ control "full_month_cost_changes" {
       when abs(prev_month.cost - base_month.cost) < 0.01 then prev_month.service_name || ' has remained flat.'
       when prev_month.cost > base_month.cost then prev_month.service_name || ' usage has increased by ' || round(cast((prev_month.cost - base_month.cost) as numeric), 2)  || ' ' || prev_month.unit
       else prev_month.service_name || ' usage has decreased (' || round(cast((base_month.cost - prev_month.cost) as numeric), 2) || ') ' || prev_month.unit
-    end as reason,
-    case 
-      when prev_month.service_name is null then base_month.account_id 
-      else prev_month.account_id
-    end as account_id,
-    case 
-      when prev_month.service_name is null then base_month._ctx -> 'connection_name'
-      else prev_month._ctx -> 'connection_name'
-    end as connection_name    
+    end as reason
+    ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "prev_month.")}  
   from 
     base_month
     full outer join prev_month on base_month.service_name = prev_month.service_name
