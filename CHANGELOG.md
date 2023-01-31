@@ -1,3 +1,10 @@
+## v0.18 [TBD]
+
+_What's new?_
+
+- Use tags as dimensions to group and filter findings (see var.tag_dimensions)
+- Use connection_name in the common dimensions to group and filter findings (see var.common_dimensions)
+
 ## v0.18 [2022-12-27]
 
 _Bug fixes_
