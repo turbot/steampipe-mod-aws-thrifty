@@ -110,25 +110,14 @@ These are only some of the ways you can set variables. For a full list, please s
 
 ### Common and Tag Dimensions
 
-Several benchmark queries use similar properties and tags which is set as a list of strings in `mod.sp` file. These properties can be reused as per need:
+The benchmark queries use common properties (like `account_id`, `connection_name` and `region`) and tags that are defined in the form of a default list of strings in the `mod.sp` file. These properties can be overwritten in several ways:
 
-1. Set common dimensions:
-
+- Copy and rename the `steampipe.spvars.example` file to `steampipe.spvars`, and then modify the variable values inside that file
 - Pass in a value on the command line:
 
   ```shell
   steampipe check benchmark.lambda --var 'common_dimensions=["account_id", "connection_name", "region"]'
   ```
-
-- Set an environment variable:
-
-  ```shell
-  SP_VAR_common_dimensions='["account_id", "connection_name", "region"]' steampipe check control.large_ebs_volumes
-  ```
-
-2. Set tag dimensions:
-
-- Pass in a value on the command line:
 
   ```shell
   steampipe check benchmark.lambda --var 'tag_dimensions=["Environment", "Owner"]'
@@ -137,9 +126,12 @@ Several benchmark queries use similar properties and tags which is set as a list
 - Set an environment variable:
 
   ```shell
-  SP_VAR_tag_dimensions='["Environment", "Owner"]' steampipe check control.large_ebs_volumes
+  SP_VAR_common_dimensions='["account_id", "connection_name", "region"]' steampipe check control.large_ebs_volumes
   ```
 
+  ```shell
+  SP_VAR_tag_dimensions='["Environment", "Owner"]' steampipe check control.large_ebs_volumes
+  ```
 
 ## Contributing
 
