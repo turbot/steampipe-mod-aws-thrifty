@@ -1,9 +1,9 @@
-## v0.18 [TBD]
+## v0.19 [2023-02-03]
 
 _What's new?_
 
-- Use tags as dimensions to group and filter findings (see var.tag_dimensions)
-- Use connection_name in the common dimensions to group and filter findings (see var.common_dimensions)
+- Added `tags` as dimensions to group and filter findings. (see [var.tag_dimensions](https://hub.steampipe.io/mods/turbot/aws_thrifty/variables)) ([#112](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/112))
+- Added `connection_name` in the common dimensions to group and filter findings. (see [var.common_dimensions](https://hub.steampipe.io/mods/turbot/aws_thrifty/variables)) ([#112](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/112))
 
 ## v0.18 [2022-12-27]
 
