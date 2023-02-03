@@ -1,6 +1,6 @@
 # Dimensions
-common_dimensions = [ "account_id", "region", "connection_name" ]
-tag_dimensions    = [ "Environment", "Owner" ]
+common_dimensions = [ "account_id", "region" ]
+tag_dimensions    = []
 
 # CloudWatch
 cloudwatch_log_stream_age_max_days = 90
