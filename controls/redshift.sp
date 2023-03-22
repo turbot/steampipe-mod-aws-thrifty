@@ -44,9 +44,9 @@ benchmark "redshift" {
 }
 
 control "redshift_cluster_max_age" {
-  title         = "Long running Redshift clusters should have reserved nodes purchased for them"
-  description   = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
-  severity      = "low"
+  title       = "Long running Redshift clusters should have reserved nodes purchased for them"
+  description = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
+  severity    = "low"
 
   param "redshift_running_cluster_age_max_days" {
     description = "The maximum number of days clusters are allowed to run."
@@ -80,9 +80,9 @@ control "redshift_cluster_max_age" {
 }
 
 control "redshift_cluster_schedule_pause_resume_enabled" {
-  title         = "Redshift cluster paused resume should be enabled"
-  description   = "Redshift cluster paused resume should be enabled to easily suspend on-demand billing while the cluster is not being used."
-  severity      = "low"
+  title       = "Redshift cluster paused resume should be enabled"
+  description = "Redshift cluster paused resume should be enabled to easily suspend on-demand billing while the cluster is not being used."
+  severity    = "low"
   tags = merge(local.redshift_common_tags, {
     class = "managed"
   })
@@ -136,9 +136,9 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
 }
 
 control "redshift_cluster_low_utilization" {
-  title         = "Redshift cluster with low CPU utilization should be reviewed"
-  description   = "Resize or eliminate under utilized clusters."
-  severity      = "low"
+  title       = "Redshift cluster with low CPU utilization should be reviewed"
+  description = "Resize or eliminate under utilized clusters."
+  severity    = "low"
 
   param "redshift_cluster_avg_cpu_utilization_low" {
     description = "The average CPU utilization required for clusters to be considered infrequently used. This value should be lower than redshift_cluster_avg_cpu_utilization_high."

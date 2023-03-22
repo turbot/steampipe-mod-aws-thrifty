@@ -25,9 +25,9 @@ benchmark "dynamodb" {
 }
 
 control "stale_dynamodb_table_data" {
-  title         = "Tables with stale data should be reviewed"
-  description   = "If the data has not changed recently and has become stale, the table should be reviewed."
-  severity      = "low"
+  title       = "Tables with stale data should be reviewed"
+  description = "If the data has not changed recently and has become stale, the table should be reviewed."
+  severity    = "low"
 
   param "dynamodb_table_stale_data_max_days" {
     description = "The maximum number of days table data can be unchanged before it is considered stale."
@@ -55,5 +55,4 @@ control "stale_dynamodb_table_data" {
     from
       aws_dynamodb_table;
   EOQ
-
 }

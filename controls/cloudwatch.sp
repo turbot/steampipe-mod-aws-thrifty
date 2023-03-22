@@ -25,9 +25,9 @@ benchmark "cloudwatch" {
 }
 
 control "cw_log_group_retention" {
-  title         = "CloudWatch Log Groups retention should be enabled"
-  description   = "All log groups should have a defined retention configuration."
-  severity      = "low"
+  title       = "CloudWatch Log Groups retention should be enabled"
+  description = "All log groups should have a defined retention configuration."
+  severity    = "low"
 
   tags = merge(local.cloudwatch_common_tags, {
     class = "managed"
@@ -46,14 +46,14 @@ control "cw_log_group_retention" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_cloudwatch_log_group
+      aws_cloudwatch_log_group;
   EOQ
 }
 
 control "cw_log_stream_unused" {
-  title         = "Unused log streams should be removed if not required"
-  description   = "Unnecessary log streams should be deleted for storage cost savings."
-  severity      = "low"
+  title       = "Unused log streams should be removed if not required"
+  description = "Unnecessary log streams should be deleted for storage cost savings."
+  severity    = "low"
 
   param "cloudwatch_log_stream_age_max_days" {
     description = "The maximum number of days log streams are allowed without any log event written to them."
