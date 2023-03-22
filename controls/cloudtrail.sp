@@ -20,9 +20,9 @@ benchmark "cloudtrail" {
 }
 
 control "multiple_global_trails" {
-  title = "Are there redundant global CloudTrail trails?"
-  description   = "Your first cloudtrail in each account is free, additional trails are expensive."
-  severity      = "low"
+  title       = "Are there redundant global CloudTrail trails?"
+  description = "Your first cloudtrail in each account is free, additional trails are expensive."
+  severity    = "low"
 
   tags = merge(local.cloudtrail_common_tags, {
     class = "managed"
@@ -49,18 +49,18 @@ control "multiple_global_trails" {
       end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
-    from 
+    from
       aws_cloudtrail_trail,
       global_trails
-    where 
+    where
       is_multi_region_trail;
   EOQ
 }
 
 control "multiple_regional_trails" {
-  title         = "Are there redundant regional CloudTrail trails?"
-  description   = "Your first cloudtrail in each region is free, additional trails are expensive."
-  severity      = "low"
+  title       = "Are there redundant regional CloudTrail trails?"
+  description = "Your first cloudtrail in each region is free, additional trails are expensive."
+  severity    = "low"
 
   tags = merge(local.cloudtrail_common_tags, {
     class = "managed"
@@ -122,5 +122,4 @@ control "multiple_regional_trails" {
       and not is_multi_region_trail
       and not is_organization_trail;
   EOQ
-
 }

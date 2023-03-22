@@ -18,9 +18,9 @@ benchmark "s3" {
 }
 
 control "buckets_with_no_lifecycle" {
-  title         = "Buckets should have lifecycle policies"
-  description   = "S3 Buckets should have a lifecycle policy associated for data retention."
-  severity      = "low"
+  title       = "Buckets should have lifecycle policies"
+  description = "S3 Buckets should have a lifecycle policy associated for data retention."
+  severity    = "low"
   tags = merge(local.s3_common_tags, {
     class = "managed"
   })

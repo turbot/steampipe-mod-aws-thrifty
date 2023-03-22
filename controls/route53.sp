@@ -85,5 +85,4 @@ control "route53_health_check_unused" {
       aws_route53_health_check as h
       left join health_check as c on h.id = c.health_check_id;
   EOQ
-
 }

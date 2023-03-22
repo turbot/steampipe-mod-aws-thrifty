@@ -30,13 +30,13 @@ control "lambda_function_high_error_rate" {
 
   sql = <<-EOQ
     with error_rate as (
-      select 
+      select
         errors.name as name,
         sum(errors.sum)/sum(invocations.sum)*100 as error_rate
-      from 
+      from
         aws_lambda_function_metric_errors_daily as errors , aws_lambda_function_metric_invocations_daily as invocations
       where
-        date_part('day', now() - errors.timestamp) <=7 and errors.name = invocations.name 
+        date_part('day', now() - errors.timestamp) <=7 and errors.name = invocations.name
       group by
         errors.name
     )
@@ -69,10 +69,10 @@ control "lambda_function_excessive_timeout" {
 
   sql = <<-EOQ
     with lambda_duration as (
-      select 
+      select
         name,
         avg(average:: numeric) as avg_duration
-      from 
+      from
         aws_lambda_function_metric_duration_daily
       where
         date_part('day', now() - timestamp) <=7

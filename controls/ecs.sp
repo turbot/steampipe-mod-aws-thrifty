@@ -31,9 +31,9 @@ benchmark "ecs" {
 }
 
 control "ecs_cluster_low_utilization" {
-  title         = "ECS clusters with low CPU utilization should be reviewed"
-  description   = "Resize or eliminate under utilized clusters."
-  severity      = "low"
+  title       = "ECS clusters with low CPU utilization should be reviewed"
+  description = "Resize or eliminate under utilized clusters."
+  severity    = "low"
 
   param "ecs_cluster_avg_cpu_utilization_low" {
     description = "The average CPU utilization required for clusters to be considered infrequently used. This value should be lower than ecs_cluster_avg_cpu_utilization_high."
@@ -83,9 +83,9 @@ control "ecs_cluster_low_utilization" {
 }
 
 control "ecs_service_without_autoscaling" {
-  title         = "ECS service should use autoscaling policy"
-  description   = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
-  severity      = "low"
+  title       = "ECS service should use autoscaling policy"
+  description = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
+  severity    = "low"
 
   tags = merge(local.ecs_common_tags, {
     class = "managed"

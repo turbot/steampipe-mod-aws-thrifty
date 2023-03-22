@@ -20,9 +20,9 @@ benchmark "network" {
 }
 
 control "unattached_eips" {
-  title         = "Unattached elastic IP addresses (EIPs) should be released"
-  description   = "Unattached Elastic IPs are charged by AWS, they should be released."
-  severity      = "low"
+  title       = "Unattached elastic IP addresses (EIPs) should be released"
+  description = "Unattached Elastic IPs are charged by AWS, they should be released."
+  severity    = "low"
 
   tags = merge(local.vpc_common_tags, {
     class = "unused"
@@ -47,9 +47,9 @@ control "unattached_eips" {
 }
 
 control "vpc_nat_gateway_unused" {
-  title         = "Unused NAT gateways should be deleted"
-  description   = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
-  severity      = "low"
+  title       = "Unused NAT gateways should be deleted"
+  description = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
+  severity    = "low"
   tags = merge(local.vpc_common_tags, {
     class = "unused"
   })
