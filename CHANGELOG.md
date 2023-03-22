@@ -2,7 +2,7 @@
 
 _Enhancements_
 
-- Added the column alias to `connection_name` common dimension.
+- Added the column alias to `connection_name` common dimension to avoid having any `?column?` column names due to unaliased columns.
 
 _Bug fixes_
 
