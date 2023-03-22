@@ -18,9 +18,9 @@ benchmark "s3" {
 }
 
 control "buckets_with_no_lifecycle" {
-  title         = "Buckets should have lifecycle policies"
-  description   = "S3 Buckets should have a lifecycle policy associated for data retention."
-  severity      = "low"
+  title       = "Buckets should have lifecycle policies"
+  description = "S3 Buckets should have a lifecycle policy associated for data retention."
+  severity    = "low"
   tags = merge(local.s3_common_tags, {
     class = "managed"
   })
@@ -39,6 +39,6 @@ control "buckets_with_no_lifecycle" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_s3_bucket
+      aws_s3_bucket;
   EOQ
 }

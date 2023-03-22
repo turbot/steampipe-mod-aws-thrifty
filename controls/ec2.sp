@@ -161,7 +161,7 @@ control "ec2_network_lb_unused" {
   tags = merge(local.ec2_common_tags, {
     class = "unused"
   })
-  
+
   sql = <<-EOQ
     with target_resource as (
       select
@@ -330,7 +330,7 @@ control "ec2_reserved_instance_lease_expiration_days" {
       ${local.common_dimensions_sql}
     from
       aws_ec2_reserved_instance;
-  EOQ  
+  EOQ
 }
 
 control "ec2_instance_older_generation" {

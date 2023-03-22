@@ -56,9 +56,9 @@ benchmark "ebs" {
 }
 
 control "gp2_volumes" {
-  title         = "Still using gp2 EBS volumes? Should use gp3 instead."
-  description   = "EBS gp2 volumes are more costly and lower performance than gp3."
-  severity      = "low"
+  title       = "Still using gp2 EBS volumes? Should use gp3 instead."
+  description = "EBS gp2 volumes are more costly and lower performance than gp3."
+  severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
@@ -80,9 +80,9 @@ control "gp2_volumes" {
 }
 
 control "io1_volumes" {
-  title         = "Still using io1 EBS volumes? Should use io2 instead."
-  description   = "io1 Volumes are less reliable than io2 for same cost."
-  severity      = "low"
+  title       = "Still using io1 EBS volumes? Should use io2 instead."
+  description = "io1 Volumes are less reliable than io2 for same cost."
+  severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
@@ -104,9 +104,9 @@ control "io1_volumes" {
 }
 
 control "unattached_ebs_volumes" {
-  title         = "Are there any unattached EBS volumes?"
-  description   = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
-  severity      = "low"
+  title       = "Are there any unattached EBS volumes?"
+  description = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
+  severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "unused"
   })
@@ -124,14 +124,14 @@ control "unattached_ebs_volumes" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_volume
+      aws_ebs_volume;
   EOQ
 }
 
 control "large_ebs_volumes" {
-  title         = "EBS volumes should be resized if too large"
-  description   = "Large EBS volumes are unusual, expensive and should be reviewed."
-  severity      = "low"
+  title       = "EBS volumes should be resized if too large"
+  description = "Large EBS volumes are unusual, expensive and should be reviewed."
+  severity    = "low"
 
   param "ebs_volume_max_size_gb" {
     description = "The maximum size (GB) allowed for volumes."
@@ -153,14 +153,14 @@ control "large_ebs_volumes" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_volume
+      aws_ebs_volume;
   EOQ
 }
 
 control "high_iops_ebs_volumes" {
-  title         = "EBS volumes with high IOPS should be resized if too large"
-  description   = "High IOPS io1 and io2 volumes are costly and usage should be reviewed."
-  severity      = "low"
+  title       = "EBS volumes with high IOPS should be resized if too large"
+  description = "High IOPS io1 and io2 volumes are costly and usage should be reviewed."
+  severity    = "low"
 
   param "ebs_volume_max_iops" {
     description = "The maximum IOPS allowed for volumes."
@@ -191,9 +191,9 @@ control "high_iops_ebs_volumes" {
 }
 
 control "low_iops_ebs_volumes" {
-  title         = "What provisioned IOPS volumes would be better as GP3?"
-  description   = "GP3 provides 3k base IOPS performance, don't use more costly io1 & io2 volumes."
-  severity      = "low"
+  title       = "What provisioned IOPS volumes would be better as GP3?"
+  description = "GP3 provides 3k base IOPS performance, don't use more costly io1 & io2 volumes."
+  severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "management"
   })
@@ -219,9 +219,9 @@ control "low_iops_ebs_volumes" {
 }
 
 control "ebs_volumes_on_stopped_instances" {
-  title         = "EBS volumes attached to stopped instances should be reviewed"
-  description   = "Instances that are stopped may no longer need any attached EBS volumes"
-  severity      = "low"
+  title       = "EBS volumes attached to stopped instances should be reviewed"
+  description = "Instances that are stopped may no longer need any attached EBS volumes"
+  severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "deprecated"
   })
@@ -236,7 +236,7 @@ control "ebs_volumes_on_stopped_instances" {
           v.region,
           v.account_id,
           sum(
-            case 
+            case
               when i.instance_state = 'stopped' then 0
               else 1
             end
@@ -247,7 +247,7 @@ control "ebs_volumes_on_stopped_instances" {
           left join aws_ec2_instance as i on va ->> 'InstanceId' = i.instance_id
         group by
           v.arn,
-          v._ctx, 
+          v._ctx,
           v.volume_id,
           i.instance_id,
           i.instance_id,
@@ -262,15 +262,15 @@ control "ebs_volumes_on_stopped_instances" {
       end as status,
       volume_id || ' is attached to ' || running_instances || ' running instances.' as reason
       ${local.common_dimensions_sql}
-    from 
-      vols_and_instances
+    from
+      vols_and_instances;
   EOQ
 }
 
 control "ebs_with_low_usage" {
-  title         = "Are there any EBS volumes with low usage?"
-  description   = "Volumes that are unused should be archived and deleted"
-  severity      = "low"
+  title       = "Are there any EBS volumes with low usage?"
+  description = "Volumes that are unused should be archived and deleted"
+  severity    = "low"
 
   param "ebs_volume_avg_read_write_ops_low" {
     description = "The number of average read/write ops required for volumes to be considered infrequently used. This value should be lower than ebs_volume_avg_read_write_ops_high."
@@ -298,32 +298,32 @@ control "ebs_with_low_usage" {
         count(max) as days
         from (
           (
-            select 
+            select
               partition,
               account_id,
               _ctx,
               region,
               volume_id,
               cast(maximum as numeric) as max
-            from 
+            from
               aws_ebs_volume_metric_read_ops_daily
             where
               date_part('day', now() - timestamp) <= 30
           )
           UNION
           (
-            select 
+            select
               partition,
               account_id,
               _ctx,
               region,
               volume_id,
               cast(maximum as numeric) as max
-            from 
+            from
               aws_ebs_volume_metric_write_ops_daily
             where
               date_part('day', now() - timestamp) <= 30
-          ) 
+          )
         ) as read_and_write_ops
         group by 1,2,3,4,5
     )
@@ -337,14 +337,14 @@ control "ebs_with_low_usage" {
       volume_id || ' is averaging ' || avg_max || ' read and write ops over the last ' || days || ' days.' as reason
       ${local.common_dimensions_sql}
     from
-      ebs_usage
+      ebs_usage;
   EOQ
 }
 
 control "ebs_snapshot_max_age" {
-  title         = "Old EBS snapshots should be deleted if not required"
-  description   = "Old EBS snapshots are likely unnecessary and costly to maintain."
-  severity      = "low"
+  title       = "Old EBS snapshots should be deleted if not required"
+  description = "Old EBS snapshots are likely unnecessary and costly to maintain."
+  severity    = "low"
 
   param "ebs_snapshot_age_max_days" {
     description = "The maximum number of days snapshots can be retained."
@@ -369,7 +369,6 @@ control "ebs_snapshot_max_age" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_secretsmanager_secret
+      aws_secretsmanager_secret;
   EOQ
-
 }

@@ -51,9 +51,9 @@ benchmark "rds" {
 }
 
 control "long_running_rds_db_instances" {
-  title         = "Long running RDS DBs should have reserved instances purchased for them"
-  description   = "Long running database servers should be associated with a reserve instance."
-  severity      = "low"
+  title       = "Long running RDS DBs should have reserved instances purchased for them"
+  description = "Long running database servers should be associated with a reserve instance."
+  severity    = "low"
 
   param "rds_running_db_instance_age_max_days" {
     description = "The maximum number of days DB instances are allowed to run."
@@ -86,9 +86,9 @@ control "long_running_rds_db_instances" {
 }
 
 control "latest_rds_instance_types" {
-  title         = "Are there RDS instances using previous gen instance types?"
-  description   = "M5 and T3 instance types are less costly than previous generations"
-  severity      = "low"
+  title       = "Are there RDS instances using previous gen instance types?"
+  description = "M5 and T3 instance types are less costly than previous generations"
+  severity    = "low"
   tags = merge(local.rds_common_tags, {
     class = "managed"
   })
@@ -113,9 +113,9 @@ control "latest_rds_instance_types" {
 }
 
 control "rds_db_low_connection_count" {
-  title         = "RDS DB instances with a low number connections per day should be reviewed"
-  description   = "DB instances having less usage in last 30 days should be reviewed."
-  severity      = "high"
+  title       = "RDS DB instances with a low number connections per day should be reviewed"
+  description = "DB instances having less usage in last 30 days should be reviewed."
+  severity    = "high"
 
   param "rds_db_instance_avg_connections" {
     description = "The minimum number of average connections per day required for DB instances to be considered in-use."
@@ -128,11 +128,11 @@ control "rds_db_low_connection_count" {
 
   sql = <<-EOQ
     with rds_db_usage as (
-      select 
+      select
         db_instance_identifier,
         round(sum(maximum)/count(maximum)) as avg_max,
         count(maximum) days
-      from 
+      from
         aws_rds_db_instance_metric_connections_daily
       where
         date_part('day', now() - timestamp) <= 30
@@ -161,9 +161,9 @@ control "rds_db_low_connection_count" {
 }
 
 control "rds_db_low_utilization" {
-  title         = "RDS DB instance having low CPU utilization should be reviewed"
-  description   = "DB instances may be oversized for their usage."
-  severity      = "low"
+  title       = "RDS DB instance having low CPU utilization should be reviewed"
+  description = "DB instances may be oversized for their usage."
+  severity    = "low"
 
   param "rds_db_instance_avg_cpu_utilization_low" {
     description = "The average CPU utilization required for DB instances to be considered infrequently used. This value should be lower than rds_db_instance_avg_cpu_utilization_high."
@@ -181,11 +181,11 @@ control "rds_db_low_utilization" {
 
   sql = <<-EOQ
     with rds_db_usage as (
-      select 
+      select
         db_instance_identifier,
         round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
         count(maximum) days
-      from 
+      from
         aws_rds_db_instance_metric_cpu_utilization_daily
       where
         date_part('day', now() - timestamp) <= 30

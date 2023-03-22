@@ -20,9 +20,9 @@ benchmark "network" {
 }
 
 control "unattached_eips" {
-  title         = "Unattached elastic IP addresses (EIPs) should be released"
-  description   = "Unattached Elastic IPs are charged by AWS, they should be released."
-  severity      = "low"
+  title       = "Unattached elastic IP addresses (EIPs) should be released"
+  description = "Unattached Elastic IPs are charged by AWS, they should be released."
+  severity    = "low"
 
   tags = merge(local.vpc_common_tags, {
     class = "unused"
@@ -47,9 +47,9 @@ control "unattached_eips" {
 }
 
 control "vpc_nat_gateway_unused" {
-  title         = "Unused NAT gateways should be deleted"
-  description   = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
-  severity      = "low"
+  title       = "Unused NAT gateways should be deleted"
+  description = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
+  severity    = "low"
   tags = merge(local.vpc_common_tags, {
     class = "unused"
   })
@@ -64,7 +64,6 @@ control "vpc_nat_gateway_unused" {
         aws_ec2_instance
     )
     select
-      -- Required Columns
       nat.arn as resource,
       case
         when nat.state <> 'available' then 'alarm'
@@ -78,7 +77,6 @@ control "vpc_nat_gateway_unused" {
         when i.instance_state <> 'running' then nat.title || ' associated with ' || i.instance_id || ', which is in ' || i.instance_state || ' state.'
         else nat.title || ' in-use.'
       end as reason
-      -- Additional Dimensions
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "nat.")}
     from
