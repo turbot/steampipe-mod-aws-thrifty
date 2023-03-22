@@ -1,3 +1,13 @@
+## v0.20 [2023-03-22]
+
+_Enhancements_
+
+- Added the column alias to `connection_name` common dimension.
+
+_Bug fixes_
+
+- Fixed the formatting of `vpc_nat_gateway_unused` control's query on [hub.steampipe.io](https://hub.steampipe.io/mods/turbot/aws_thrifty). ([#126](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/126))
+
 ## v0.19 [2023-02-03]
 
 _What's new?_
