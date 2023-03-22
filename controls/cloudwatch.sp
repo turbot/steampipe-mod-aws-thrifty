@@ -46,7 +46,7 @@ control "cw_log_group_retention" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_cloudwatch_log_group
+      aws_cloudwatch_log_group;
   EOQ
 }
 

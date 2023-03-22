@@ -53,7 +53,7 @@ control "multiple_global_trails" {
       aws_cloudtrail_trail,
       global_trails
     where 
-      is_multi_region_trail
+      is_multi_region_trail;
   EOQ
 }
 
@@ -120,7 +120,7 @@ control "multiple_regional_trails" {
     where
       regional_trails.region = t.region
       and not is_multi_region_trail
-      and not is_organization_trail
+      and not is_organization_trail;
   EOQ
 
 }

@@ -52,7 +52,7 @@ control "secretsmanager_secret_unused" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_secretsmanager_secret
+      aws_secretsmanager_secret;
   EOQ
 
 }

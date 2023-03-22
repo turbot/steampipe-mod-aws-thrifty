@@ -39,6 +39,6 @@ control "buckets_with_no_lifecycle" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_s3_bucket
+      aws_s3_bucket;
   EOQ
 }

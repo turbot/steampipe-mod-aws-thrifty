@@ -124,7 +124,7 @@ control "unattached_ebs_volumes" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_volume
+      aws_ebs_volume;
   EOQ
 }
 
@@ -153,7 +153,7 @@ control "large_ebs_volumes" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_volume
+      aws_ebs_volume;
   EOQ
 }
 
@@ -263,7 +263,7 @@ control "ebs_volumes_on_stopped_instances" {
       volume_id || ' is attached to ' || running_instances || ' running instances.' as reason
       ${local.common_dimensions_sql}
     from 
-      vols_and_instances
+      vols_and_instances;
   EOQ
 }
 
@@ -337,7 +337,7 @@ control "ebs_with_low_usage" {
       volume_id || ' is averaging ' || avg_max || ' read and write ops over the last ' || days || ' days.' as reason
       ${local.common_dimensions_sql}
     from
-      ebs_usage
+      ebs_usage;
   EOQ
 }
 
@@ -369,7 +369,7 @@ control "ebs_snapshot_max_age" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_secretsmanager_secret
+      aws_secretsmanager_secret;
   EOQ
 
 }
