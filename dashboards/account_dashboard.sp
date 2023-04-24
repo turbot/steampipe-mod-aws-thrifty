@@ -14,11 +14,13 @@ dashboard "account_dashboard" {
       width = 2
     }
 
+    # Total cost - Previous month
     card {
       query = query.account_previous_month_total_cost
       width = 2
     }
 
+    # Account trend - increase / decrese amount percentage
     card {
       query = query.account_trend
       width = 2
@@ -49,16 +51,14 @@ dashboard "account_dashboard" {
         href = "${dashboard.account_cost_detail.url_path}?input.account_id={{.account_id | @uri}}"
       }
     }
-
   }
-
 }
 
 query "account_total_cost" {
   sql = <<-EOQ
     select
       'Current MTD' as label,
-      sum(net_unblended_cost_amount) as value
+      round((sum(net_unblended_cost_amount))::numeric, 2) as value
     from
       aws_cost_by_account_monthly
     where
@@ -70,7 +70,7 @@ query "account_previous_month_total_cost" {
   sql = <<-EOQ
     select
       'Previous Month' as label,
-      sum(net_unblended_cost_amount) as value
+      round((sum(net_unblended_cost_amount))::numeric, 2) as value
     from
       aws_cost_by_account_monthly
     where
@@ -92,15 +92,22 @@ query "account_trend" {
       and period_end <= date_trunc('month', now())
    )
     select
-      concat((sum(net_unblended_cost_amount) - p.previous_net_unblended_cost_amount)*100/p.previous_net_unblended_cost_amount, '%') as value,
       'Trend' as label,
-      case when (sum(net_unblended_cost_amount) - p.previous_net_unblended_cost_amount)*100/p.previous_net_unblended_cost_amount < 0 then 'ok' else 'alert' end as type
+      concat(
+        trunc(((sum(net_unblended_cost_amount) - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount)::numeric, 2),
+        '%'
+      ) as value,
+      case
+        when (sum(net_unblended_cost_amount) - p.previous_net_unblended_cost_amount)*100/p.previous_net_unblended_cost_amount < 0 then 'ok'
+        else 'alert'
+      end as type
     from
       aws_cost_by_account_monthly as m,
       previous_month as p
     where
       date(period_end) = date(current_timestamp)
-    group by previous_net_unblended_cost_amount
+    group by
+      previous_net_unblended_cost_amount
   EOQ
 }
 
@@ -133,12 +140,15 @@ query "aws_account_cost_table" {
     select
       c.title as "Account",
       c.account_id as account_id,
-      m.net_unblended_cost_amount as "Current MTD",
-      m.net_unblended_cost_amount + mean_value as "Forecast MTD",
-      p.net_unblended_cost_amount as "Prevoius Month",
-      case when ((m.net_unblended_cost_amount - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount) > 0 then
-      concat(trunc((m.net_unblended_cost_amount - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount), '%', '🔺')
-      else concat(trunc((m.net_unblended_cost_amount - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount), '%', '🔻')  end as "Trend"
+      trunc(m.net_unblended_cost_amount::numeric, 2) as "Current MTD",
+      trunc((m.net_unblended_cost_amount + mean_value)::numeric, 2) as "Forecast MTD",
+      trunc(p.net_unblended_cost_amount::numeric, 2) as "Prevoius Month",
+      case
+        when ((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount) > 0 then
+          concat(trunc(((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount)::numeric, 2), '%', '🔺')
+        else
+          concat(trunc(((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount)::numeric, 2), '%', '🔻')
+      end as "Trend"
     from
       aws_account as c
       left join aws_cost_by_account_monthly as m on m.account_id = c.account_id
