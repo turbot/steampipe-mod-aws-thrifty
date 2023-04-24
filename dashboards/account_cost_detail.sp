@@ -43,13 +43,13 @@ dashboard "account_cost_detail" {
     chart {
       title = "Cost by Month"
       query = query.account_cost_last_twelve_months
-      type = "line"
+      type  = "line"
       args  = [self.input.account_id.value]
 
       axes {
         x {
           title {
-           value  = "Month"
+            value = "Month"
           }
           labels {
             display = "always"
@@ -58,12 +58,31 @@ dashboard "account_cost_detail" {
 
         y {
           title {
-           value  = "Cost($)"
+            value = "Cost($)"
           }
           labels {
             display = "always"
           }
         }
+      }
+    }
+
+    chart {
+      type     = "column"
+      title    = "Top 5 Most Used Services Comaprison with Previous Month"
+      grouping = "compare"
+      query    = query.account_comparision_by_service
+      width    = 6
+      args     = [self.input.account_id.value]
+
+      series previous_month {
+        title = "Previous Month"
+        color = "green"
+      }
+
+      series current_month {
+        title = "Current Month"
+        color = "red"
       }
     }
   }
@@ -178,3 +197,58 @@ query "account_cost_by_service" {
   EOQ
 }
 
+query "account_comparision_by_service" {
+  sql = <<-EOQ
+    with previous_month as (
+      select
+        service as service,
+        'previous_month' as type,
+        sum(net_unblended_cost_amount) as previous_cost
+      from
+        aws_cost_by_service_monthly
+      where
+        period_start >= (date_trunc('month', now()) -interval '1 month')
+        and period_end <= date_trunc('month', now())
+        and account_id = $1
+      group by service
+      order by previous_cost desc
+    ), current_month as (
+    select
+      m.service as service,
+      'current_month' as type,
+      sum(net_unblended_cost_amount) as current_cost
+    from
+      aws_cost_by_service_monthly as m
+      left join previous_month as p on p.service = m.service
+    where
+      period_start >= date_trunc('month', now())
+      and period_end <= now()
+      and account_id = $1
+    group by m.service
+    order by current_cost desc
+    limit 5
+    ), data as (
+      select
+        service as service,
+        type as type,
+        previous_cost as cost
+      from
+        previous_month
+      where service in (select  service from current_month)
+      union
+      select
+        service as service,
+        type as type,
+        current_cost as cost
+      from
+        current_month
+    )
+    select
+      service,
+      type,
+      cost
+    from
+      data
+    group by service, type, cost
+  EOQ
+}

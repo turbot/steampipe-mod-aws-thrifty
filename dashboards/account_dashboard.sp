@@ -81,7 +81,7 @@ query "account_previous_month_total_cost" {
 
 query "account_trend" {
   sql = <<-EOQ
-   with previous_month as (
+with previous_month as (
     select
       sum(net_unblended_cost_amount) as previous_net_unblended_cost_amount
     from
@@ -90,24 +90,33 @@ query "account_trend" {
     where
       period_start >= (date_trunc('month', now()) -interval '1 month')
       and period_end <= date_trunc('month', now())
+   ), forecast_daily as (
+      select
+        sum(mean_value) as mean_value
+      from
+        aws_account as c
+        left join aws_cost_forecast_daily as d on d.account_id = c.account_id
+      where
+        date(d.period_start) = date(current_timestamp)
    )
     select
       'Trend' as label,
       concat(
-        trunc(((sum(net_unblended_cost_amount) - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount)::numeric, 2),
+        trunc(((sum(net_unblended_cost_amount)+ f.mean_value - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount)::numeric, 2),
         '%'
       ) as value,
       case
-        when (sum(net_unblended_cost_amount) - p.previous_net_unblended_cost_amount)*100/p.previous_net_unblended_cost_amount < 0 then 'ok'
+        when (sum(net_unblended_cost_amount)+ f.mean_value - p.previous_net_unblended_cost_amount)*100/p.previous_net_unblended_cost_amount < 0 then 'ok'
         else 'alert'
       end as type
     from
-      aws_cost_by_account_monthly as m,
-      previous_month as p
+      aws_cost_by_account_monthly as c,
+      previous_month as p,
+     forecast_daily as f
     where
-      date(period_end) = date(current_timestamp)
+      date(c.period_end) = date(current_timestamp)
     group by
-      previous_net_unblended_cost_amount
+      p.previous_net_unblended_cost_amount, f.mean_value
   EOQ
 }
 
@@ -157,6 +166,7 @@ query "aws_account_cost_table" {
     where
       date(m.period_end) = date(current_timestamp)
       and date(d.period_start) = date(current_timestamp)
+
   EOQ
 }
 
