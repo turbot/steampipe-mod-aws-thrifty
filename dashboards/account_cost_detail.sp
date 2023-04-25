@@ -77,16 +77,29 @@ dashboard "account_cost_detail" {
 
       series previous_month {
         title = "Previous Month"
-        color = "green"
+        color = "red"
       }
 
       series current_month {
         title = "Current Month"
-        color = "red"
+        color = "green"
       }
+
     }
+
   }
 
+## All Service by cost
+  container {
+
+    chart {
+      type  = "column"
+      title = "Service Usage"
+      query    = query.account_service_stack_chart
+      args     = [self.input.account_id.value]
+
+    }
+  }
 }
 
 # Input queries
@@ -231,17 +244,17 @@ query "account_comparision_by_service" {
       select
         service as service,
         type as type,
-        previous_cost as cost
+        current_cost as cost
       from
-        previous_month
-      where service in (select  service from current_month)
+        current_month
       union
       select
         service as service,
         type as type,
-        current_cost as cost
+        previous_cost as cost
       from
-        current_month
+        previous_month
+      where service in (select  service from current_month)
     )
     select
       service,
@@ -250,5 +263,45 @@ query "account_comparision_by_service" {
     from
       data
     group by service, type, cost
+  EOQ
+}
+
+query "account_service_stack_chart" {
+
+  sql = <<-EOQ
+   with used_services as(
+    select
+      service,
+      period_start,
+      trunc(sum(net_unblended_cost_amount)::numeric, 2) as current_month_cost
+    from
+      aws_cost_by_service_monthly
+    where
+      account_id = $1
+      and net_unblended_cost_amount > 0
+    group by service, period_start
+    order by period_start asc
+   ), service_sum as (
+     select
+      period_start,
+      service,
+      sum(current_month_cost)
+    from
+      used_services
+    where current_month_cost > 0
+    group by
+      period_start, service
+   )
+  select
+    period_start,
+    service,
+    sum
+  from
+    service_sum
+  where sum > 1
+  group by
+    period_start, service, sum
+  order by sum
+
   EOQ
 }
