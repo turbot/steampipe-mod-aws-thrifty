@@ -47,18 +47,9 @@ dashboard "account_cost_detail" {
       args  = [self.input.account_id.value]
 
       axes {
-        x {
-          title {
-            value = "Month"
-          }
-          labels {
-            display = "always"
-          }
-        }
-
         y {
           title {
-            value = "Cost($)"
+            value = "Cost"
           }
           labels {
             display = "always"
@@ -66,7 +57,6 @@ dashboard "account_cost_detail" {
         }
       }
     }
-
   }
 
   ## All Service by cost
@@ -75,9 +65,8 @@ dashboard "account_cost_detail" {
     chart {
       type  = "column"
       title = "Service Usage"
-      query    = query.account_service_stack_chart
-      args     = [self.input.account_id.value]
-
+      query = query.account_service_stack_chart
+      args  = [self.input.account_id.value]
     }
   }
 
@@ -88,7 +77,7 @@ dashboard "account_cost_detail" {
       width = 6
       query = query.account_top_5_service_by_mtd
       type  = "line"
-      args     = [self.input.account_id.value]
+      args  = [self.input.account_id.value]
     }
 
     chart {
@@ -99,25 +88,23 @@ dashboard "account_cost_detail" {
       width    = 6
       args     = [self.input.account_id.value]
 
-      series previous_month {
+      series "previous_month" {
         title = "Previous Month"
         color = "red"
       }
 
-      series current_month {
+      series "current_month" {
         title = "Current Month"
         color = "green"
       }
-
     }
-
   }
 
   container {
 
     input "service" {
       title = "Select a service:"
-      type = "multiselect"
+      type  = "multiselect"
       width = "6"
       query = query.account_service_input
     }
@@ -128,7 +115,7 @@ dashboard "account_cost_detail" {
         query = query.account_service_mtd_trend
         type  = "column"
         width = "6"
-        args  = [self.input.service.value, self.input.account_id.value ]
+        args  = [self.input.service.value, self.input.account_id.value]
       }
 
       chart {
@@ -136,13 +123,11 @@ dashboard "account_cost_detail" {
         query = query.account_service_ytd_trend
         type  = "column"
         width = "6"
-        args  = [self.input.service.value, self.input.account_id.value ]
+        args  = [self.input.service.value, self.input.account_id.value]
 
       }
-
     }
   }
-
 }
 
 # Input queries
@@ -177,21 +162,21 @@ query "account_service_input" {
 query "account_current_cost_mtd" {
   sql = <<-EOQ
     select
-      'Current MTD' as label,
-      net_unblended_cost_amount as value
+      'Current MTD (' || net_unblended_cost_unit || ')' as label,
+      net_unblended_cost_amount::numeric(10,2)::text as value
     from
       aws_cost_by_account_monthly
    where
     date(period_end) = date(current_timestamp)
-    and account_id = $1
+    and account_id = $1;
   EOQ
 }
 
 query "account_forecast_cost_mtd" {
   sql = <<-EOQ
     select
-      'Forecast MTD' as label,
-      net_unblended_cost_amount + mean_value as value
+      'Forecast MTD (' || net_unblended_cost_unit || ')' as label,
+      cast((net_unblended_cost_amount + mean_value) as numeric(10,2))::text as value
     from
       aws_cost_by_account_monthly as m,
       aws_cost_forecast_daily as d
@@ -199,15 +184,15 @@ query "account_forecast_cost_mtd" {
     date(m.period_end) = date(current_timestamp)
     and date(d.period_start) = date(current_timestamp)
     and m.account_id = $1
-    and d.account_id = $1
+    and d.account_id = $1;
   EOQ
 }
 
 query "account_current_cost_ytd" {
   sql = <<-EOQ
     select
-      'Current YTD' as label,
-      sum(unblended_cost_amount) as value
+      'Current YTD (' || unblended_cost_unit || ')' as label,
+      sum(unblended_cost_amount)::numeric(10,2)::text as value
     from
       aws_cost_by_account_monthly
     where
@@ -215,15 +200,17 @@ query "account_current_cost_ytd" {
       and period_end <= now()
       and linked_account_id = $1
     group by
-      linked_account_id
+      linked_account_id,
+      unblended_cost_unit;
   EOQ
 }
 
 query "account_forecast_cost_ytd" {
   sql = <<-EOQ
     select
-      'Forecast YTD' as label,
-      sum(unblended_cost_amount) + mean_value as value
+      'Forecast YTD (' || m.unblended_cost_unit || ')' as label,
+      cast((sum(unblended_cost_amount) + mean_value) as numeric(10,2))::text as value
+      -- sum(unblended_cost_amount) + mean_value as value
     from
       aws_cost_by_account_monthly as m,
       aws_cost_forecast_daily as d
@@ -235,7 +222,8 @@ query "account_forecast_cost_ytd" {
       and d.account_id = $1
     group by
       linked_account_id,
-      mean_value
+      mean_value,
+      m.unblended_cost_unit;
   EOQ
 }
 
@@ -336,18 +324,19 @@ query "account_service_stack_chart" {
         and service like any (array ['Amazon Elastic Container Service', 'AWS Key Management Service', 'Amazon CloudFront', 'Amazon ElastiCache', 'Amazon Elastic Compute Cloud - Compute', 'Amazon Elastic Load Balancing', 'Amazon GuardDuty', 'Amazon Redshift', 'Amazon Relational Database Service', 'EC2 - Other', 'Amazon Virtual Private Cloud', 'Amazon Simple Storage Service', 'Amazon Simple Notification Service', 'Amazon Simple Queue Service'])
       group by service, period_start
       order by period_start asc
-    ), cost_sum_other_service as (
-        select
-          'other' as service,
-          period_start,
-          trunc(sum(net_unblended_cost_amount)::numeric, 2) as current_month_cost
-        from
-          aws_cost_by_service_monthly
-        where
-          account_id = $1
-          and service not in ('Amazon Elastic Container Service', 'AWS Key Management Service', 'Amazon CloudFront', 'Amazon ElastiCache', 'Amazon Elastic Compute Cloud - Compute', 'Amazon Elastic Load Balancing', 'Amazon GuardDuty', 'Amazon Redshift', 'Amazon Relational Database Service', 'EC2 - Other', 'Amazon Virtual Private Cloud', 'Amazon Simple Storage Service', 'Amazon Simple Notification Service', 'Amazon Simple Queue Service')
-        group by period_start
-        order by period_start asc
+    ),
+    cost_sum_other_service as (
+      select
+        'Other' as service,
+        period_start,
+        trunc(sum(net_unblended_cost_amount)::numeric, 2) as current_month_cost
+      from
+        aws_cost_by_service_monthly
+      where
+        account_id = $1
+        and service not in ('Amazon Elastic Container Service', 'AWS Key Management Service', 'Amazon CloudFront', 'Amazon ElastiCache', 'Amazon Elastic Compute Cloud - Compute', 'Amazon Elastic Load Balancing', 'Amazon GuardDuty', 'Amazon Redshift', 'Amazon Relational Database Service', 'EC2 - Other', 'Amazon Virtual Private Cloud', 'Amazon Simple Storage Service', 'Amazon Simple Notification Service', 'Amazon Simple Queue Service')
+      group by period_start
+      order by period_start asc
     )
     select
       period_start,
@@ -367,8 +356,6 @@ query "account_service_stack_chart" {
       cost_sum_other_service
     group by
       period_start, service
-
-
   EOQ
 }
 
@@ -416,9 +403,9 @@ query "account_service_ytd_trend" {
   param "account_id" {}
 }
 
-query "account_top_5_service_by_mtd"{
+query "account_top_5_service_by_mtd" {
   sql = <<-EOQ
-  with top_5_services_per_usage as (
+    with top_5_services_per_usage as (
       select
         service
       from
