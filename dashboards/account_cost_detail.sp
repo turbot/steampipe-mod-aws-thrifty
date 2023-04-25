@@ -41,9 +41,9 @@ dashboard "account_cost_detail" {
   container {
 
     chart {
-      title = "Cost by Month"
+      title = "Total Cost by Month"
       query = query.account_cost_last_twelve_months
-      type  = "line"
+      type  = "column"
       args  = [self.input.account_id.value]
 
       axes {
@@ -65,6 +65,30 @@ dashboard "account_cost_detail" {
           }
         }
       }
+    }
+
+  }
+
+  ## All Service by cost
+  container {
+
+    chart {
+      type  = "column"
+      title = "Service Usage"
+      query    = query.account_service_stack_chart
+      args     = [self.input.account_id.value]
+
+    }
+  }
+
+  container {
+
+    chart {
+      title = "Top 5 services by usage"
+      width = 6
+      query = query.account_top_5_service_by_mtd
+      type  = "line"
+      args     = [self.input.account_id.value]
     }
 
     chart {
@@ -89,17 +113,36 @@ dashboard "account_cost_detail" {
 
   }
 
-## All Service by cost
   container {
 
-    chart {
-      type  = "column"
-      title = "Service Usage"
-      query    = query.account_service_stack_chart
-      args     = [self.input.account_id.value]
+    input "service" {
+      title = "Select a service:"
+      type = "multiselect"
+      width = "6"
+      query = query.account_service_input
+    }
+
+    container {
+      chart {
+        title = "Per service MTD"
+        query = query.account_service_mtd_trend
+        type  = "column"
+        width = "6"
+        args  = [self.input.service.value, self.input.account_id.value ]
+      }
+
+      chart {
+        title = "Per service YTD"
+        query = query.account_service_ytd_trend
+        type  = "column"
+        width = "6"
+        args  = [self.input.service.value, self.input.account_id.value ]
+
+      }
 
     }
   }
+
 }
 
 # Input queries
@@ -116,6 +159,18 @@ query "account_id_input" {
       aws_account
     order by
       title;
+  EOQ
+}
+
+query "account_service_input" {
+  sql = <<-EOQ
+    select
+      distinct service as value,
+      service as label
+    from
+      aws_cost_by_service_monthly
+    group by service, period_start
+    order by service
   EOQ
 }
 
@@ -263,26 +318,38 @@ query "account_comparision_by_service" {
     from
       data
     group by service, type, cost
+    order by type desc
   EOQ
 }
 
 query "account_service_stack_chart" {
-
   sql = <<-EOQ
-   with used_services as(
+    with used_services as (
+      select
+        service,
+        period_start,
+        trunc(sum(net_unblended_cost_amount)::numeric, 2) as current_month_cost
+      from
+        aws_cost_by_service_monthly
+      where
+        account_id = $1
+        and service like any (array ['Amazon Elastic Container Service', 'AWS Key Management Service', 'Amazon CloudFront', 'Amazon ElastiCache', 'Amazon Elastic Compute Cloud - Compute', 'Amazon Elastic Load Balancing', 'Amazon GuardDuty', 'Amazon Redshift', 'Amazon Relational Database Service', 'EC2 - Other', 'Amazon Virtual Private Cloud', 'Amazon Simple Storage Service', 'Amazon Simple Notification Service', 'Amazon Simple Queue Service'])
+      group by service, period_start
+      order by period_start asc
+    ), cost_sum_other_service as (
+        select
+          'other' as service,
+          period_start,
+          trunc(sum(net_unblended_cost_amount)::numeric, 2) as current_month_cost
+        from
+          aws_cost_by_service_monthly
+        where
+          account_id = $1
+          and service not in ('Amazon Elastic Container Service', 'AWS Key Management Service', 'Amazon CloudFront', 'Amazon ElastiCache', 'Amazon Elastic Compute Cloud - Compute', 'Amazon Elastic Load Balancing', 'Amazon GuardDuty', 'Amazon Redshift', 'Amazon Relational Database Service', 'EC2 - Other', 'Amazon Virtual Private Cloud', 'Amazon Simple Storage Service', 'Amazon Simple Notification Service', 'Amazon Simple Queue Service')
+        group by period_start
+        order by period_start asc
+    )
     select
-      service,
-      period_start,
-      trunc(sum(net_unblended_cost_amount)::numeric, 2) as current_month_cost
-    from
-      aws_cost_by_service_monthly
-    where
-      account_id = $1
-      and net_unblended_cost_amount > 0
-    group by service, period_start
-    order by period_start asc
-   ), service_sum as (
-     select
       period_start,
       service,
       sum(current_month_cost)
@@ -291,17 +358,90 @@ query "account_service_stack_chart" {
     where current_month_cost > 0
     group by
       period_start, service
-   )
-  select
-    period_start,
-    service,
-    sum
-  from
-    service_sum
-  where sum > 1
-  group by
-    period_start, service, sum
-  order by sum
+    union
+    select
+      period_start,
+      service,
+      sum(current_month_cost)
+    from
+      cost_sum_other_service
+    group by
+      period_start, service
 
+
+  EOQ
+}
+
+query "account_service_mtd_trend" {
+  sql = <<-EOQ
+    select
+      period_start,
+      service,
+      sum(net_unblended_cost_amount)
+    from
+      aws_cost_by_service_daily
+    where
+      period_start >= date_trunc('month', now())
+      and period_end <= now()
+      and service in (select unnest (string_to_array($1, ',')::text[]))
+      and account_id = $2
+    group by
+      period_start,
+      service
+    order by
+      period_start
+  EOQ
+  param "service" {}
+  param "account_id" {}
+}
+
+query "account_service_ytd_trend" {
+  sql = <<-EOQ
+    select
+      period_start,
+      service,
+      sum(net_unblended_cost_amount)
+    from
+      aws_cost_by_service_monthly
+    where
+      service in (select unnest (string_to_array($1, ',')::text[]))
+      and account_id = $2
+    group by
+      period_start,
+      service
+    order by
+      period_start;
+  EOQ
+  param "service" {}
+  param "account_id" {}
+}
+
+query "account_top_5_service_by_mtd"{
+  sql = <<-EOQ
+  with top_5_services_per_usage as (
+      select
+        service
+      from
+        aws_cost_by_service_monthly
+      where
+        period_start >= date_trunc('month', now())
+        and period_end <= now()
+        and account_id = $1
+      group by service
+      order by sum(net_unblended_cost_amount) desc
+      limit 5
+    )
+    select
+      m.period_start,
+      m.service,
+      sum(m.net_unblended_cost_amount)
+    from
+      aws_cost_by_service_monthly as m
+      join top_5_services_per_usage as t on m.service = t.service
+    where
+      account_id = $1
+    group by
+      m.period_start,
+      m.service;
   EOQ
 }
