@@ -6,6 +6,7 @@ dashboard "account_dashboard" {
     type = "Dashboard"
   })
 
+  # Cards
   container {
 
     # Analysis
@@ -25,7 +26,6 @@ dashboard "account_dashboard" {
       query = query.account_trend
       width = 2
     }
-
   }
 
   container {
@@ -54,11 +54,32 @@ dashboard "account_dashboard" {
       title = "Cost by AWS account"
       query = query.aws_cost_by_aws_account
       type  = "column"
-    }
 
+      axes {
+        y {
+          title {
+            value = "Cost"
+          }
+          labels {
+            display = "always"
+          }
+        }
+      }
+    }
+  }
+
+  container {
     table {
       title = "Top 5 services by spend"
+      width = 6
       query = query.account_top_5_service_by_usage_mtd
+    }
+
+    chart {
+      title = "Top 5 services by usage"
+      width = 6
+      query = query.account_top_5_service_by_usage_mtd_chart
+      type  = "line"
     }
   }
 }
@@ -67,40 +88,69 @@ query "account_top_5_service_by_usage_mtd" {
   sql = <<-EOQ
     select
       service as "Service",
-      concat('$', trunc(sum(net_unblended_cost_amount)::numeric, 2)) as "Current month cost"
+      concat(net_unblended_cost_unit, ' ', cast(sum(net_unblended_cost_amount) as numeric(10,2))::text) as "Current month cost"
     from
       aws_cost_by_service_monthly
     where
       period_start >= date_trunc('month', now())
       and period_end <= now()
-    group by service
-    order by "Current month cost" desc
+    group by service, net_unblended_cost_unit
+    order by sum(net_unblended_cost_amount) desc
     limit 5
+  EOQ
+}
+
+query "account_top_5_service_by_usage_mtd_chart" {
+  sql = <<-EOQ
+    with top_5_services_per_usage as (
+      select
+        service
+      from
+        aws_cost_by_service_monthly
+      where
+        period_start >= date_trunc('month', now())
+        and period_end <= now()
+      group by service
+      order by sum(net_unblended_cost_amount) desc
+      limit 5
+    )
+    select
+      m.period_start,
+      m.service,
+      sum(m.net_unblended_cost_amount)
+    from
+      aws_cost_by_service_monthly as m
+      join top_5_services_per_usage as t on m.service = t.service
+    group by
+      m.period_start,
+      m.service
   EOQ
 }
 
 query "account_total_cost" {
   sql = <<-EOQ
     select
-      'Current MTD' as label,
-      concat( '$', round((sum(net_unblended_cost_amount))::numeric, 2)) as value
+      'Current MTD (' || ' ' || net_unblended_cost_unit || ')' as label,
+      cast(sum(net_unblended_cost_amount) as numeric(10,2))::text as value
     from
       aws_cost_by_account_monthly
     where
       date(period_end) = date(current_timestamp)
+    group by net_unblended_cost_unit;
   EOQ
 }
 
 query "account_previous_month_total_cost" {
   sql = <<-EOQ
     select
-      'Previous Month' as label,
-      concat('$', round((sum(net_unblended_cost_amount))::numeric, 2)) as value
+      'Invoice Previous Month (' || ' ' || net_unblended_cost_unit || ')' as label,
+      cast(sum(net_unblended_cost_amount) as numeric(10,2))::text as value
     from
       aws_cost_by_account_monthly
     where
       period_start >= (date_trunc('month', now()) -interval '1 month')
       and period_end <= date_trunc('month', now())
+    group by net_unblended_cost_unit;
   EOQ
 }
 
@@ -126,15 +176,11 @@ query "account_trend" {
         date(d.period_start) = date(current_timestamp)
     )
     select
-      'Trend' as label,
-      concat(
-        trunc(((sum(net_unblended_cost_amount)+ f.mean_value - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount)::numeric, 2),
-        '%'
-      ) as value,
-      case
-        when (sum(net_unblended_cost_amount)+ f.mean_value - p.previous_net_unblended_cost_amount)*100/p.previous_net_unblended_cost_amount < 0 then 'ok'
-        else 'alert'
-      end as type
+      'Monthly Invoiced Spend Trend' as label,
+      concat(abs(cast(((sum(net_unblended_cost_amount) + f.mean_value - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount) as numeric(10,2)))::text, '%') || case
+        when ((sum(net_unblended_cost_amount) + f.mean_value - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount) > 0 then ' ▲'
+        else ' ▼'
+      end as value
     from
       aws_cost_by_account_monthly as c,
       previous_month as p,
@@ -150,12 +196,14 @@ query "aws_cost_by_aws_account" {
   sql = <<-EOQ
     select
       c.title,
-      net_unblended_cost_amount
+      net_unblended_cost_amount::numeric(10,2)::text
     from
       aws_account as c
       left join aws_cost_by_account_monthly as m on m.account_id = c.account_id
     where
       date(period_end) = date(current_timestamp)
+    order by
+      net_unblended_cost_amount desc;
   EOQ
 }
 
@@ -164,6 +212,7 @@ query "aws_account_cost_table" {
    with previous_month as (
     select
       net_unblended_cost_amount,
+      net_unblended_cost_unit,
       c.account_id
     from
       aws_account as c
@@ -175,14 +224,15 @@ query "aws_account_cost_table" {
     select
       c.title as "Account",
       c.account_id as account_id,
-      concat('$', trunc(m.net_unblended_cost_amount::numeric, 2)) as "Current MTD",
-      concat('$', trunc((m.net_unblended_cost_amount + mean_value)::numeric, 2)) as "Forecast MTD",
-      concat('$', trunc(p.net_unblended_cost_amount::numeric, 2)) as "Prevoius Month",
+      concat(p.net_unblended_cost_unit, ' ', p.net_unblended_cost_amount::numeric(10,2)) as "Prevoius Month",
+      concat(m.net_unblended_cost_unit, ' ', m.net_unblended_cost_amount::numeric(10,2)) as "Current MTD",
+      concat(m.net_unblended_cost_unit, ' ', (m.net_unblended_cost_amount + mean_value)::numeric(10,2)) as "Forecast MTD",
       case
         when ((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount) > 0 then
-          concat(trunc(((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount)::numeric, 2), '%', '🔺')
+          concat(trunc(((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount)::numeric, 2), '%', '▲')
         else
-          concat(trunc(((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount)::numeric, 2), '%', '🔻')
+          concat(abs(cast(((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount) as numeric(10,2)))::text, '%', ' ▼')
+          -- concat(trunc(((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount)::numeric, 2), '%', '▼')
       end as "Trend"
     from
       aws_account as c
@@ -192,7 +242,6 @@ query "aws_account_cost_table" {
     where
       date(m.period_end) = date(current_timestamp)
       and date(d.period_start) = date(current_timestamp)
-
   EOQ
 }
 
