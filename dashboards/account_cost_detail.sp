@@ -15,27 +15,34 @@ dashboard "account_cost_detail" {
   container {
     card {
       query = query.account_current_cost_mtd
-      width = 3
+      width = 2
+      args  = [self.input.account_id.value]
+    }
+
+    card {
+      query = query.account_previous_month_cost_mtd
+      width = 2
       args  = [self.input.account_id.value]
     }
 
     card {
       query = query.account_forecast_cost_mtd
-      width = 3
+      width = 2
       args  = [self.input.account_id.value]
     }
 
     card {
       query = query.account_current_cost_ytd
-      width = 3
+      width = 2
       args  = [self.input.account_id.value]
     }
 
     card {
       query = query.account_forecast_cost_ytd
-      width = 3
+      width = 2
       args  = [self.input.account_id.value]
     }
+
   }
 
   container {
@@ -44,6 +51,26 @@ dashboard "account_cost_detail" {
       title = "Total Cost by Month"
       query = query.account_cost_last_twelve_months
       type  = "column"
+      width = 6
+      args  = [self.input.account_id.value]
+
+      axes {
+        y {
+          title {
+            value = "Cost"
+          }
+          labels {
+            display = "always"
+          }
+        }
+      }
+    }
+
+    chart {
+      title = "Cost by Usage - MTD"
+      query = query.account_cost_mtd
+      type  = "column"
+      width = 6
       args  = [self.input.account_id.value]
 
       axes {
@@ -64,7 +91,7 @@ dashboard "account_cost_detail" {
 
     chart {
       type  = "column"
-      title = "Service Usage"
+      title = "Top 15 Services by Usage"
       query = query.account_service_stack_chart
       args  = [self.input.account_id.value]
     }
@@ -138,7 +165,7 @@ query "account_id_input" {
       title as label,
       account_id as value,
       json_build_object(
-        'account_aliases', account_aliases
+        'account_id', account_id
       ) as tags
     from
       aws_account
@@ -169,6 +196,20 @@ query "account_current_cost_mtd" {
    where
     date(period_end) = date(current_timestamp)
     and account_id = $1;
+  EOQ
+}
+
+query "account_previous_month_cost_mtd" {
+  sql = <<-EOQ
+   select
+      'Invoice Previous Month (' || net_unblended_cost_unit || ')' as label,
+      cast((net_unblended_cost_amount) as numeric(10,2))::text as value
+    from
+      aws_cost_by_account_monthly
+    where
+      period_start >= (date_trunc('month', now()) -interval '1 month')
+      and period_end <= date_trunc('month', now())
+      and account_id = $1
   EOQ
 }
 
@@ -236,6 +277,22 @@ query "account_cost_last_twelve_months" {
       aws_cost_by_account_monthly
     where
       account_id = $1
+    order by
+      period_start
+  EOQ
+}
+
+query "account_cost_mtd" {
+  sql = <<-EOQ
+     select
+      date(period_start),
+      unblended_cost_amount as value
+    from
+      aws_cost_by_account_daily
+    where
+      period_start >= date_trunc('month', now())
+      and period_end <= now()
+      and account_id = $1
     order by
       period_start
   EOQ
