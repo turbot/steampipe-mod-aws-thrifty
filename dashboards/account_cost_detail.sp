@@ -18,7 +18,7 @@ dashboard "account_cost_detail" {
       query = query.account_previous_month_cost_mtd
       width = 2
       type  = "info"
-      icon = "receipt_long"
+      icon  = "receipt_long"
       args  = [self.input.account_id.value]
     }
 
@@ -26,7 +26,7 @@ dashboard "account_cost_detail" {
       query = query.account_forecast_cost_mtd
       width = 2
       type  = "info"
-      icon = "attach_money"
+      icon  = "attach_money"
       args  = [self.input.account_id.value]
     }
 
@@ -34,7 +34,7 @@ dashboard "account_cost_detail" {
       query = query.account_current_cost_mtd
       width = 2
       args  = [self.input.account_id.value]
-      icon = "attach_money"
+      icon  = "attach_money"
     }
 
     card {
@@ -42,7 +42,7 @@ dashboard "account_cost_detail" {
       width = 2
       type  = "info"
       args  = [self.input.account_id.value]
-      icon = "attach_money"
+      icon  = "attach_money"
     }
 
     card {
@@ -50,16 +50,15 @@ dashboard "account_cost_detail" {
       width = 2
       type  = "info"
       args  = [self.input.account_id.value]
-      icon = "attach_money"
+      icon  = "attach_money"
     }
 
     card {
       query = query.account_currency
       width = 2
       type  = "info"
-      icon = "attach_money"
+      icon  = "attach_money"
     }
-
   }
 
   container {
@@ -103,7 +102,7 @@ dashboard "account_cost_detail" {
     }
   }
 
-  ## All Service by cost
+  # All Service by cost
   container {
 
     chart {
@@ -124,7 +123,7 @@ dashboard "account_cost_detail" {
           }
         }
       }
-      args  = [self.input.account_id.value]
+      args = [self.input.account_id.value]
     }
   }
 
@@ -153,8 +152,8 @@ dashboard "account_cost_detail" {
     }
 
     chart {
-      type     = "column"
       title    = "Top 5 Most Used Services Comaprison with Previous Month"
+      type     = "column"
       grouping = "compare"
       query    = query.account_comparision_by_service
       width    = 6
@@ -190,11 +189,11 @@ dashboard "account_cost_detail" {
   container {
 
     input "service" {
-      title = "Account Cost by Service"
-      type  = "multiselect"
+      title       = "Account Cost by Service"
+      type        = "multiselect"
       placeholder = "Choose services"
-      width = "6"
-      query = query.account_service_input
+      width       = "6"
+      query       = query.account_service_input
     }
 
     container {
@@ -251,10 +250,9 @@ dashboard "account_cost_detail" {
     table {
       width = 12
       query = query.account_service_by_usage_mtd
+      args  = [self.input.account_id.value]
     }
-
   }
-
 }
 
 # Input queries
@@ -439,7 +437,7 @@ query "account_comparision_by_service" {
       from
         aws_cost_by_service_monthly
       where
-        period_start >= (date_trunc('month', now()) -interval '1 month')
+        period_start >= (date_trunc('month', now()) - interval '1 month')
         and period_end <= date_trunc('month', now())
         and account_id = $1
       group by service
@@ -459,7 +457,8 @@ query "account_comparision_by_service" {
     group by m.service
     order by current_cost desc
     limit 5
-    ), data as (
+    ),
+    data as (
       select
         service as service,
         type as type,
@@ -473,7 +472,8 @@ query "account_comparision_by_service" {
         previous_cost as cost
       from
         previous_month
-      where service in (select  service from current_month)
+      where
+        service in (select service from current_month)
     )
     select
       service,
@@ -622,20 +622,21 @@ query "account_service_by_usage_mtd" {
       where
         period_start >= date_trunc('month', now())
         and period_end <= now()
-        and account_id = '533793682495'
+        and account_id = $1
       group by service
       order by sum(net_unblended_cost_amount) desc
-    ), previous_month_cost as (
+    ),
+    previous_month_cost as (
       select
         service,
         sum(net_unblended_cost_amount) as previous_month_cost
       from
         aws_cost_by_service_monthly
       where
-        period_start >= (date_trunc('month', now()) -interval '1 month')
+        period_start >= (date_trunc('month', now()) - interval '1 month')
         and period_end <= date_trunc('month', now())
         and service in ( select service from services_by_usage)
-        and account_id = '533793682495'
+        and account_id = $1
        group by service
        order by sum(net_unblended_cost_amount) desc
     )

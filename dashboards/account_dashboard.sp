@@ -14,13 +14,13 @@ dashboard "account_dashboard" {
       query = query.account_previous_month_total_cost
       width = 2
       type  = "info"
-      icon = "receipt_long"
+      icon  = "receipt_long"
     }
 
     card {
       query = query.account_agg_forecast_cost_mtd
       width = 2
-      icon = "attach_money"
+      icon  = "attach_money"
       type  = "info"
     }
 
@@ -28,21 +28,21 @@ dashboard "account_dashboard" {
     card {
       query = query.account_current_month_total_cost
       width = 2
-      icon = "attach_money"
+      icon  = "attach_money"
     }
 
     # Account trend - increase / decrese amount percentage
     card {
       query = query.account_trend
       width = 2
-      icon = "trending_up"
+      icon  = "trending_up"
     }
 
     card {
       query = query.account_currency
       width = 2
       type  = "info"
-      icon = "attach_money"
+      icon  = "attach_money"
     }
 
   }
@@ -153,7 +153,7 @@ query "account_agg_forecast_cost_mtd" {
       cast((m.cost_till_date + forecast) as numeric(10,2))::text as value
     from
       cost_till_date as m,
-      forecast_cost_till_month_end
+      forecast_cost_till_month_end;
   EOQ
 }
 
@@ -178,7 +178,7 @@ query "account_current_month_total_cost" {
     where
       date(period_end) = date(current_timestamp)
     group by
-      net_unblended_cost_unit, previous_month_cost
+      net_unblended_cost_unit, previous_month_cost;
   EOQ
 }
 
@@ -196,7 +196,8 @@ query "account_top_5_service_by_usage_mtd" {
       group by service
       order by sum(net_unblended_cost_amount) desc
       limit 5
-    ), previous_month_cost as (
+    ),
+    previous_month_cost as (
       select
         service,
         sum(net_unblended_cost_amount) as previous_month_cost
@@ -206,8 +207,10 @@ query "account_top_5_service_by_usage_mtd" {
         period_start >= (date_trunc('month', now()) -interval '1 month')
         and period_end <= date_trunc('month', now())
         and service in ( select service from top_5_services_by_usage)
-       group by service
-       order by sum(net_unblended_cost_amount) desc
+       group by
+        service
+       order by
+        sum(net_unblended_cost_amount) desc
     )
     select
       s.service as "Service",
@@ -221,7 +224,7 @@ query "account_top_5_service_by_usage_mtd" {
       end as "Trend"
     from
       top_5_services_by_usage as s
-      left join previous_month_cost as p on p.service = s.service
+      left join previous_month_cost as p on p.service = s.service;
   EOQ
 }
 
@@ -251,7 +254,7 @@ query "account_top_5_service_by_usage_mtd_chart" {
       and m.period_end <= now()
     group by
       m.period_start,
-      m.service
+      m.service;
   EOQ
 }
 
@@ -274,13 +277,13 @@ query "account_trend" {
         aws_account as c
         left join aws_cost_forecast_daily as d on d.account_id = c.account_id
       where
-        date(d.period_start) = date(current_timestamp)
+        to_char(period_start, 'YYYY-MM') = to_char(now(), 'YYYY-MM')
     )
     select
       'Monthly Invoiced Spend Trend' as label,
       concat(abs(cast(((sum(net_unblended_cost_amount) + f.mean_value - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount) as numeric(10,2)))::text, '%') || case
-        when ((sum(net_unblended_cost_amount) + f.mean_value - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount) > 0 then ' 🔺'
-        else ' ▼'
+        when ((sum(net_unblended_cost_amount) + f.mean_value - p.previous_net_unblended_cost_amount) * 100 / p.previous_net_unblended_cost_amount) > 0 then '🔺'
+        else '▼'
       end as value
     from
       aws_cost_by_account_monthly as c,
@@ -289,7 +292,7 @@ query "account_trend" {
     where
       date(c.period_end) = date(current_timestamp)
     group by
-      p.previous_net_unblended_cost_amount, f.mean_value
+      p.previous_net_unblended_cost_amount, f.mean_value;
   EOQ
 }
 
@@ -300,7 +303,7 @@ query "account_currency" {
       unblended_cost_unit as value
     from
       aws_cost_by_account_monthly
-    limit 1
+    limit 1;
   EOQ
 }
 
@@ -321,59 +324,57 @@ query "aws_cost_by_aws_account" {
 
 query "aws_account_cost_table" {
   sql = <<-EOQ
-   with previous_month as (
-  select
-    net_unblended_cost_amount as previous_month_cost,
-    c.account_id
-  from
-    aws_account as c
-    left join aws_cost_by_account_monthly as m on m.account_id = c.account_id
-  where
-    period_start >= (date_trunc('month', now()) -interval '1 month')
-    and period_end <= date_trunc('month', now())
-), forecast_cost_till_month_end as (
-   select
-    sum(mean_value) as forecast,
-    c.account_id
-  from
-    aws_account as c
-    left join aws_cost_forecast_daily as f on f.account_id = c.account_id
-  where
-    to_char(period_start, 'YYYY-MM') = to_char(now(), 'YYYY-MM')
-  group by
-    c.account_id
-),cost_till_date as (
-  select
-    sum(m.net_unblended_cost_amount) as cost_till_date,
-    c.account_id
-  from
-    aws_account as c
-    left join aws_cost_by_account_monthly as m on m.account_id = c.account_id
-  where
-    date(m.period_end) = date(current_timestamp)
-  group by
-    c.account_id
-)
-select
-  c.title as "Account",
-  c.account_id as account_id,
-  (p.previous_month_cost::numeric(10,2)) as "Previous Month",
-  ((t.cost_till_date + forecast)::numeric(10,2)) as "Month Forecast",
-  (t.cost_till_date::numeric(10,2)) as "Current MTD",
-  case
-    when ((t.cost_till_date + forecast - p.previous_month_cost)*100/p.previous_month_cost) > 0 then
-      concat(trunc(((t.cost_till_date + forecast - p.previous_month_cost)*100/p.previous_month_cost)::numeric, 2), '%', ' 🔺')
-    else
-      concat(abs(cast(((t.cost_till_date + forecast - p.previous_month_cost)*100/p.previous_month_cost) as numeric(10,2)))::text, '%', ' ▼')
-  end as "Trend"
-from
-  aws_account as c
-  left join previous_month as p on p.account_id = c.account_id
-  left join forecast_cost_till_month_end as f on f.account_id = c.account_id
-  left join cost_till_date as t on t.account_id = c.account_id
-
+    with previous_month as (
+      select
+        net_unblended_cost_amount as previous_month_cost,
+        c.account_id
+      from
+        aws_account as c
+        left join aws_cost_by_account_monthly as m on m.account_id = c.account_id
+      where
+        period_start >= (date_trunc('month', now()) -interval '1 month')
+        and period_end <= date_trunc('month', now())
+    ),
+    forecast_cost_till_month_end as (
+      select
+        sum(mean_value) as forecast,
+        c.account_id
+      from
+        aws_account as c
+        left join aws_cost_forecast_daily as f on f.account_id = c.account_id
+      where
+        to_char(period_start, 'YYYY-MM') = to_char(now(), 'YYYY-MM')
+      group by
+        c.account_id
+    ),
+    cost_till_date as (
+      select
+        sum(m.net_unblended_cost_amount) as cost_till_date,
+        c.account_id
+      from
+        aws_account as c
+        left join aws_cost_by_account_monthly as m on m.account_id = c.account_id
+      where
+        date(m.period_end) = date(current_timestamp)
+      group by
+        c.account_id
+    )
+    select
+      c.title as "Account",
+      c.account_id as account_id,
+      p.previous_month_cost::numeric(10,2) as "Previous Month",
+      (t.cost_till_date + forecast)::numeric(10,2) as "Month-End Forecast",
+      t.cost_till_date::numeric(10,2) as "Current MTD",
+      case
+        when ((t.cost_till_date + forecast - p.previous_month_cost) * 100 / p.previous_month_cost) > 0 then
+          concat(((t.cost_till_date + forecast - p.previous_month_cost) * 100 / p.previous_month_cost)::numeric(10,2), '%', ' 🔺')
+        else
+          concat(abs(((t.cost_till_date + forecast - p.previous_month_cost) * 100 / p.previous_month_cost)::numeric(10,2))::text, '%', ' ▼')
+      end as "Trend"
+    from
+      aws_account as c
+      left join previous_month as p on p.account_id = c.account_id
+      left join forecast_cost_till_month_end as f on f.account_id = c.account_id
+      left join cost_till_date as t on t.account_id = c.account_id;
   EOQ
 }
-
-
-
