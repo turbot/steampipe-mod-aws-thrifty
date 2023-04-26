@@ -109,11 +109,14 @@ dashboard "account_cost_detail" {
   container {
 
     chart {
-      title = "Top 5 Services Cost - MTD"
+      title = "Top 5 Most Used Services Cost - MTD"
       width = 6
       query = query.account_top_5_service_by_mtd
       type  = "column"
       args  = [self.input.account_id.value]
+      legend {
+        position = "bottom"
+      }
     }
 
     chart {
@@ -123,6 +126,10 @@ dashboard "account_cost_detail" {
       query    = query.account_comparision_by_service
       width    = 6
       args     = [self.input.account_id.value]
+
+      legend {
+        position = "bottom"
+      }
 
       series "previous_month" {
         title = "Previous Month"
@@ -153,6 +160,9 @@ dashboard "account_cost_detail" {
         type  = "column"
         width = "6"
         args  = [self.input.service.value, self.input.account_id.value]
+        legend {
+          position = "bottom"
+        }
       }
 
       chart {
@@ -161,7 +171,9 @@ dashboard "account_cost_detail" {
         type  = "column"
         width = "6"
         args  = [self.input.service.value, self.input.account_id.value]
-
+        legend {
+          position = "bottom"
+        }
       }
     }
   }
