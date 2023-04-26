@@ -12,19 +12,24 @@ dashboard "account_dashboard" {
     # Analysis
     card {
       query = query.account_total_cost
-      width = 2
+      width = 3
+    }
+
+    card {
+      query = query.account_dashboard_forecast_cost_mtd
+      width = 3
     }
 
     # Total cost - Previous month
     card {
       query = query.account_previous_month_total_cost
-      width = 2
+      width = 3
     }
 
     # Account trend - increase / decrese amount percentage
     card {
       query = query.account_trend
-      width = 2
+      width = 3
     }
   }
 
@@ -88,7 +93,7 @@ query "account_top_5_service_by_usage_mtd" {
   sql = <<-EOQ
     select
       service as "Service",
-      concat(net_unblended_cost_unit, ' ', cast(sum(net_unblended_cost_amount) as numeric(10,2))::text) as "Current month cost"
+      concat(cast(sum(net_unblended_cost_amount) as numeric(10,2))::text, ' ', net_unblended_cost_unit) as "Current month cost"
     from
       aws_cost_by_service_monthly
     where
@@ -224,9 +229,9 @@ query "aws_account_cost_table" {
     select
       c.title as "Account",
       c.account_id as account_id,
-      concat(p.net_unblended_cost_unit, ' ', p.net_unblended_cost_amount::numeric(10,2)) as "Prevoius Month",
-      concat(m.net_unblended_cost_unit, ' ', m.net_unblended_cost_amount::numeric(10,2)) as "Current MTD",
-      concat(m.net_unblended_cost_unit, ' ', (m.net_unblended_cost_amount + mean_value)::numeric(10,2)) as "Forecast MTD",
+      concat(p.net_unblended_cost_amount::numeric(10,2), ' ', p.net_unblended_cost_unit) as "Previous Month",
+      concat(m.net_unblended_cost_amount::numeric(10,2), ' ', m.net_unblended_cost_unit) as "Current MTD",
+      concat((m.net_unblended_cost_amount + mean_value)::numeric(10,2), ' ', m.net_unblended_cost_unit) as "Forecast MTD",
       case
         when ((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount) > 0 then
           concat(trunc(((m.net_unblended_cost_amount + mean_value - p.net_unblended_cost_amount)*100/p.net_unblended_cost_amount)::numeric, 2), '%', '▲')
@@ -245,4 +250,21 @@ query "aws_account_cost_table" {
   EOQ
 }
 
-# Card Queries
+query "account_dashboard_forecast_cost_mtd" {
+  sql = <<-EOQ
+    select
+      'Forecast MTD (' || net_unblended_cost_unit || ')' as label,
+      cast(sum(m.net_unblended_cost_amount + d.mean_value) as numeric(10,2))::text as value
+    from
+      aws_cost_by_account_monthly as m
+      join aws_cost_forecast_daily as d on m.account_id = d.account_id
+    where
+      date(m.period_end) = date(current_timestamp)
+      and date(m.period_start) = date(date_trunc('month', now()))
+      and date(d.period_start) = date(now())
+      and date(d.period_end) = date(current_timestamp + interval '1 day')
+    group by
+      net_unblended_cost_unit
+  EOQ
+}
+
