@@ -13,28 +13,36 @@ dashboard "account_dashboard" {
     card {
       query = query.account_previous_month_total_cost
       width = 2
+      type  = "info"
+      icon = "receipt_long"
     }
 
     card {
       query = query.account_agg_forecast_cost_mtd
       width = 2
+      icon = "attach_money"
+      type  = "info"
     }
 
     # Analysis
     card {
       query = query.account_current_month_total_cost
       width = 2
+      icon = "attach_money"
     }
 
     # Account trend - increase / decrese amount percentage
     card {
       query = query.account_trend
       width = 2
+      icon = "trending_up"
     }
 
     card {
       query = query.account_currency
       width = 2
+      type  = "info"
+      icon = "attach_money"
     }
 
   }
@@ -192,8 +200,8 @@ query "account_top_5_service_by_usage_mtd" {
     )
     select
       s.service as "Service",
-      (p.previous_month_cost::numeric(10,2)) "Previous Month",
-      (s.current_month_cost::numeric(10,2)) "Current MTD",
+      (p.previous_month_cost::numeric(10,2))::text "Previous Month",
+      (s.current_month_cost::numeric(10,2))::text "Current MTD",
       case
         when ((s.current_month_cost - p.previous_month_cost)*100/p.previous_month_cost) > 0 then
           concat(abs(cast(((s.current_month_cost - p.previous_month_cost)*100/p.previous_month_cost) as numeric(10,2)))::text, '%', ' 🔺')

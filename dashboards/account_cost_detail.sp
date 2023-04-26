@@ -17,12 +17,16 @@ dashboard "account_cost_detail" {
     card {
       query = query.account_previous_month_cost_mtd
       width = 2
+      type  = "info"
+      icon = "receipt_long"
       args  = [self.input.account_id.value]
     }
 
     card {
       query = query.account_forecast_cost_mtd
       width = 2
+      type  = "info"
+      icon = "attach_money"
       args  = [self.input.account_id.value]
     }
 
@@ -30,23 +34,30 @@ dashboard "account_cost_detail" {
       query = query.account_current_cost_mtd
       width = 2
       args  = [self.input.account_id.value]
+      icon = "attach_money"
     }
 
     card {
       query = query.account_forecast_cost_ytd
       width = 2
+      type  = "info"
       args  = [self.input.account_id.value]
+      icon = "attach_money"
     }
 
     card {
       query = query.account_current_cost_ytd
       width = 2
+      type  = "info"
       args  = [self.input.account_id.value]
+      icon = "attach_money"
     }
 
     card {
       query = query.account_currency
       width = 2
+      type  = "info"
+      icon = "attach_money"
     }
 
   }
@@ -575,13 +586,12 @@ query "account_service_by_usage_mtd" {
     )
     select
       s.service as "Service",
-      case when previous_month_cost is null then 0 else (p.previous_month_cost::numeric(10,2)) end as "Previous Month",
-      (s.current_month_cost::numeric(10,2)) "Current MTD"
+      case when previous_month_cost is null then '0' else (p.previous_month_cost::numeric(10,2))::text end as "Previous Month",
+      (s.current_month_cost::numeric(10,2))::text "Current MTD"
     from
       services_by_usage as s
       left join previous_month_cost as p on p.service = s.service
     order by
       s.service
-
   EOQ
 }
