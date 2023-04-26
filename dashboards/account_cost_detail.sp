@@ -13,11 +13,6 @@ dashboard "account_cost_detail" {
   }
 
   container {
-    card {
-      query = query.account_current_cost_mtd
-      width = 2
-      args  = [self.input.account_id.value]
-    }
 
     card {
       query = query.account_previous_month_cost_mtd
@@ -32,7 +27,7 @@ dashboard "account_cost_detail" {
     }
 
     card {
-      query = query.account_current_cost_ytd
+      query = query.account_current_cost_mtd
       width = 2
       args  = [self.input.account_id.value]
     }
@@ -43,14 +38,25 @@ dashboard "account_cost_detail" {
       args  = [self.input.account_id.value]
     }
 
+    card {
+      query = query.account_current_cost_ytd
+      width = 2
+      args  = [self.input.account_id.value]
+    }
+
+    card {
+      query = query.account_currency
+      width = 2
+    }
+
   }
 
   container {
 
     chart {
-      title = "Total Cost by Month"
+      title = "Cost by Month"
       query = query.account_cost_last_twelve_months
-      type  = "column"
+      type  = "line"
       width = 6
       args  = [self.input.account_id.value]
 
@@ -67,7 +73,7 @@ dashboard "account_cost_detail" {
     }
 
     chart {
-      title = "Cost by Usage - MTD"
+      title = "Cost by Date - MTD"
       query = query.account_cost_mtd
       type  = "column"
       width = 6
@@ -91,8 +97,11 @@ dashboard "account_cost_detail" {
 
     chart {
       type  = "column"
-      title = "Top 15 Services by Usage"
+      title = "Top 15 Cost by Services - YTD"
       query = query.account_service_stack_chart
+      legend {
+        position = "bottom"
+      }
       args  = [self.input.account_id.value]
     }
   }
@@ -100,10 +109,10 @@ dashboard "account_cost_detail" {
   container {
 
     chart {
-      title = "Top 5 services by usage"
+      title = "Top 5 Services Cost - MTD"
       width = 6
       query = query.account_top_5_service_by_mtd
-      type  = "line"
+      type  = "column"
       args  = [self.input.account_id.value]
     }
 
@@ -130,15 +139,16 @@ dashboard "account_cost_detail" {
   container {
 
     input "service" {
-      title = "Select a service:"
+      title = "Account Cost by Service"
       type  = "multiselect"
+      placeholder = "Choose services"
       width = "6"
       query = query.account_service_input
     }
 
     container {
       chart {
-        title = "Per service MTD"
+        title = "Per Service MTD"
         query = query.account_service_mtd_trend
         type  = "column"
         width = "6"
@@ -146,7 +156,7 @@ dashboard "account_cost_detail" {
       }
 
       chart {
-        title = "Per service YTD"
+        title = "Per Service YTD"
         query = query.account_service_ytd_trend
         type  = "column"
         width = "6"
@@ -188,12 +198,24 @@ query "account_service_input" {
 
 query "account_current_cost_mtd" {
   sql = <<-EOQ
+    with previous_month as (
+      select
+        net_unblended_cost_amount as previous_month_cost
+      from
+        aws_cost_by_account_monthly
+      where
+        period_start >= (date_trunc('month', now()) -interval '1 month')
+        and period_end <= date_trunc('month', now())
+        and account_id = $1
+    )
     select
       'Current MTD (' || net_unblended_cost_unit || ')' as label,
-      net_unblended_cost_amount::numeric(10,2)::text as value
+      net_unblended_cost_amount::numeric(10,2)::text as value,
+      case when previous_month_cost > net_unblended_cost_amount then 'ok' else 'alert' end as type
     from
-      aws_cost_by_account_monthly
-   where
+      aws_cost_by_account_monthly,
+      previous_month
+    where
     date(period_end) = date(current_timestamp)
     and account_id = $1;
   EOQ
@@ -215,17 +237,24 @@ query "account_previous_month_cost_mtd" {
 
 query "account_forecast_cost_mtd" {
   sql = <<-EOQ
+    with forecast_cost_till_month_end as (
+      select
+        sum(mean_value) as forecast
+      from
+        aws_cost_forecast_daily
+      where
+        to_char(period_start, 'YYYY-MM') = to_char(now(), 'YYYY-MM')
+        and account_id = $1
+    )
     select
-      'Forecast MTD (' || net_unblended_cost_unit || ')' as label,
-      cast((net_unblended_cost_amount + mean_value) as numeric(10,2))::text as value
+      'Month Forecast (' || net_unblended_cost_unit || ')' as label,
+      cast((net_unblended_cost_amount + forecast) as numeric(10,2))::text as value
     from
       aws_cost_by_account_monthly as m,
-      aws_cost_forecast_daily as d
-   where
-    date(m.period_end) = date(current_timestamp)
-    and date(d.period_start) = date(current_timestamp)
-    and m.account_id = $1
-    and d.account_id = $1;
+      forecast_cost_till_month_end
+    where
+      date(m.period_end) = date(current_timestamp)
+      and m.account_id = $1
   EOQ
 }
 
@@ -384,7 +413,7 @@ query "account_service_stack_chart" {
     ),
     cost_sum_other_service as (
       select
-        'Other' as service,
+        'Others' as service,
         period_start,
         trunc(sum(net_unblended_cost_amount)::numeric, 2) as current_month_cost
       from
@@ -401,7 +430,8 @@ query "account_service_stack_chart" {
       sum(current_month_cost)
     from
       used_services
-    where current_month_cost > 0
+    where
+      current_month_cost > 0
     group by
       period_start, service
     union
@@ -470,7 +500,6 @@ query "account_top_5_service_by_mtd" {
       where
         period_start >= date_trunc('month', now())
         and period_end <= now()
-        and account_id = $1
       group by service
       order by sum(net_unblended_cost_amount) desc
       limit 5
@@ -480,12 +509,14 @@ query "account_top_5_service_by_mtd" {
       m.service,
       sum(m.net_unblended_cost_amount)
     from
-      aws_cost_by_service_monthly as m
+      aws_cost_by_service_daily as m
       join top_5_services_per_usage as t on m.service = t.service
     where
-      account_id = $1
+      m.period_start >= date_trunc('month', now())
+      and m.period_end <= now()
+      and m.account_id = $1
     group by
       m.period_start,
-      m.service;
+      m.service
   EOQ
 }
