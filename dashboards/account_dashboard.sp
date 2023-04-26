@@ -118,7 +118,7 @@ query "account_agg_forecast_cost_mtd" {
         aws_cost_forecast_daily
       where
         to_char(period_start, 'YYYY-MM') = to_char(now(), 'YYYY-MM')
-    ), cost_till_date as  (
+    ), cost_till_date as (
       select
         sum(m.net_unblended_cost_amount) as cost_till_date,
         net_unblended_cost_unit
@@ -130,7 +130,7 @@ query "account_agg_forecast_cost_mtd" {
         net_unblended_cost_unit
     )
     select
-      'Month Forecast (' || net_unblended_cost_unit || ')' as label,
+      'Month-End Forecast (' || net_unblended_cost_unit || ')' as label,
       cast((m.cost_till_date + forecast) as numeric(10,2))::text as value
     from
       cost_till_date as m,

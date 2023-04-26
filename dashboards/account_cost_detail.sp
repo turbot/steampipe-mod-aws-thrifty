@@ -165,6 +165,18 @@ dashboard "account_cost_detail" {
       }
     }
   }
+
+  container {
+
+    title = "Services by Cost - MTD"
+
+    table {
+      width = 12
+      query = query.account_service_by_usage_mtd
+    }
+
+  }
+
 }
 
 # Input queries
@@ -247,7 +259,7 @@ query "account_forecast_cost_mtd" {
         and account_id = $1
     )
     select
-      'Month Forecast (' || net_unblended_cost_unit || ')' as label,
+      'Month-End Forecast (' || net_unblended_cost_unit || ')' as label,
       cast((net_unblended_cost_amount + forecast) as numeric(10,2))::text as value
     from
       aws_cost_by_account_monthly as m,
@@ -518,5 +530,46 @@ query "account_top_5_service_by_mtd" {
     group by
       m.period_start,
       m.service
+  EOQ
+}
+
+query "account_service_by_usage_mtd" {
+  sql = <<-EOQ
+    with services_by_usage as (
+      select
+        service,
+        sum(net_unblended_cost_amount) as current_month_cost
+      from
+        aws_cost_by_service_monthly
+      where
+        period_start >= date_trunc('month', now())
+        and period_end <= now()
+        and account_id = '533793682495'
+      group by service
+      order by sum(net_unblended_cost_amount) desc
+    ), previous_month_cost as (
+      select
+        service,
+        sum(net_unblended_cost_amount) as previous_month_cost
+      from
+        aws_cost_by_service_monthly
+      where
+        period_start >= (date_trunc('month', now()) -interval '1 month')
+        and period_end <= date_trunc('month', now())
+        and service in ( select service from services_by_usage)
+        and account_id = '533793682495'
+       group by service
+       order by sum(net_unblended_cost_amount) desc
+    )
+    select
+      s.service as "Service",
+      case when previous_month_cost is null then 0 else (p.previous_month_cost::numeric(10,2)) end as "Previous Month",
+      (s.current_month_cost::numeric(10,2)) "Current MTD"
+    from
+      services_by_usage as s
+      left join previous_month_cost as p on p.service = s.service
+    order by
+      s.service
+
   EOQ
 }
