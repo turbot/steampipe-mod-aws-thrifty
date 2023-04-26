@@ -113,6 +113,17 @@ dashboard "account_cost_detail" {
       legend {
         position = "bottom"
       }
+
+      axes {
+        y {
+          title {
+            value = "Cost"
+          }
+          labels {
+            display = "always"
+          }
+        }
+      }
       args  = [self.input.account_id.value]
     }
   }
@@ -128,6 +139,17 @@ dashboard "account_cost_detail" {
       legend {
         position = "bottom"
       }
+
+      axes {
+        y {
+          title {
+            value = "Cost"
+          }
+          labels {
+            display = "always"
+          }
+        }
+      }
     }
 
     chart {
@@ -137,6 +159,17 @@ dashboard "account_cost_detail" {
       query    = query.account_comparision_by_service
       width    = 6
       args     = [self.input.account_id.value]
+
+      axes {
+        y {
+          title {
+            value = "Cost"
+          }
+          labels {
+            display = "always"
+          }
+        }
+      }
 
       legend {
         position = "bottom"
@@ -174,6 +207,17 @@ dashboard "account_cost_detail" {
         legend {
           position = "bottom"
         }
+
+        axes {
+          y {
+            title {
+              value = "Cost"
+            }
+            labels {
+              display = "always"
+            }
+          }
+        }
       }
 
       chart {
@@ -184,6 +228,17 @@ dashboard "account_cost_detail" {
         args  = [self.input.service.value, self.input.account_id.value]
         legend {
           position = "bottom"
+        }
+
+        axes {
+          y {
+            title {
+              value = "Cost"
+            }
+            labels {
+              display = "always"
+            }
+          }
         }
       }
     }

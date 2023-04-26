@@ -98,6 +98,17 @@ dashboard "account_dashboard" {
       legend {
         position = "bottom"
       }
+
+      axes {
+        y {
+          title {
+            value = "Cost"
+          }
+          labels {
+            display = "always"
+          }
+        }
+      }
     }
   }
 }
