@@ -9,6 +9,12 @@ dashboard "account_dashboard" {
   # Cards
   container {
 
+    card {
+      query = query.total_number_of_accounts
+      width = 2
+      type  = "info"
+    }
+
     # Total cost - Previous month
     card {
       query = query.account_previous_month_total_cost
@@ -50,8 +56,9 @@ dashboard "account_dashboard" {
   container {
     title = "Cost by Account"
 
+    width = 6
+
     table {
-      width = 6
       query = query.aws_account_cost_table
 
       column "account_id" {
@@ -63,10 +70,41 @@ dashboard "account_dashboard" {
       }
     }
 
+  }
+
+  container {
+
+    width = 6
+
     chart {
       query = query.aws_cost_by_aws_account
       type  = "column"
-      width = 6
+
+      axes {
+        y {
+          title {
+            value = "Cost"
+          }
+          labels {
+            display = "always"
+          }
+        }
+      }
+    }
+
+    input "period" {
+      title = "Select a period:"
+      width = 4
+      option "Three Months" {}
+      option "Six Months" {}
+      option "One Year" {}
+    }
+
+    chart {
+
+      query = query.aws_cost_by_aws_account_chart
+      type  = "column"
+      args  = [self.input.period.value]
 
       axes {
         y {
@@ -111,6 +149,18 @@ dashboard "account_dashboard" {
       }
     }
   }
+}
+
+
+
+query "total_number_of_accounts" {
+  sql = <<-EOQ
+    select
+      'Accounts' as label,
+      count(*) as value
+    from
+      aws_account;
+  EOQ
 }
 
 query "account_previous_month_total_cost" {
@@ -375,6 +425,29 @@ query "aws_account_cost_table" {
       aws_account as c
       left join previous_month as p on p.account_id = c.account_id
       left join forecast_cost_till_month_end as f on f.account_id = c.account_id
-      left join cost_till_date as t on t.account_id = c.account_id;
+      left join cost_till_date as t on t.account_id = c.account_id
+
+  EOQ
+
+}
+
+query "aws_cost_by_aws_account_chart" {
+  sql = <<-EOQ
+  select
+    period_start,
+    a.title,
+    sum(net_unblended_cost_amount) as current_month_cost
+  from
+    aws_account as a
+    left join aws_cost_by_service_monthly as m on m.account_id = a.account_id
+  where
+    1 = 1 and
+    case
+      when $1 = 'Three Months' then period_start >= (date_trunc('month', now()) -interval '2 month')
+      when $1  = 'Six Months' then period_start >= (date_trunc('month', now()) -interval '4 month')
+      when $1  = 'One Year' then period_start >= (date_trunc('month', now()) -interval '11 month') end
+  group by a.account_id, period_start, a.title
+  order by period_start asc
   EOQ
 }
+
