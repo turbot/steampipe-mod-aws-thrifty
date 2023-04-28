@@ -359,16 +359,13 @@ control "ebs_snapshot_max_age" {
     select
       arn as resource,
       case
-        when date_part('day', now()-last_accessed_date) > $1 then 'ok'
+        when start_time > current_timestamp - ($1 || ' days')::interval then 'ok'
         else 'alarm'
       end as status,
-      case
-        when last_accessed_date is null then title || ' is never used.'
-        else title || ' is last used ' || age(current_date, last_accessed_date) || ' ago.'
-      end as reason
+      snapshot_id || ' created at ' || start_time || '.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_secretsmanager_secret;
+      aws_ebs_snapshot;
   EOQ
 }
