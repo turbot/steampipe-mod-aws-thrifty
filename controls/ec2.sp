@@ -181,14 +181,41 @@ control "ec2_gateway_lb_unused" {
   })
 
   sql = <<-EOQ
-    with target_resource as (
+    with glb_regions as (
       select
-        load_balancer_arn,
-        target_health_descriptions,
-        target_type
+        distinct region
       from
-        aws_ec2_target_group,
-        jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
+        aws_ec2_gateway_load_balancer
+    ),glb_pricing as (
+      select
+        r.region,
+        p.currency,
+        p.price_per_unit::numeric as clb_price_hrs
+      from
+        aws_pricing_product as p
+        join glb_regions as r on
+          p.service_code = 'AWSELB'
+          and p.filters = '{
+            "operation" : "LoadBalancing:Gateway",
+            "group": "ELB:Balancing",
+            "groupDescription" : "LoadBalancer hourly usage by Gateway Load Balancer"
+          }' :: jsonb
+          and p.attributes ->> 'regionCode' = r.region
+      group by r.region, p.price_per_unit, p.currency
+    ), glb_pricing_daily as (
+      select
+        24*clb_price_hrs as daily_price,
+        currency
+      from
+        glb_pricing
+    ), target_resource as (
+        select
+          load_balancer_arn,
+          target_health_descriptions,
+          target_type
+        from
+          aws_ec2_target_group,
+          jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
     )
     select
       a.arn as resource,
@@ -197,14 +224,15 @@ control "ec2_gateway_lb_unused" {
         else 'ok'
       end as status,
       case
-        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered.'
+        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered. (' ||  daily_price || ' ' || currency || '/day)' || '.'
         else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
       end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
       aws_ec2_gateway_load_balancer a
-      left join target_resource b on a.arn = b.load_balancer_arn;
+      left join target_resource b on a.arn = b.load_balancer_arn,
+      glb_pricing_daily;
   EOQ
 
 }
