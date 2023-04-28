@@ -77,7 +77,8 @@ dashboard "account_dashboard" {
     width = 6
 
     chart {
-      query = query.aws_cost_by_aws_account
+      title = "Cost by date - MTD"
+      query = query.aws_cost_by_aws_account_mtd
       type  = "column"
 
       axes {
@@ -91,67 +92,45 @@ dashboard "account_dashboard" {
         }
       }
     }
-
-    input "period" {
-      title = "Select a period:"
-      width = 4
-      option "Three Months" {}
-      option "Six Months" {}
-      option "One Year" {}
-    }
-
-    chart {
-
-      query = query.aws_cost_by_aws_account_chart
-      type  = "column"
-      args  = [self.input.period.value]
-
-      axes {
-        y {
-          title {
-            value = "Cost"
-          }
-          labels {
-            display = "always"
-          }
-        }
-      }
-    }
-  }
-
-  container {
-
-    title = "Top 5 Services by Cost"
 
     table {
-      width = 6
+      title = "Top 5 Services by Cost"
+      
       query = query.account_top_5_service_by_usage_mtd
-    }
 
-    chart {
-      width = 6
-      query = query.account_top_5_service_by_usage_mtd_chart
-      type  = "column"
-
-      legend {
-        position = "bottom"
-      }
-
-      axes {
-        y {
-          title {
-            value = "Cost"
-          }
-          labels {
-            display = "always"
-          }
-        }
+      column "Service" {
+        href = "${dashboard.account_service_detail.url_path}?input.service={{.Service | @uri}}"
       }
     }
+
   }
+
+  # container {
+
+  #   title = "Top 5 Services by Cost"
+
+    # chart {
+    #   width = 6
+    #   query = query.account_top_5_service_by_usage_mtd_chart
+    #   type  = "column"
+
+    #   legend {
+    #     position = "bottom"
+    #   }
+
+    #   axes {
+    #     y {
+    #       title {
+    #         value = "Cost"
+    #       }
+    #       labels {
+    #         display = "always"
+    #       }
+    #     }
+    #   }
+    # }
+  # }
 }
-
-
 
 query "total_number_of_accounts" {
   sql = <<-EOQ
@@ -278,35 +257,35 @@ query "account_top_5_service_by_usage_mtd" {
   EOQ
 }
 
-query "account_top_5_service_by_usage_mtd_chart" {
-  sql = <<-EOQ
-    with top_5_services_per_usage as (
-      select
-        service
-      from
-        aws_cost_by_service_monthly
-      where
-        period_start >= date_trunc('month', now())
-        and period_end <= now()
-      group by service
-      order by sum(net_unblended_cost_amount) desc
-      limit 5
-    )
-    select
-      m.period_start,
-      m.service,
-      sum(m.net_unblended_cost_amount)
-    from
-      aws_cost_by_service_daily as m
-      join top_5_services_per_usage as t on m.service = t.service
-    where
-      m.period_start >= date_trunc('month', now())
-      and m.period_end <= now()
-    group by
-      m.period_start,
-      m.service;
-  EOQ
-}
+# query "account_top_5_service_by_usage_mtd_chart" {
+#   sql = <<-EOQ
+#     with top_5_services_per_usage as (
+#       select
+#         service
+#       from
+#         aws_cost_by_service_monthly
+#       where
+#         period_start >= date_trunc('month', now())
+#         and period_end <= now()
+#       group by service
+#       order by sum(net_unblended_cost_amount) desc
+#       limit 5
+#     )
+#     select
+#       m.period_start,
+#       m.service,
+#       sum(m.net_unblended_cost_amount)
+#     from
+#       aws_cost_by_service_daily as m
+#       join top_5_services_per_usage as t on m.service = t.service
+#     where
+#       m.period_start >= date_trunc('month', now())
+#       and m.period_end <= now()
+#     group by
+#       m.period_start,
+#       m.service;
+#   EOQ
+# }
 
 query "account_trend" {
   sql = <<-EOQ
@@ -431,23 +410,20 @@ query "aws_account_cost_table" {
 
 }
 
-query "aws_cost_by_aws_account_chart" {
+
+query "aws_cost_by_aws_account_mtd" {
   sql = <<-EOQ
-  select
-    period_start,
-    a.title,
-    sum(net_unblended_cost_amount) as current_month_cost
-  from
-    aws_account as a
-    left join aws_cost_by_service_monthly as m on m.account_id = a.account_id
-  where
-    1 = 1 and
-    case
-      when $1 = 'Three Months' then period_start >= (date_trunc('month', now()) -interval '2 month')
-      when $1  = 'Six Months' then period_start >= (date_trunc('month', now()) -interval '4 month')
-      when $1  = 'One Year' then period_start >= (date_trunc('month', now()) -interval '11 month') end
-  group by a.account_id, period_start, a.title
-  order by period_start asc
+    select
+      period_start,
+      a.title,
+      sum(net_unblended_cost_amount) as current_month_cost
+    from
+      aws_account as a
+      left join aws_cost_by_service_daily as m on m.account_id = a.account_id
+    where
+      period_start >= date_trunc('month', now())
+      and period_end <= now()
+    group by a.account_id, period_start, a.title
+    order by period_start asc
   EOQ
 }
-

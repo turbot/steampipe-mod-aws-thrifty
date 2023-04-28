@@ -64,11 +64,12 @@ dashboard "account_cost_detail" {
   container {
 
     chart {
-      title = "Cost by Month"
-      query = query.account_cost_last_twelve_months
-      type  = "line"
-      width = 6
-      args  = [self.input.account_id.value]
+      type  = "column"
+      title = "Cost by Services - YTD"
+      query = query.account_service_stack_chart
+      legend {
+        position = "bottom"
+      }
 
       axes {
         y {
@@ -80,7 +81,27 @@ dashboard "account_cost_detail" {
           }
         }
       }
+      args = [self.input.account_id.value]
     }
+
+    # chart {
+    #   title = "Cost by Month"
+    #   query = query.account_cost_last_twelve_months
+    #   type  = "line"
+    #   width = 6
+    #   args  = [self.input.account_id.value]
+
+    #   axes {
+    #     y {
+    #       title {
+    #         value = "Cost"
+    #       }
+    #       labels {
+    #         display = "always"
+    #       }
+    #     }
+    #   }
+    # }
 
     chart {
       title = "Cost by Date - MTD"
@@ -105,26 +126,7 @@ dashboard "account_cost_detail" {
   # All Service by cost
   container {
 
-    chart {
-      type  = "column"
-      title = "Top 15 Cost by Services - YTD"
-      query = query.account_service_stack_chart
-      legend {
-        position = "bottom"
-      }
 
-      axes {
-        y {
-          title {
-            value = "Cost"
-          }
-          labels {
-            display = "always"
-          }
-        }
-      }
-      args = [self.input.account_id.value]
-    }
   }
 
   container {
