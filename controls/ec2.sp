@@ -106,7 +106,7 @@ control "ec2_application_lb_unused" {
         else 'ok'
       end as status,
       case
-        when b.load_balancer_arn is null then a.title || ' has no target registered. (' ||  daily_price || ' ' || currency || '/day)' || '.'
+        when b.load_balancer_arn is null then a.title || ' has no target registered (' ||  daily_price::numeric(10,2) || ' ' || currency || '/day).'
         else a.title || ' has registered target of type ' || b.target_type || '.'
       end as reason
       ${local.tag_dimensions_sql}
@@ -162,7 +162,7 @@ control "ec2_classic_lb_unused" {
       end as status,
       case
         when jsonb_array_length(instances) > 0 then title || ' has registered instances.'
-        else title || ' has no instances registered. (' ||  daily_price || ' ' || currency || '/day)' || '.'
+        else title || ' has no instances registered (' ||  daily_price::numeric(10,2) || ' ' || currency || '/day).'
       end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
@@ -224,7 +224,7 @@ control "ec2_gateway_lb_unused" {
         else 'ok'
       end as status,
       case
-        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered. (' ||  daily_price || ' ' || currency || '/day)' || '.'
+        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered (' ||  daily_price::numeric(10,2) || ' ' || currency || '/day).'
         else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
       end as reason
       ${local.tag_dimensions_sql}
@@ -288,7 +288,7 @@ control "ec2_network_lb_unused" {
         else 'ok'
       end as status,
       case
-        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered. (' ||  daily_price || ' ' || currency || '/day)' || '.'
+        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered (' ||  daily_price::numeric(10,2) || ' ' || currency || '/day).'
         else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
       end as reason
       ${local.tag_dimensions_sql}
