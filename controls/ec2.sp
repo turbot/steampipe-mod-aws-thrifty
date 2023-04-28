@@ -127,6 +127,33 @@ control "ec2_classic_lb_unused" {
   })
 
   sql = <<-EOQ
+    with clb_regions as (
+      select
+        distinct region
+      from
+        aws_ec2_classic_load_balancer
+    ),clb_pricing as (
+      select
+        r.region,
+        p.currency,
+        p.price_per_unit::numeric as clb_price_hrs
+      from
+        aws_pricing_product as p
+        join clb_regions as r on
+          p.service_code = 'AWSELB'
+          and p.filters = '{
+            "groupDescription" : "LoadBalancer hourly usage by Classic Load Balancer",
+            "group": "ELB:Balancing"
+          }' :: jsonb
+          and p.attributes ->> 'regionCode' = r.region
+      group by r.region, p.price_per_unit, p.currency
+    ), clb_pricing_daily as (
+      select
+        24*clb_price_hrs as daily_price,
+        currency
+      from
+        clb_pricing
+    )
     select
       arn as resource,
       case
@@ -135,12 +162,13 @@ control "ec2_classic_lb_unused" {
       end as status,
       case
         when jsonb_array_length(instances) > 0 then title || ' has registered instances.'
-        else title || ' has no instances registered.'
+        else title || ' has no instances registered. (' ||  daily_price || ' ' || currency || '/day)' || '.'
       end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ec2_classic_load_balancer;
+      aws_ec2_classic_load_balancer,
+      clb_pricing_daily;
   EOQ
 }
 
