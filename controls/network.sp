@@ -29,6 +29,36 @@ control "unattached_eips" {
   })
 
   sql = <<-EOQ
+    with eip_regions as (
+      select
+        distinct region
+      from
+        aws_vpc_eip
+    ),eip_pricing as (
+      select
+        r.region,
+        p.currency as currency,
+        p.price_per_unit::numeric as eip_price_hrs
+      from
+        aws_pricing_product as p
+        join eip_regions as r on
+          p.service_code = 'AmazonEC2'
+          and p.filters = '{
+            "group": "ElasticIP:Address",
+            "usagetype": "ElasticIP:IdleAddress"
+          }' :: jsonb
+          and p.attributes ->> 'regionCode' = r.region
+        where
+        p.begin_range = '1'
+      group by r.region, p.price_per_unit, p.currency
+    ),
+    eip_pricing_daily as (
+      select
+        24*eip_price_hrs as daily_price,
+        currency
+      from
+        eip_pricing
+    )
     select
       'arn:' || partition || ':ec2:' || region || ':' || account_id || ':eip/' || allocation_id as resource,
       case
@@ -36,12 +66,13 @@ control "unattached_eips" {
         else 'ok'
       end as status,
       case
-        when association_id is null then public_ip || ' has no association.'
+        when association_id is null then public_ip || ' has no association ' || '(' || (daily_price) || ' ' || currency || '/day ▲).'
         else public_ip || ' associated with ' || private_ip_address || '.'
       end as reason
       ${local.common_dimensions_sql}
     from
-      aws_vpc_eip;
+      aws_vpc_eip,
+      eip_pricing_daily
   EOQ
 
 }
@@ -55,7 +86,40 @@ control "vpc_nat_gateway_unused" {
   })
 
   sql = <<-EOQ
-    with instance_data as (
+
+    with nat_gateway_regions as (
+      select
+        distinct region
+      from
+        aws_vpc_nat_gateway
+    ),nat_gateway_pricing as (
+      select
+        r.region,
+        p.price_per_unit::numeric as alb_price_hrs
+      from
+        aws_pricing_product as p
+        join nat_gateway_regions as r on
+          p.service_code = 'AmazonEC2'
+          and p.filters = '{
+            "operation": "NatGateway",
+            "usagetype": "NatGateway-Hours"
+          }' :: jsonb
+          and p.attributes ->> 'regionCode' = r.region
+      group by r.region, p.price_per_unit
+    ), nat_gateway_pricing_daily as (
+      select
+        24*alb_price_hrs as daily_price
+      from
+        nat_gateway_pricing
+    ), target_resource as (
+      select
+        load_balancer_arn,
+        target_health_descriptions,
+        target_type
+      from
+        aws_ec2_target_group,
+        jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
+    ), instance_data as (
       select
         instance_id,
         subnet_id,
@@ -73,7 +137,7 @@ control "vpc_nat_gateway_unused" {
       end as status,
       case
         when nat.state <> 'available' then nat.title || ' in ' || nat.state || ' state.'
-        when i.subnet_id is null then nat.title || ' not in-use.'
+        when i.subnet_id is null then nat.title || ' not in-use. You can save $' ||  (select daily_price from nat_gateway_pricing_daily) || ' daily by deleting it.'
         when i.instance_state <> 'running' then nat.title || ' associated with ' || i.instance_id || ', which is in ' || i.instance_state || ' state.'
         else nat.title || ' in-use.'
       end as reason

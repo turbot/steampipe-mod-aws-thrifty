@@ -64,7 +64,33 @@ control "ec2_application_lb_unused" {
   })
 
   sql = <<-EOQ
-    with target_resource as (
+    with alb_regions as (
+      select
+        distinct region
+      from
+        aws_ec2_application_load_balancer
+    ),application_load_balancer_pricing as (
+      select
+        r.region,
+        p.price_per_unit::numeric as alb_price_hrs,
+        p.currency as currency
+      from
+        aws_pricing_product as p
+        join alb_regions as r on
+          p.service_code = 'AmazonEC2'
+          and p.filters = '{
+            "operation": "LoadBalancing:Application",
+            "usagetype": "LoadBalancerUsage"
+          }' :: jsonb
+          and p.attributes ->> 'regionCode' = r.region
+      group by r.region, p.price_per_unit, p.currency
+    ), application_load_balancer_pricing_daily as (
+      select
+        24*alb_price_hrs as daily_price,
+        currency
+      from
+        application_load_balancer_pricing
+    ), target_resource as (
       select
         load_balancer_arn,
         target_health_descriptions,
@@ -80,14 +106,15 @@ control "ec2_application_lb_unused" {
         else 'ok'
       end as status,
       case
-        when b.load_balancer_arn is null then a.title || ' has no target registered.'
+        when b.load_balancer_arn is null then a.title || ' has no target registered. (' ||  daily_price || ' ' || currency || '/day)' || '.'
         else a.title || ' has registered target of type ' || b.target_type || '.'
       end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
       aws_ec2_application_load_balancer a
-      left join target_resource b on a.arn = b.load_balancer_arn;
+      left join target_resource b on a.arn = b.load_balancer_arn,
+      application_load_balancer_pricing_daily
   EOQ
 }
 
@@ -163,7 +190,33 @@ control "ec2_network_lb_unused" {
   })
 
   sql = <<-EOQ
-    with target_resource as (
+    with network_regions as (
+      select
+        distinct region
+      from
+        aws_ec2_network_load_balancer
+    ),network_load_balancer_pricing as (
+      select
+        r.region,
+        p.price_per_unit::numeric as alb_price_hrs,
+         p.currency as currency
+      from
+        aws_pricing_product as p
+        join network_regions as r on
+          p.service_code = 'AmazonEC2'
+          and p.filters = '{
+            "operation": "LoadBalancing:Network",
+            "usagetype": "LoadBalancerUsage"
+          }' :: jsonb
+          and p.attributes ->> 'regionCode' = r.region
+      group by r.region, p.price_per_unit, p.currency
+    ), network_load_balancer_pricing_daily as (
+      select
+        24*alb_price_hrs as daily_price,
+        currency
+      from
+        network_load_balancer_pricing
+    ), target_resource as (
       select
         load_balancer_arn,
         target_health_descriptions,
@@ -179,14 +232,15 @@ control "ec2_network_lb_unused" {
         else 'ok'
       end as status,
       case
-        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered.'
+        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered. (' ||  daily_price || ' ' || currency || '/day)' || '.'
         else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
       end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
       aws_ec2_network_load_balancer a
-      left join target_resource b on a.arn = b.load_balancer_arn;
+      left join target_resource b on a.arn = b.load_balancer_arn,
+      network_load_balancer_pricing_daily;
   EOQ
 }
 
