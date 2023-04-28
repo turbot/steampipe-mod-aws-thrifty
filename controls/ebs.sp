@@ -1,5 +1,5 @@
 variable "ebs_snapshot_age_max_days" {
-  type        = number
+  type        = string
   description = "The maximum number of days snapshots can be retained."
   default     = 90
 }
@@ -64,6 +64,55 @@ control "gp2_volumes" {
   })
 
   sql = <<-EOQ
+    with volume_list as (
+      select
+        arn,
+        volume_id,
+        volume_type,
+        size,
+        region,
+        account_id
+      from
+        aws_ebs_volume
+    ),
+    volume_regions as (
+      select
+        distinct region
+      from
+        aws_ebs_volume
+    ),
+    volume_pricing as (
+      select
+        r.region,
+        p.currency,
+        max(case when p.attributes ->> 'volumeApiName' = 'gp2' then  p.price_per_unit else null end) as gp2_price,
+        max(case when p.attributes ->> 'volumeApiName' = 'gp3' then  p.price_per_unit else null end) as gp3_price
+      from
+        aws_pricing_product as p
+        join volume_regions as r on
+          p.service_code = 'AmazonEC2'
+          and p.filters = '{
+            "volumeType": "General Purpose"
+          }' :: jsonb
+          and p.attributes ->> 'regionCode' = r.region
+      group by r.region, p.currency
+    ),
+    calculate_savings_per_volume as (
+      select
+        v.arn,
+        v.volume_id,
+        v.volume_type,
+        v.region,
+        v.account_id,
+        case
+          when v.volume_type = 'gp2' then (p.gp2_price::float - p.gp3_price::float) * v.size
+          else 0
+        end as net_savings,
+        p.currency
+      from
+        volume_list as v
+        join volume_pricing as p on v.region = p.region
+    )
     select
       arn as resource,
       case
@@ -71,11 +120,15 @@ control "gp2_volumes" {
         when volume_type = 'gp3' then 'ok'
         else 'skip'
       end as status,
-      volume_id || ' type is ' || volume_type || '.' as reason
+      volume_id || ' type is ' || volume_type ||
+      case
+        when volume_type = 'gp2' then ' (' || net_savings::numeric(10,2) || ' ' || currency || '/month ▲).'
+        else ''
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_volume;
+      calculate_savings_per_volume
   EOQ
 }
 
@@ -111,6 +164,41 @@ control "unattached_ebs_volumes" {
     class = "unused"
   })
   sql = <<-EOQ
+    with volume_list as (
+      select
+        arn,
+        volume_id,
+        volume_type,
+        size,
+        attachments,
+        region,
+        account_id
+      from
+        aws_ebs_volume
+    ),
+    volume_pricing as (
+      select
+        v.arn,
+        v.volume_id,
+        v.size,
+        v.region,
+        v.account_id,
+        v.attachments,
+        (p.price_per_unit::numeric * v.size) as net_savings,
+        p.currency
+      from
+        volume_list as v
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonEC2'
+          and p.filters in (
+            '{"volumeType": "General Purpose"}' :: jsonb,
+            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
+            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
+            '{"volumeType": "Cold HDD"}' :: jsonb
+          )
+          and p.attributes ->> 'regionCode' = v.region
+          and p.attributes ->> 'volumeApiName' = v.volume_type
+    )
     select
       arn as resource,
       case
@@ -119,12 +207,12 @@ control "unattached_ebs_volumes" {
       end as status,
       case
         when jsonb_array_length(attachments) > 0 then volume_id || ' has attachments.'
-        else volume_id || ' has no attachments.'
+        else volume_id || ' has no attachments (' || net_savings::numeric(10,2) || ' ' || currency ||'/month ▲).'
       end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_volume;
+      volume_pricing;
   EOQ
 }
 
@@ -199,22 +287,58 @@ control "low_iops_ebs_volumes" {
   })
 
   sql = <<-EOQ
+    with volume_list as (
+      select
+        arn,
+        volume_id,
+        volume_type,
+        size,
+        iops,
+        region,
+        account_id
+      from
+        aws_ebs_volume
+    ),
+    volume_pricing as (
+      select
+        v.arn,
+        v.volume_id,
+        v.volume_type,
+        v.size,
+        v.iops,
+        v.region,
+        v.account_id,
+        (p.price_per_unit::numeric * v.size) as net_savings,
+        p.currency
+      from
+        volume_list as v
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonEC2'
+          and p.filters in (
+            '{"volumeType": "General Purpose"}' :: jsonb,
+            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
+            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
+            '{"volumeType": "Cold HDD"}' :: jsonb
+          )
+          and p.attributes ->> 'regionCode' = v.region
+          and p.attributes ->> 'volumeApiName' = v.volume_type
+    )
     select
-    arn as resource,
-    case
-      when volume_type not in ('io1', 'io2') then 'skip'
-      when iops <= 3000 then 'alarm'
-      else 'ok'
-    end as status,
-    case
-      when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
-      when iops <= 3000 then volume_id || ' only has ' || iops || ' iops.'
-      else volume_id || ' has ' || iops || ' iops.'
-    end as reason
-    ${local.tag_dimensions_sql}
-    ${local.common_dimensions_sql}
-  from
-    aws_ebs_volume;
+      arn as resource,
+      case
+        when volume_type not in ('io1', 'io2') then 'skip'
+        when iops <= 3000 then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
+        when iops <= 3000 then volume_id || ' only has ' || iops || ' iops (' || net_savings::numeric(10,2) || ' ' || currency || '/month ▲).'
+        else volume_id || ' has ' || iops || ' iops.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      volume_pricing;
   EOQ
 }
 
@@ -359,16 +483,13 @@ control "ebs_snapshot_max_age" {
     select
       arn as resource,
       case
-        when date_part('day', now()-last_accessed_date) > $1 then 'ok'
+        when start_time > current_timestamp - ($1 || ' days')::interval then 'ok'
         else 'alarm'
       end as status,
-      case
-        when last_accessed_date is null then title || ' is never used.'
-        else title || ' is last used ' || age(current_date, last_accessed_date) || ' ago.'
-      end as reason
+      snapshot_id || ' created at ' || start_time || '.' as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_secretsmanager_secret;
+      aws_ebs_snapshot;
   EOQ
 }
