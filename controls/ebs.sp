@@ -120,11 +120,8 @@ control "gp2_volumes" {
         when volume_type = 'gp3' then 'ok'
         else 'skip'
       end as status,
-      volume_id || ' type is ' || volume_type ||
-      case
-        when volume_type = 'gp2' then ' (' || net_savings::numeric(10,2) || ' ' || currency || '/month ▲).'
-        else ''
-      end as reason
+      volume_id || ' type is ' || volume_type as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -184,7 +181,8 @@ control "unattached_ebs_volumes" {
         v.region,
         v.account_id,
         v.attachments,
-        (p.price_per_unit::numeric * v.size) as net_savings,
+        case when jsonb_array_length(attachments) > 0 then 0.0 else
+        (p.price_per_unit::numeric * v.size) end as net_savings,
         p.currency
       from
         volume_list as v
@@ -207,8 +205,9 @@ control "unattached_ebs_volumes" {
       end as status,
       case
         when jsonb_array_length(attachments) > 0 then volume_id || ' has attachments.'
-        else volume_id || ' has no attachments (' || net_savings::numeric(10,2) || ' ' || currency ||'/month ▲).'
+        else volume_id || ' has no attachments.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -308,7 +307,11 @@ control "low_iops_ebs_volumes" {
         v.iops,
         v.region,
         v.account_id,
-        (p.price_per_unit::numeric * v.size) as net_savings,
+        case
+          when v.volume_type not in ('io1', 'io2') then 0.0
+          when v.iops <= 3000 then (p.price_per_unit::numeric * v.size)
+          else 0.0
+        end as net_savings,
         p.currency
       from
         volume_list as v
@@ -332,9 +335,10 @@ control "low_iops_ebs_volumes" {
       end as status,
       case
         when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
-        when iops <= 3000 then volume_id || ' only has ' || iops || ' iops (' || net_savings::numeric(10,2) || ' ' || currency || '/month ▲).'
+        when iops <= 3000 then volume_id || ' only has ' || iops || ' iops .'
         else volume_id || ' has ' || iops || ' iops.'
       end as reason
+       ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

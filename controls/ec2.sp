@@ -66,9 +66,9 @@ control "ec2_application_lb_unused" {
   sql = <<-EOQ
     with alb_regions as (
       select
-        distinct region
+        distinct a.region
       from
-        aws_ec2_application_load_balancer
+        aws_ec2_application_load_balancer as a
     ),application_load_balancer_pricing as (
       select
         r.region,
@@ -84,13 +84,8 @@ control "ec2_application_lb_unused" {
           }' :: jsonb
           and p.attributes ->> 'regionCode' = r.region
       group by r.region, p.price_per_unit, p.currency
-    ), application_load_balancer_pricing_daily as (
-      select
-        24*alb_price_hrs as daily_price,
-        currency
-      from
-        application_load_balancer_pricing
-    ), target_resource as (
+    ) ,
+    target_resource as (
       select
         load_balancer_arn,
         target_health_descriptions,
@@ -98,23 +93,37 @@ control "ec2_application_lb_unused" {
       from
         aws_ec2_target_group,
         jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
+    ), application_load_balancer_pricing_monthly as (
+      select
+        case when b.load_balancer_arn is null then 30*24*alb_price_hrs  else 0.0 end as net_savings,
+        currency,
+        a.arn as alb,
+        b.load_balancer_arn as target_lb,
+        b.target_type as target_type,
+        a.tags as tags,
+        a.account_id,
+        a.region,
+        a.title as title
+      from
+        aws_ec2_application_load_balancer a
+        left join target_resource b on a.arn = b.load_balancer_arn,
+        application_load_balancer_pricing
     )
     select
-      a.arn as resource,
+      distinct alb as resource,
       case
-        when b.load_balancer_arn is null then 'alarm'
+        when target_lb is null then 'alarm'
         else 'ok'
       end as status,
       case
-        when b.load_balancer_arn is null then a.title || ' has no target registered (' ||  daily_price::numeric(10,2) || ' ' || currency || '/day).'
-        else a.title || ' has registered target of type ' || b.target_type || '.'
+        when target_lb is null then title || ' has no target registered.'
+        else title || ' has registered target of type ' || target_type || '.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
-      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
+      ${local.common_dimensions_sql}
     from
-      aws_ec2_application_load_balancer a
-      left join target_resource b on a.arn = b.load_balancer_arn,
-      application_load_balancer_pricing_daily
+      application_load_balancer_pricing_monthly
   EOQ
 }
 
@@ -149,9 +158,16 @@ control "ec2_classic_lb_unused" {
       group by r.region, p.price_per_unit, p.currency
     ), clb_pricing_daily as (
       select
-        24*clb_price_hrs as daily_price,
-        currency
+        case when jsonb_array_length(instances) > 0 then 0.0 else 30*24*clb_price_hrs end as net_savings,
+        currency,
+        arn,
+        tags,
+        account_id,
+        a.region,
+        instances,
+        title
       from
+        aws_ec2_classic_load_balancer as a,
         clb_pricing
     )
     select
@@ -162,12 +178,12 @@ control "ec2_classic_lb_unused" {
       end as status,
       case
         when jsonb_array_length(instances) > 0 then title || ' has registered instances.'
-        else title || ' has no instances registered (' ||  daily_price::numeric(10,2) || ' ' || currency || '/day).'
+        else title || ' has no instances registered.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ec2_classic_load_balancer,
       clb_pricing_daily;
   EOQ
 }
@@ -202,37 +218,47 @@ control "ec2_gateway_lb_unused" {
           }' :: jsonb
           and p.attributes ->> 'regionCode' = r.region
       group by r.region, p.price_per_unit, p.currency
-    ), glb_pricing_daily as (
-      select
-        24*clb_price_hrs as daily_price,
-        currency
-      from
-        glb_pricing
     ), target_resource as (
-        select
-          load_balancer_arn,
-          target_health_descriptions,
-          target_type
-        from
-          aws_ec2_target_group,
-          jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
+      select
+        load_balancer_arn,
+        target_health_descriptions,
+        target_type
+      from
+        aws_ec2_target_group,
+        jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
+    ), glb_pricing_monthly as (
+      select
+        case when jsonb_array_length(b.target_health_descriptions) = 0 then 30*24*clb_price_hrs  else 0.0 end as net_savings,
+        currency,
+        g.arn as arn,
+        b.load_balancer_arn as target_lb,
+        b.target_health_descriptions as target_health_descriptions,
+        b.target_type as target_type,
+        g.tags as tags,
+        g.account_id,
+        g.region,
+        g.title as title
+      from
+        aws_ec2_gateway_load_balancer as g
+        left join target_resource b on g.arn = b.load_balancer_arn,
+        glb_pricing
     )
     select
-      a.arn as resource,
+      arn as resource,
+      target_type,
       case
-        when jsonb_array_length(b.target_health_descriptions) = 0 then 'alarm'
+        when jsonb_array_length(target_health_descriptions) = 0 then 'alarm'
         else 'ok'
       end as status,
       case
-        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered (' ||  daily_price::numeric(10,2) || ' ' || currency || '/day).'
-        else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
+        when jsonb_array_length(target_health_descriptions) = 0 then title || ' has no target registered.'
+        else title || ' has registered target.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
-      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
+      ${local.common_dimensions_sql}
     from
-      aws_ec2_gateway_load_balancer a
-      left join target_resource b on a.arn = b.load_balancer_arn,
-      glb_pricing_daily;
+      glb_pricing_monthly;
   EOQ
 
 }
@@ -266,13 +292,7 @@ control "ec2_network_lb_unused" {
           }' :: jsonb
           and p.attributes ->> 'regionCode' = r.region
       group by r.region, p.price_per_unit, p.currency
-    ), network_load_balancer_pricing_daily as (
-      select
-        24*alb_price_hrs as daily_price,
-        currency
-      from
-        network_load_balancer_pricing
-    ), target_resource as (
+    ),target_resource as (
       select
         load_balancer_arn,
         target_health_descriptions,
@@ -280,23 +300,38 @@ control "ec2_network_lb_unused" {
       from
         aws_ec2_target_group,
         jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
+    ),network_load_balancer_pricing_monthly as (
+      select
+        case when jsonb_array_length(b.target_health_descriptions) = 0  then 24*alb_price_hrs else 0.0 end as net_savings,
+        currency,
+        a.arn as arn,
+        b.load_balancer_arn as target_lb,
+        b.target_health_descriptions as target_health_descriptions,
+        b.target_type as target_type,
+        a.tags as tags,
+        a.account_id,
+        a.region,
+        a.title as title
+      from
+        aws_ec2_network_load_balancer a
+        left join target_resource b on a.arn = b.load_balancer_arn,
+        network_load_balancer_pricing
     )
     select
-      a.arn as resource,
+      arn as resource,
       case
-        when jsonb_array_length(b.target_health_descriptions) = 0 then 'alarm'
+        when jsonb_array_length(target_health_descriptions) = 0 then 'alarm'
         else 'ok'
       end as status,
       case
-        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered (' ||  daily_price::numeric(10,2) || ' ' || currency || '/day).'
-        else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
+        when jsonb_array_length(target_health_descriptions) = 0 then title || ' has no target registered.'
+        else title || ' has registered target.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
-      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
+      ${local.common_dimensions_sql}
     from
-      aws_ec2_network_load_balancer a
-      left join target_resource b on a.arn = b.load_balancer_arn,
-      network_load_balancer_pricing_daily;
+      network_load_balancer_pricing_monthly
   EOQ
 }
 

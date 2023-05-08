@@ -143,7 +143,7 @@ control "lambda_function_with_graviton2" {
           and p.attributes ->> 'regionCode' = r.region
           and p.begin_range = '0' -- calculating based on the Tier-1 price
       group by r.region, p.currency
-    ),
+    ) ,
     calculate_savings_per_function as (
       select
         l.title,
@@ -152,7 +152,7 @@ control "lambda_function_with_graviton2" {
         l.region,
         l.account_id,
         case
-          when l.architecture = 'x86_64' then (p.x86_64_price::float - p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24
+          when l.architecture = 'x86_64' then (p.x86_64_price::float - p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
           else 0
         end as net_savings,
         p.currency
@@ -170,6 +170,7 @@ control "lambda_function_with_graviton2" {
         when architecture = 'arm64' then title || ' is using Graviton2 processor.'
         else title || ' is not using Graviton2 processor (' || net_savings::numeric(10,2) || ' ' || currency || '/day).'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

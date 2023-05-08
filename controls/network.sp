@@ -51,28 +51,36 @@ control "unattached_eips" {
         where
         p.begin_range = '1'
       group by r.region, p.price_per_unit, p.currency
-    ),
-    eip_pricing_daily as (
+    ), eip_pricing_monthly as (
       select
-        24*eip_price_hrs as daily_price,
-        currency
+        case when association_id is null then 30*24*eip_price_hrs else 0.0 end as net_savings,
+        currency,
+        e.arn,
+        e.tags,
+        e.account_id,
+        e.region,
+        e.association_id,
+        e.title,
+        e.private_ip_address,
+        e.public_ip
       from
+        aws_vpc_eip as e,
         eip_pricing
     )
     select
-      'arn:' || partition || ':ec2:' || region || ':' || account_id || ':eip/' || allocation_id as resource,
+      arn as resource,
       case
         when association_id is null then 'alarm'
         else 'ok'
       end as status,
       case
-        when association_id is null then public_ip || ' has no association (' || daily_price::numeric(10,2) || ' ' || currency || '/day).'
+        when association_id is null then public_ip || ' has no association.'
         else public_ip || ' associated with ' || private_ip_address || '.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.common_dimensions_sql}
     from
-      aws_vpc_eip,
-      eip_pricing_daily
+      eip_pricing_monthly
   EOQ
 
 }
@@ -86,7 +94,6 @@ control "vpc_nat_gateway_unused" {
   })
 
   sql = <<-EOQ
-
     with nat_gateway_regions as (
       select
         distinct region
@@ -108,49 +115,41 @@ control "vpc_nat_gateway_unused" {
           }' :: jsonb
           and p.attributes ->> 'regionCode' = r.region
       group by r.region, p.price_per_unit, p.currency
-    ),
-    nat_gateway_pricing_daily as (
+    ), nat_gateway_pricing_monthly as (
       select
-        24*alb_price_hrs as daily_price,
-        currency
-      from
-        nat_gateway_pricing
-    ),
-    target_resource as (
-      select
-        load_balancer_arn,
-        target_health_descriptions,
-        target_type
-      from
-        aws_ec2_target_group,
-        jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
-    ),
-    instance_data as (
-      select
+        case when nat.state = 'available' and i.subnet_id is null then  30*24*alb_price_hrs else 0.0 end as net_savings,
         instance_id,
-        subnet_id,
-        instance_state
+        currency,
+        i.subnet_id,
+        i.instance_state,
+        nat.arn,
+        nat.region,
+        nat.account_id,
+        nat.title,
+        nat.state
       from
-        aws_ec2_instance
+        aws_vpc_nat_gateway as nat
+        left join aws_ec2_instance as i on nat.subnet_id = i.subnet_id,
+        nat_gateway_pricing
     )
     select
-      nat.arn as resource,
+      arn as resource,
       case
-        when nat.state <> 'available' then 'alarm'
-        when i.subnet_id is null then 'alarm'
-        when i.instance_state <> 'running' then 'alarm'
+        when state <> 'available' then 'alarm'
+        when subnet_id is null then 'alarm'
+        when instance_state <> 'running' then 'alarm'
         else 'ok'
       end as status,
       case
-        when nat.state <> 'available' then nat.title || ' in ' || nat.state || ' state.'
-        when i.subnet_id is null then nat.title || ' not in-use (' ||  (select daily_price::numeric(10,2) || ' ' || currency from nat_gateway_pricing_daily) || ').'
-        when i.instance_state <> 'running' then nat.title || ' associated with ' || i.instance_id || ', which is in ' || i.instance_state || ' state.'
-        else nat.title || ' in-use.'
+        when state <> 'available' then title || ' in ' || state || ' state.'
+        when subnet_id is null then title || ' not in-use.'
+        when instance_state <> 'running' then title || ' associated with ' || instance_id || ', which is in ' ||  instance_state || ' state.'
+        else title || ' in-use.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
-      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "nat.")}
+      ${local.common_dimensions_sql}
     from
-      aws_vpc_nat_gateway as nat
-      left join instance_data as i on nat.subnet_id = i.subnet_id;
+      nat_gateway_pricing_monthly
   EOQ
 }
