@@ -168,7 +168,7 @@ control "lambda_function_with_graviton2" {
       end as status,
       case
         when architecture = 'arm64' then title || ' is using Graviton2 processor.'
-        else title || ' is not using Graviton2 processor (' || net_savings::numeric(10,2) || ' ' || currency || '/day).'
+        else title || ' is not using Graviton2 processor.'
       end as reason
       ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
