@@ -95,7 +95,7 @@ control "ec2_application_lb_unused" {
         jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
     ), application_load_balancer_pricing_monthly as (
       select
-        case when b.load_balancer_arn is null then 30*24*alb_price_hrs  else 0.0 end as net_savings,
+        case when b.load_balancer_arn is null then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'  else (0.0)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
         currency,
         a.arn as alb,
         b.load_balancer_arn as target_lb,
@@ -158,7 +158,7 @@ control "ec2_classic_lb_unused" {
       group by r.region, p.price_per_unit, p.currency
     ), clb_pricing_daily as (
       select
-        case when jsonb_array_length(instances) > 0 then 0.0 else 30*24*clb_price_hrs end as net_savings,
+        case when jsonb_array_length(instances) > 0 then (0.0)::numeric(10,2) || ' ' || currency || '/month' else (30*24*clb_price_hrs)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
         currency,
         arn,
         tags,
@@ -178,7 +178,7 @@ control "ec2_classic_lb_unused" {
       end as status,
       case
         when jsonb_array_length(instances) > 0 then title || ' has registered instances.'
-        else title || ' has no instances registered.'
+        else title || ' has no registered instance.'
       end as reason
       ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
@@ -228,7 +228,9 @@ control "ec2_gateway_lb_unused" {
         jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
     ), glb_pricing_monthly as (
       select
-        case when jsonb_array_length(b.target_health_descriptions) = 0 then 30*24*clb_price_hrs  else 0.0 end as net_savings,
+        case
+          when jsonb_array_length(b.target_health_descriptions) = 0 then (30*24*clb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
+          else (0.0)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
         currency,
         g.arn as arn,
         b.load_balancer_arn as target_lb,
@@ -302,7 +304,9 @@ control "ec2_network_lb_unused" {
         jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
     ),network_load_balancer_pricing_monthly as (
       select
-        case when jsonb_array_length(b.target_health_descriptions) = 0  then 24*alb_price_hrs else 0.0 end as net_savings,
+        case
+          when jsonb_array_length(b.target_health_descriptions) = 0  then (24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
+          else (0.0)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
         currency,
         a.arn as arn,
         b.load_balancer_arn as target_lb,

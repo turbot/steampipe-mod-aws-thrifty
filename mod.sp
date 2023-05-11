@@ -38,7 +38,7 @@ locals {
   EOQ
 
   common_dimensions_cost_qualifier_sql = <<-EOQ
-  %{~ if contains(var.common_dimensions, "cost") }, (__QUALIFIER__net_savings)::numeric(10,2) || ' ' || currency || '/month'%{ endif ~}
+  %{~ if contains(var.common_dimensions, "cost") }, __QUALIFIER__net_savings%{ endif ~}
   EOQ
   # Local internal variable to build the SQL select clause for tag
   # dimensions. Do not edit directly.
