@@ -2,7 +2,7 @@
 
 _Bug fixes_
 
-- Fixed inline query of `ebs_snapshot_max_age` control by adding the correct table name. ([#129](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/129))
+- Fixed the inline query of `ebs_snapshot_max_age` control to correctly query `aws_ebs_snapshot` table instead of `aws_secretsmanager_secret` table. ([#129](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/129))
 
 ## v0.20 [2023-03-22]
 
