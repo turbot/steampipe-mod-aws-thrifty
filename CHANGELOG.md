@@ -1,3 +1,9 @@
+## v0.21 [2023-05-11]
+
+_Bug fixes_
+
+- Fixed the inline query of `ebs_snapshot_max_age` control to correctly query `aws_ebs_snapshot` table instead of `aws_secretsmanager_secret` table. ([#129](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/129))
+
 ## v0.20 [2023-03-22]
 
 _Enhancements_
