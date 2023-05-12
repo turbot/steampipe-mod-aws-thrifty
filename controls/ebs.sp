@@ -106,7 +106,7 @@ control "gp2_volumes" {
         v.account_id,
         case
           when v.volume_type = 'gp2' then ((p.gp2_price::float - p.gp3_price::float) * v.size)::numeric(10,2) || ' ' || currency || '/month'
-          else 0::numeric(10,2) || ' ' || currency || '/month'
+          else ''
         end as net_savings,
         p.currency
       from
@@ -181,7 +181,7 @@ control "unattached_ebs_volumes" {
         v.region,
         v.account_id,
         v.attachments,
-        case when jsonb_array_length(attachments) > 0 then (0.0)::numeric(10,2) || ' ' || currency || '/month' else
+        case when jsonb_array_length(attachments) > 0 then '' else
         (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
         p.currency
       from
@@ -308,9 +308,9 @@ control "low_iops_ebs_volumes" {
         v.region,
         v.account_id,
         case
-          when v.volume_type not in ('io1', 'io2') then (0.0)::numeric(10,2) || ' ' || currency || '/month'
+          when v.volume_type not in ('io1', 'io2') then ''
           when v.iops <= 3000 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month'
-          else (0.0)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
         end as net_savings,
         p.currency
       from

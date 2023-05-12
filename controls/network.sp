@@ -55,7 +55,8 @@ control "unattached_eips" {
       select
         case
           when association_id is null then (30*24*eip_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-          else (0.0)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
+          else ''
+        end as net_savings,
         currency,
         e.arn,
         e.tags,
@@ -121,7 +122,8 @@ control "vpc_nat_gateway_unused" {
       select
         case
           when nat.state = 'available' and i.subnet_id is null then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-          else (0.0)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
+          else ''
+        end as net_savings,
         instance_id,
         currency,
         i.subnet_id,

@@ -153,7 +153,7 @@ control "lambda_function_with_graviton2" {
         l.account_id,
         case
           when l.architecture = 'x86_64' then (p.x86_64_price::float - p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
-          else 0
+          else ''
         end as net_savings,
         p.currency
       from
