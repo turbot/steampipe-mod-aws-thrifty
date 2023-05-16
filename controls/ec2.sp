@@ -254,7 +254,6 @@ control "ec2_gateway_lb_unused" {
     )
     select
       arn as resource,
-      target_type,
       case
         when jsonb_array_length(target_health_descriptions) = 0 then 'alarm'
         else 'ok'

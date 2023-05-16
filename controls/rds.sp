@@ -94,6 +94,65 @@ control "latest_rds_instance_types" {
   })
 
   sql = <<-EOQ
+    with rds_instance as (
+      select
+        class,
+        region,
+        multi_az,
+        engine,
+        case
+          when class like '%.t2.%' then replace(class, 't2', 't3')
+          when class like '%.m3.%' then replace(class, 'm3', 'm5')
+          when class like '%.m4.%' then replace(class, 'm4', 'm5')
+        end as next_gen_class
+      from
+        aws_rds_db_instance
+    ), rds_instance_pricing as (
+      select
+        r.region,
+        p.price_per_unit::numeric as rds_instance_price_per_hour_old_gen
+      from
+        aws_pricing_product as p
+        join rds_instance as r on
+        p.service_code = 'AmazonRDS'
+        and p.attributes ->> 'regionCode' = r.region
+        and p.term = 'OnDemand'
+        and p.attributes ->> 'instanceType' = r.class
+        and replace(r.engine, '-', ' ') = lower(p.attributes ->>  'databaseEngine')
+      group by r.region, p.price_per_unit
+    ), rds_instance_pricing_next_gen as (
+        select
+          r.region,
+          p.currency,
+          p.price_per_unit::numeric as rds_instance_price_per_hour_next_gen
+        from
+          aws_pricing_product as p
+          join rds_instance as r on
+          p.service_code = 'AmazonRDS'
+          and p.attributes ->> 'regionCode' = r.region
+          and p.term = 'OnDemand'
+          and next_gen_class = p.attributes ->> 'instanceType'
+          and replace(r.engine, '-', ' ') = lower(p.attributes ->> 'databaseEngine')
+          and p.attributes ->> 'storage' = 'EBS Only'
+        group by r.region, p.price_per_unit, p.currency
+    ), rds_instance_pricing_monthly as (
+      select
+        case
+          when class like '%.t2.%' or class like '%.m3.%' or class like '%.m4.%' then ((30*24*rds_instance_price_per_hour_old_gen) - (30*24*rds_instance_price_per_hour_next_gen))::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings,
+        currency,
+        i.arn as arn,
+        i.tags as tags,
+        i.account_id,
+        i.region,
+        i.title as title,
+        i.class as class
+      from
+        aws_rds_db_instance as i,
+        rds_instance_pricing_next_gen,
+        rds_instance_pricing
+    )
     select
       arn as resource,
       case
@@ -105,10 +164,11 @@ control "latest_rds_instance_types" {
         else 'info'
       end as status,
       title || ' has a ' || class || ' instance class.' as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_rds_db_instance;
+      rds_instance_pricing_monthly;
   EOQ
 }
 

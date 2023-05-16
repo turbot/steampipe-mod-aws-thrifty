@@ -39,20 +39,56 @@ control "stale_dynamodb_table_data" {
   })
 
   sql = <<-EOQ
+    with dynamodb_regions as (
+      select
+        distinct region
+      from
+        aws_dynamodb_table
+    ), dynamodb_pricing as (
+      select
+        r.region,
+        p.currency,
+        p.price_per_unit::numeric as dynamodb_price_gb_per_month
+      from
+        aws_pricing_product as p
+        join dynamodb_regions as r on
+          p.service_code = 'AmazonDynamoDB'
+          and p.attributes ->> 'regionCode' = r.region
+          and p.attributes ->> 'usagetype' = 'IA-TimedStorage-ByteHrs'
+          and term = 'OnDemand'
+      group by r.region, p.price_per_unit, p.currency
+    ), dynamodb_pricing_monthly as (
+      select
+        case
+          when latest_stream_label is null then ''
+          else ((t.table_size_bytes/1024*1024*1024)*dynamodb_price_gb_per_month)::numeric(10,2) || ' ' || currency || 'GB/month'
+        end as net_savings,
+        currency,
+        t.arn as arn,
+        t.latest_stream_label as latest_stream_label,
+        t.tags as tags,
+        t.account_id,
+        t.region,
+        t.title as title, 1024*1024*1024
+      from
+        aws_dynamodb_table as t,
+        dynamodb_pricing
+    )
     select
-      'arn:' || partition || ':dynamodb:' || region || ':' || account_id || ':table/' || name as resource,
+      arn as resource,
       case
         when latest_stream_label is null then 'info'
         when date_part('day', now() - (latest_stream_label::timestamptz)) > $1 then 'alarm'
         else 'ok'
       end as status,
       case
-        when latest_stream_label is null then name || ' is not configured for change data capture.'
-        else name || ' was changed ' || date_part('day', now() - (latest_stream_label::timestamptz)) || ' days ago.'
+        when latest_stream_label is null then title || ' is not configured for change data capture.'
+        else title || ' was changed ' || date_part('day', now() - (latest_stream_label::timestamptz)) || ' days ago.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_dynamodb_table;
+      dynamodb_pricing_monthly;
   EOQ
 }
