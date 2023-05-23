@@ -311,7 +311,7 @@ control "ec2_network_lb_unused" {
     ),network_load_balancer_pricing_monthly as (
       select
         case
-          when jsonb_array_length(b.target_health_descriptions) = 0 then (24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
+          when jsonb_array_length(b.target_health_descriptions) = 0 then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
           else ''
         end as net_savings,
         currency,

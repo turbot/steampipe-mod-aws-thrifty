@@ -48,7 +48,37 @@ control "elasticache_cluster_long_running" {
     class = "managed"
   })
   sql = <<-EOQ
-    with filter_clusters as (
+    with elasticache_cluster_list as (
+      select
+        arn,
+        cache_node_type,
+        coalesce(replication_group_id,cache_cluster_id) as cache_cluster_id,
+        engine,
+        region,
+        account_id,
+        title
+      from
+        aws_elasticache_cluster
+    ), elasticache_cluster_pricing as (
+      select
+        e.arn,
+        e.cache_node_type,
+        e.cache_cluster_id as cache_cluster_id,
+        e.engine,
+        e.region,
+        e.account_id,
+        e.title,
+        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
+        p.currency
+      from
+        elasticache_cluster_list as e
+        left join aws_pricing_product as p on
+        p.service_code = 'AmazonElastiCache'
+        and p.attributes ->> 'regionCode' = e.region
+        and p.attributes ->> 'instanceType' = e.cache_node_type
+        and lower(p.attributes ->> 'cacheEngine') = lower(e.engine)
+        and p.term = 'OnDemand'
+    ), filter_clusters as (
     select
       distinct c.replication_group_id as name,
       c.cache_cluster_create_time,
@@ -75,16 +105,18 @@ control "elasticache_cluster_long_running" {
       engine = 'memcached'
   )
   select
-    'arn:' || partition || ':elasticache:' || region || ':' || account_id || ':cluster:' || name as resource,
+    p.arn as resource,
     case
       when date_part('day', now() - cache_cluster_create_time) > $1 then 'alarm'
       when date_part('day', now() - cache_cluster_create_time) > $2 then 'info'
       else 'ok'
     end as status,
-    name || ' ' || engine || ' created on ' || cache_cluster_create_time || ' (' || date_part('day', now() - cache_cluster_create_time) || ' days).'
+    name || ' ' || c.engine || ' created on ' || cache_cluster_create_time || ' (' || date_part('day', now() - cache_cluster_create_time) || ' days).'
     as reason
-    ${local.common_dimensions_sql}
+    ${local.common_dimensions_cost_sql}
+    ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "c.")}
   from
-    filter_clusters;
+    filter_clusters as c
+    left join elasticache_cluster_pricing as p on c.name =  p.cache_cluster_id
   EOQ
 }

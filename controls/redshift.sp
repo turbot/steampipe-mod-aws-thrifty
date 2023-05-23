@@ -63,6 +63,36 @@ control "redshift_cluster_max_age" {
   })
 
   sql = <<-EOQ
+    with redshift_cluster_list as (
+      select
+        arn,
+        node_type,
+        region,
+        cluster_create_time,
+        account_id,
+        title
+      from
+        aws_redshift_cluster
+    ),
+    redshift_pricing as (
+      select
+        r.arn,
+        r.node_type,
+        r.region,
+        r.cluster_create_time,
+        r.account_id,
+        r.title,
+        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
+        p.currency
+      from
+        redshift_cluster_list as r
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonRedshift'
+          and p.attributes ->> 'regionCode' = r.region
+          and p.attributes ->> 'instanceType' = r.node_type
+          and p.term = 'OnDemand'
+          and p.attributes ->> 'usagetype' like 'Node:%'
+    )
     select
       arn as resource,
       case
@@ -72,10 +102,11 @@ control "redshift_cluster_max_age" {
       end as status,
       title || ' created on ' || cluster_create_time || ' (' || date_part('day', now() - cluster_create_time) || ' days).'
       as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_redshift_cluster;
+      redshift_pricing;
   EOQ
 }
 
@@ -88,50 +119,77 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
   })
 
   sql = <<-EOQ
-    with cluster_pause_enabled as (
+    with redshift_cluster_list as (
+      select
+        arn,
+        node_type,
+        region,
+        cluster_create_time,
+        account_id,
+        title
+      from
+        aws_redshift_cluster
+    ), redshift_pricing as (
+      select
+        r.arn,
+        r.node_type,
+        r.region,
+        r.cluster_create_time,
+        r.account_id,
+        r.title,
+        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
+        p.currency
+      from
+        redshift_cluster_list as r
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonRedshift'
+          and p.attributes ->> 'regionCode' = r.region
+          and p.attributes ->> 'instanceType' = r.node_type
+          and p.term = 'OnDemand'
+          and p.attributes ->> 'usagetype' like 'Node:%'
+    ), cluster_pause_enabled as (
+      select
+        arn,
+        s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' as pause_cluster
+      from
+        aws_redshift_cluster,
+        jsonb_array_elements(scheduled_actions) as s
+      where
+        s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' is not null
+    ), cluster_resume_enabled as (
+      select
+        arn,
+        s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' as resume_cluster
+      from
+        aws_redshift_cluster,
+        jsonb_array_elements(scheduled_actions) as s
+      where
+        s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' is not null
+    ), pause_and_resume_enabled as (
+      select
+        p.arn
+      from
+        cluster_pause_enabled as p
+        left join cluster_resume_enabled as r on r.arn = p.arn
+      where
+        p.pause_cluster = r.resume_cluster
+    )
     select
-      arn,
-      s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' as pause_cluster
-    from
-      aws_redshift_cluster,
-      jsonb_array_elements(scheduled_actions) as s
-    where
-      s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' is not null
-  ),
-  cluster_resume_enabled as (
-    select
-      arn,
-      s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' as resume_cluster
-    from
-      aws_redshift_cluster,
-      jsonb_array_elements(scheduled_actions) as s
-    where
-      s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' is not null
-  ),
-  pause_and_resume_enabled as (
-    select
-      p.arn
-    from
-      cluster_pause_enabled as p
-      left join cluster_resume_enabled as r on r.arn = p.arn
-    where
-      p.pause_cluster = r.resume_cluster
-  )
-  select
-    a.arn as resource,
-    case
-      when b.arn is not null then 'ok'
-      else 'info'
-    end as status,
-    case
-      when b.arn is not null then a.title || ' pause-resume action enabled.'
-      else a.title || ' pause-resume action not enabled.'
-    end as reason
+      a.arn as resource,
+      case
+        when b.arn is not null then 'ok'
+        else 'info'
+      end as status,
+      case
+        when b.arn is not null then a.title || ' pause-resume action enabled.'
+        else a.title || ' pause-resume action not enabled.'
+      end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
-  from
-    aws_redshift_cluster as a
-    left join pause_and_resume_enabled as b on a.arn = b.arn;
+    from
+      redshift_pricing as a
+      left join pause_and_resume_enabled as b on a.arn = b.arn
   EOQ
 }
 
@@ -155,7 +213,37 @@ control "redshift_cluster_low_utilization" {
   })
 
   sql = <<-EOQ
-    with redshift_cluster_utilization as (
+    with redshift_cluster_list as (
+      select
+        arn,
+        cluster_identifier,
+        node_type,
+        region,
+        cluster_create_time,
+        account_id,
+        title
+      from
+        aws_redshift_cluster
+    ), redshift_pricing as (
+      select
+        r.arn,
+        r.cluster_identifier,
+        r.node_type,
+        r.region,
+        r.cluster_create_time,
+        r.account_id,
+        r.title,
+        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
+        p.currency
+      from
+        redshift_cluster_list as r
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonRedshift'
+          and p.attributes ->> 'regionCode' = r.region
+          and p.attributes ->> 'instanceType' = r.node_type
+          and p.term = 'OnDemand'
+          and p.attributes ->> 'usagetype' like 'Node:%'
+    ), redshift_cluster_utilization as (
       select
         cluster_identifier,
         round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
@@ -179,10 +267,11 @@ control "redshift_cluster_low_utilization" {
         when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
         else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_redshift_cluster as i
+      redshift_pricing as i
       left join redshift_cluster_utilization as u on u.cluster_identifier = i.cluster_identifier;
   EOQ
 }

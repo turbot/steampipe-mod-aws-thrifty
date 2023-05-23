@@ -25,7 +25,7 @@ variable "ebs_volume_max_iops" {
 variable "ebs_volume_max_size_gb" {
   type        = number
   description = "The maximum size (GB) allowed for volumes."
-  default     = 100
+  default     = 7
 }
 
 locals {
@@ -230,6 +230,40 @@ control "large_ebs_volumes" {
   })
 
   sql = <<-EOQ
+    with volume_list as (
+      select
+        arn,
+        volume_id,
+        volume_type,
+        size,
+        attachments,
+        region,
+        account_id
+      from
+        aws_ebs_volume
+    ),
+    volume_pricing as (
+      select
+        v.arn,
+        v.volume_id,
+        v.size,
+        v.region,
+        v.account_id,
+        (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
+        p.currency
+      from
+        volume_list as v
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonEC2'
+          and p.filters in (
+            '{"volumeType": "General Purpose"}' :: jsonb,
+            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
+            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
+            '{"volumeType": "Cold HDD"}' :: jsonb
+          )
+          and p.attributes ->> 'regionCode' = v.region
+          and p.attributes ->> 'volumeApiName' = v.volume_type
+    )
     select
       arn as resource,
       case
@@ -237,10 +271,11 @@ control "large_ebs_volumes" {
         else 'alarm'
       end as status,
       volume_id || ' is ' || size || 'GB.' as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_volume;
+      volume_pricing;
   EOQ
 }
 

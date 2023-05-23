@@ -70,6 +70,38 @@ control "long_running_rds_db_instances" {
   })
 
   sql = <<-EOQ
+    with rds_instance as (
+      select
+        arn,
+        class,
+        create_time,
+        region,
+        multi_az,
+        storage_type,
+        engine,
+        account_id,
+        title
+      from
+        aws_rds_db_instance
+    ), rds_instance_pricing as (
+      select
+        r.arn,
+        r.region,
+        r.account_id,
+        r.title,
+        r.create_time,
+        (p.price_per_unit::numeric)*24*30 as net_savings
+      from
+        aws_pricing_product as p
+        join rds_instance as r on
+        p.service_code = 'AmazonRDS'
+        and p.attributes ->> 'regionCode' = r.region
+        and p.term = 'OnDemand'
+        and p.attributes ->> 'instanceType' = r.class
+        and p.attributes ->> 'usagetype'  like 'InstanceUsage:%'
+        and replace(r.engine, '-', ' ') = lower(p.attributes ->>  'databaseEngine')
+      group by r.region, p.price_per_unit, r.arn, r.account_id, r.title, r.create_time
+    )
     select
       arn as resource,
       case
@@ -78,10 +110,11 @@ control "long_running_rds_db_instances" {
         else 'ok'
       end as status,
       title || ' has been in use for ' || date_part('day', now()-create_time) || ' days.' as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_rds_db_instance;
+      rds_instance_pricing;
   EOQ
 }
 
@@ -187,7 +220,40 @@ control "rds_db_low_connection_count" {
   })
 
   sql = <<-EOQ
-    with rds_db_usage as (
+    with rds_instance as (
+      select
+        db_instance_identifier,
+        arn,
+        class,
+        create_time,
+        region,
+        multi_az,
+        storage_type,
+        engine,
+        account_id,
+        title
+      from
+        aws_rds_db_instance
+    ), rds_instance_pricing as (
+      select
+        r.db_instance_identifier,
+        r.arn,
+        r.region,
+        r.account_id,
+        r.title,
+        r.create_time,
+        (p.price_per_unit::numeric)*24*30 as net_savings
+      from
+        aws_pricing_product as p
+        join rds_instance as r on
+        p.service_code = 'AmazonRDS'
+        and p.attributes ->> 'regionCode' = r.region
+        and p.term = 'OnDemand'
+        and p.attributes ->> 'instanceType' = r.class
+        and p.attributes ->> 'usagetype'  like 'InstanceUsage:%'
+        and replace(r.engine, '-', ' ') = lower(p.attributes ->>  'databaseEngine')
+      group by r.region, p.price_per_unit, r.arn, r.account_id, r.title, r.create_time, r.db_instance_identifier
+    ), rds_db_usage as (
       select
         db_instance_identifier,
         round(sum(maximum)/count(maximum)) as avg_max,
@@ -212,10 +278,11 @@ control "rds_db_low_connection_count" {
         when avg_max = 0 then title || ' has not been connected to in the last ' || days || ' days.'
         else title || ' is averaging ' || avg_max || ' max connections/day in the last ' || days || ' days.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_rds_db_instance i
+      rds_instance_pricing as i
       left join rds_db_usage as u on u.db_instance_identifier = i.db_instance_identifier;
   EOQ
 }
