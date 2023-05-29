@@ -35,19 +35,19 @@ locals {
 }
 
 benchmark "ebs" {
-  title         = "EBS Checks"
+  title         = "EBS Cost Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
   documentation = file("./controls/docs/ebs.md")
   children = [
     control.ebs_snapshot_max_age,
-    control.ebs_volumes_on_stopped_instances,
-    control.ebs_with_low_usage,
-    control.gp2_volumes,
-    control.high_iops_ebs_volumes,
-    control.io1_volumes,
-    control.large_ebs_volumes,
-    control.low_iops_ebs_volumes,
-    control.unattached_ebs_volumes
+    control.ebs_volume_on_stopped_instances,
+    control.ebs_volume_low_usage,
+    control.ebs_volume_using_gp2,
+    control.ebs_volume_high_iops,
+    control.ebs_volume_using_io1,
+    control.ebs_volume_large,
+    control.ebs_volume_low_iops,
+    control.ebs_volume_unattached
   ]
 
   tags = merge(local.ebs_common_tags, {
@@ -55,12 +55,12 @@ benchmark "ebs" {
   })
 }
 
-control "gp2_volumes" {
+control "ebs_volume_using_gp2" {
   title       = "Still using gp2 EBS volumes? Should use gp3 instead."
   description = "EBS gp2 volumes are more costly and lower performance than gp3."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
-    class = "deprecated"
+    class = "generation_gaps"
   })
 
   sql = <<-EOQ
@@ -129,12 +129,12 @@ control "gp2_volumes" {
   EOQ
 }
 
-control "io1_volumes" {
+control "ebs_volume_using_io1" {
   title       = "Still using io1 EBS volumes? Should use io2 instead."
   description = "io1 Volumes are less reliable than io2 for same cost."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
-    class = "deprecated"
+    class = "generation_gaps"
   })
 
   sql = <<-EOQ
@@ -153,7 +153,7 @@ control "io1_volumes" {
   EOQ
 }
 
-control "unattached_ebs_volumes" {
+control "ebs_volume_unattached" {
   title       = "Are there any unattached EBS volumes?"
   description = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
   severity    = "low"
@@ -215,7 +215,7 @@ control "unattached_ebs_volumes" {
   EOQ
 }
 
-control "large_ebs_volumes" {
+control "ebs_volume_large" {
   title       = "EBS volumes should be resized if too large"
   description = "Large EBS volumes are unusual, expensive and should be reviewed."
   severity    = "low"
@@ -226,7 +226,7 @@ control "large_ebs_volumes" {
   }
 
   tags = merge(local.ebs_common_tags, {
-    class = "deprecated"
+    class = "overused"
   })
 
   sql = <<-EOQ
@@ -279,7 +279,7 @@ control "large_ebs_volumes" {
   EOQ
 }
 
-control "high_iops_ebs_volumes" {
+control "ebs_volume_high_iops" {
   title       = "EBS volumes with high IOPS should be resized if too large"
   description = "High IOPS io1 and io2 volumes are costly and usage should be reviewed."
   severity    = "low"
@@ -290,7 +290,7 @@ control "high_iops_ebs_volumes" {
   }
 
   tags = merge(local.ebs_common_tags, {
-    class = "deprecated"
+    class = "overused"
   })
 
   sql = <<-EOQ
@@ -312,12 +312,12 @@ control "high_iops_ebs_volumes" {
   EOQ
 }
 
-control "low_iops_ebs_volumes" {
+control "ebs_volume_low_iops" {
   title       = "What provisioned IOPS volumes would be better as GP3?"
   description = "GP3 provides 3k base IOPS performance, don't use more costly io1 & io2 volumes."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
-    class = "management"
+    class = "overused"
   })
 
   sql = <<-EOQ
@@ -373,7 +373,7 @@ control "low_iops_ebs_volumes" {
         when iops <= 3000 then volume_id || ' only has ' || iops || ' iops .'
         else volume_id || ' has ' || iops || ' iops.'
       end as reason
-       ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -381,12 +381,12 @@ control "low_iops_ebs_volumes" {
   EOQ
 }
 
-control "ebs_volumes_on_stopped_instances" {
+control "ebs_volume_on_stopped_instances" {
   title       = "EBS volumes attached to stopped instances should be reviewed"
   description = "Instances that are stopped may no longer need any attached EBS volumes"
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
-    class = "deprecated"
+    class = "unused"
   })
 
   sql = <<-EOQ
@@ -430,7 +430,7 @@ control "ebs_volumes_on_stopped_instances" {
   EOQ
 }
 
-control "ebs_with_low_usage" {
+control "ebs_volume_low_usage" {
   title       = "Are there any EBS volumes with low usage?"
   description = "Volumes that are unused should be archived and deleted"
   severity    = "low"
@@ -446,7 +446,7 @@ control "ebs_with_low_usage" {
   }
 
   tags = merge(local.ebs_common_tags, {
-    class = "unused"
+    class = "underused"
   })
 
   sql = <<-EOQ

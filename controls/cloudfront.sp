@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "cloudfront" {
-  title         = "CloudFront Checks"
+  title         = "CloudFront Cost Checks"
   description   = "Thrifty developers checks price class of cloudfront distribution for cost optimization."
   documentation = file("./controls/docs/cloudfront.md")
 
@@ -24,7 +24,7 @@ control "cloudfront_distribution_pricing_class" {
   severity      = "low"
 
   tags = merge(local.cloudfront_common_tags, {
-    class = "managed"
+    class = "overused"
   })
 
   sql = <<-EOQ

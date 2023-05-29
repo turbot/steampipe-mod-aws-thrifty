@@ -11,12 +11,12 @@ locals {
 }
 
 benchmark "dynamodb" {
-  title         = "DynamoDB Checks"
+  title         = "DynamoDB Cost Checks"
   description   = "Thrifty developers delete DynamoDB tables with stale data."
   documentation = file("./controls/docs/dynamodb.md")
 
   children = [
-    control.stale_dynamodb_table_data
+    control.dynamodb_table_stale_data
   ]
 
   tags = merge(local.dynamodb_common_tags, {
@@ -24,8 +24,8 @@ benchmark "dynamodb" {
   })
 }
 
-control "stale_dynamodb_table_data" {
-  title       = "Tables with stale data should be reviewed"
+control "dynamodb_table_stale_data" {
+  title       = "DynamoDB tables with stale data should be reviewed"
   description = "If the data has not changed recently and has become stale, the table should be reviewed."
   severity    = "low"
 
@@ -35,7 +35,7 @@ control "stale_dynamodb_table_data" {
   }
 
   tags = merge(local.dynamodb_common_tags, {
-    class = "unused"
+    class = "stale_data"
   })
 
   sql = <<-EOQ
@@ -52,10 +52,12 @@ control "stale_dynamodb_table_data" {
       from
         aws_pricing_product as p
         join dynamodb_regions as r on
-          p.service_code = 'AmazonDynamoDB'
-          and p.attributes ->> 'regionCode' = r.region
-          and p.attributes ->> 'usagetype' = 'IA-TimedStorage-ByteHrs'
-          and term = 'OnDemand'
+        p.service_code = 'AmazonDynamoDB'
+        and p.filters = '{
+          "usagetype": "IA-TimedStorage-ByteHrs"
+        }' :: jsonb
+        and p.attributes ->> 'regionCode' = r.region
+        and term = 'OnDemand'
       group by r.region, p.price_per_unit, p.currency
     ), dynamodb_pricing_monthly as (
       select

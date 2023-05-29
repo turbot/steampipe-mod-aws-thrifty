@@ -68,21 +68,37 @@ control "route53_health_check_unused" {
         aws_route53_record as r
       where
         r.zone_id = z.id
+    ), health_check_pricing as (
+      select
+        h.id,
+        c.health_check_id,
+        h.title,
+        h.partition,
+        h.region,
+        h.account_id,
+        h.tags,
+        case
+          when c.health_check_id is null then '0.5' || ' $' || '/month'
+          else ''
+        end as net_savings
+      from
+        aws_route53_health_check as h
+        left join health_check as c on h.id = c.health_check_id
     )
     select
-      'arn:' || h.partition || ':route53:::healthcheck/' || h.id as resource,
+      'arn:' || partition || ':route53:::healthcheck/' || id as resource,
       case
-        when c.health_check_id is null then 'alarm'
+        when health_check_id is null then 'alarm'
         else 'ok'
       end as status,
       case
-        when c.health_check_id is null then h.title || ' is unnecessary.'
-        else h.title || ' is necessary.'
+        when health_check_id is null then title || ' is unnecessary.'
+        else title || ' is necessary.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_route53_health_check as h
-      left join health_check as c on h.id = c.health_check_id;
+      health_check_pricing;
   EOQ
 }
