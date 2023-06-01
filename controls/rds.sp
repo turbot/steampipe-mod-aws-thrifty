@@ -35,14 +35,14 @@ locals {
 }
 
 benchmark "rds" {
-  title         = "RDS Checks"
+  title         = "RDS Cost Checks"
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
   documentation = file("./controls/docs/rds.md")
   children = [
-    control.latest_rds_instance_types,
-    control.long_running_rds_db_instances,
-    control.rds_db_low_connection_count,
-    control.rds_db_low_utilization
+    control.rds_db_instance_class_prev_gen,
+    control.rds_db_instance_max_age,
+    control.rds_db_instance_low_connections,
+    control.rds_db_instance_low_usage
   ]
 
   tags = merge(local.rds_common_tags, {
@@ -50,7 +50,7 @@ benchmark "rds" {
   })
 }
 
-control "long_running_rds_db_instances" {
+control "rds_db_instance_max_age" {
   title       = "Long running RDS DBs should have reserved instances purchased for them"
   description = "Long running database servers should be associated with a reserve instance."
   severity    = "low"
@@ -66,7 +66,7 @@ control "long_running_rds_db_instances" {
   }
 
   tags = merge(local.rds_common_tags, {
-    class = "managed"
+    class = "capacity_planning"
   })
 
   sql = <<-EOQ
@@ -90,7 +90,10 @@ control "long_running_rds_db_instances" {
         r.account_id,
         r.title,
         r.create_time,
-        (p.price_per_unit::numeric)*24*30 as net_savings
+        case
+          when date_part('day', now()-create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings
       from
         aws_pricing_product as p
         join rds_instance as r on
@@ -100,7 +103,7 @@ control "long_running_rds_db_instances" {
         and p.attributes ->> 'instanceType' = r.class
         and p.attributes ->> 'usagetype'  like 'InstanceUsage:%'
         and replace(r.engine, '-', ' ') = lower(p.attributes ->>  'databaseEngine')
-      group by r.region, p.price_per_unit, r.arn, r.account_id, r.title, r.create_time
+      group by r.region, p.price_per_unit, r.arn, r.account_id, r.title, r.create_time, p.currency
     )
     select
       arn as resource,
@@ -118,12 +121,13 @@ control "long_running_rds_db_instances" {
   EOQ
 }
 
-control "latest_rds_instance_types" {
-  title       = "Are there RDS instances using previous gen instance types?"
-  description = "M5 and T3 instance types are less costly than previous generations"
+control "rds_db_instance_class_prev_gen" {
+  title       = "RDS instances should use the latest generation instance types"
+  description = "M5 and T3 instance types are less costly than previous generations."
   severity    = "low"
+
   tags = merge(local.rds_common_tags, {
-    class = "managed"
+    class = "generation_gaps"
   })
 
   sql = <<-EOQ
@@ -205,9 +209,9 @@ control "latest_rds_instance_types" {
   EOQ
 }
 
-control "rds_db_low_connection_count" {
+control "rds_db_instance_low_connections" {
   title       = "RDS DB instances with a low number connections per day should be reviewed"
-  description = "DB instances having less usage in last 30 days should be reviewed."
+  description = "These databases have very little usage in last 30 days. Should this instance be shutdown when not in use?"
   severity    = "high"
 
   param "rds_db_instance_avg_connections" {
@@ -216,44 +220,11 @@ control "rds_db_low_connection_count" {
   }
 
   tags = merge(local.rds_common_tags, {
-    class = "unused"
+    class = "underused"
   })
 
   sql = <<-EOQ
-    with rds_instance as (
-      select
-        db_instance_identifier,
-        arn,
-        class,
-        create_time,
-        region,
-        multi_az,
-        storage_type,
-        engine,
-        account_id,
-        title
-      from
-        aws_rds_db_instance
-    ), rds_instance_pricing as (
-      select
-        r.db_instance_identifier,
-        r.arn,
-        r.region,
-        r.account_id,
-        r.title,
-        r.create_time,
-        (p.price_per_unit::numeric)*24*30 as net_savings
-      from
-        aws_pricing_product as p
-        join rds_instance as r on
-        p.service_code = 'AmazonRDS'
-        and p.attributes ->> 'regionCode' = r.region
-        and p.term = 'OnDemand'
-        and p.attributes ->> 'instanceType' = r.class
-        and p.attributes ->> 'usagetype'  like 'InstanceUsage:%'
-        and replace(r.engine, '-', ' ') = lower(p.attributes ->>  'databaseEngine')
-      group by r.region, p.price_per_unit, r.arn, r.account_id, r.title, r.create_time, r.db_instance_identifier
-    ), rds_db_usage as (
+    with rds_db_usage as (
       select
         db_instance_identifier,
         round(sum(maximum)/count(maximum)) as avg_max,
@@ -264,9 +235,37 @@ control "rds_db_low_connection_count" {
         date_part('day', now() - timestamp) <= 30
       group by
         db_instance_identifier
+    ), rds_instance as (
+      select
+        region,
+        class,
+        engine,
+        db_instance_identifier
+      from
+        aws_rds_db_instance
+    ), rds_instance_pricing as (
+      select
+        r.db_instance_identifier,
+        u.avg_max,
+        u.days,
+        case
+          when u.avg_max is null or u.avg_max = 0 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings
+      from
+        rds_instance as r
+        join rds_db_usage as u on u.db_instance_identifier = r.db_instance_identifier
+        join aws_pricing_product as p on
+        p.service_code = 'AmazonRDS'
+        and p.attributes ->> 'regionCode' = r.region
+        and p.term = 'OnDemand'
+        and p.attributes ->> 'instanceType' = r.class
+        and p.attributes ->> 'usagetype'  like 'InstanceUsage:%'
+        and replace(r.engine, '-', ' ') = lower(p.attributes ->>  'databaseEngine')
+      group by r.region, p.price_per_unit, r.db_instance_identifier, u.avg_max, u.days, p.currency
     )
     select
-      arn as resource,
+      i.arn as resource,
       case
         when avg_max is null then 'error'
         when avg_max = 0 then 'alarm'
@@ -274,20 +273,20 @@ control "rds_db_low_connection_count" {
         else 'ok'
       end as status,
       case
-        when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
+        when avg_max is null then 'CloudWatch metrics not available for ' || i.title || '.'
         when avg_max = 0 then title || ' has not been connected to in the last ' || days || ' days.'
-        else title || ' is averaging ' || avg_max || ' max connections/day in the last ' || days || ' days.'
+        else i.title || ' is averaging ' || avg_max || ' max connections/day in the last ' || days || ' days.'
       end as reason
       ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      rds_instance_pricing as i
-      left join rds_db_usage as u on u.db_instance_identifier = i.db_instance_identifier;
+      aws_rds_db_instance as i
+      left join rds_instance_pricing as u on u.db_instance_identifier = i.db_instance_identifier;
   EOQ
 }
 
-control "rds_db_low_utilization" {
+control "rds_db_instance_low_usage" {
   title       = "RDS DB instance having low CPU utilization should be reviewed"
   description = "DB instances may be oversized for their usage."
   severity    = "low"
@@ -318,9 +317,48 @@ control "rds_db_low_utilization" {
         date_part('day', now() - timestamp) <= 30
       group by
         db_instance_identifier
+    ), rds_instance as (
+      select
+        db_instance_identifier,
+        arn,
+        class,
+        create_time,
+        region,
+        multi_az,
+        storage_type,
+        engine,
+        account_id,
+        title
+      from
+        aws_rds_db_instance
+    ), rds_instance_pricing as (
+      select
+        r.arn,
+        r.region,
+        r.account_id,
+        r.title,
+        r.create_time,
+        u.db_instance_identifier,
+        u.avg_max,
+        u.days,
+        case
+          when u.avg_max is null or u.avg_max <= $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings
+      from
+        rds_instance as r
+        join rds_db_usage as u on u.db_instance_identifier = r.db_instance_identifier
+        join aws_pricing_product as p on
+        p.service_code = 'AmazonRDS'
+        and p.attributes ->> 'regionCode' = r.region
+        and p.term = 'OnDemand'
+        and p.attributes ->> 'instanceType' = r.class
+        and p.attributes ->> 'usagetype'  like 'InstanceUsage:%'
+        and replace(r.engine, '-', ' ') = lower(p.attributes ->>  'databaseEngine')
+      group by r.region, p.price_per_unit, r.arn, r.account_id, r.title, r.create_time, u.db_instance_identifier, u.avg_max, p.currency, u.days
     )
     select
-      arn as resource,
+      i.arn as resource,
       case
         when avg_max is null then 'error'
         when avg_max <= $1 then 'alarm'
@@ -328,13 +366,14 @@ control "rds_db_low_utilization" {
         else 'ok'
       end as status,
       case
-        when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
-        else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
+        when avg_max is null then 'CloudWatch metrics not available for ' || i.title || '.'
+        else i.title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "i.")}
     from
       aws_rds_db_instance i
-      left join rds_db_usage as u on u.db_instance_identifier = i.db_instance_identifier;
+      left join rds_instance_pricing as u on u.db_instance_identifier = i.db_instance_identifier;
   EOQ
 }
