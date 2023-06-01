@@ -4,13 +4,12 @@ locals {
   })
 }
 
-benchmark "network" {
-  title         = "Networking Checks"
-  description   = "Thrifty developers ensure delete unused network resources."
-  documentation = file("./controls/docs/network.md")
+benchmark "vpc" {
+  title         = "VPC Cost Checks"
+  description   = "Thrifty developers ensure that they delete unused network resources."
+  documentation = file("./controls/docs/vpc.md")
 
   children = [
-    control.unattached_eips,
     control.vpc_nat_gateway_unused
   ]
 
@@ -19,79 +18,11 @@ benchmark "network" {
   })
 }
 
-control "unattached_eips" {
-  title       = "Unattached elastic IP addresses (EIPs) should be released"
-  description = "Unattached Elastic IPs are charged by AWS, they should be released."
-  severity    = "low"
-
-  tags = merge(local.vpc_common_tags, {
-    class = "unused"
-  })
-
-  sql = <<-EOQ
-    with eip_regions as (
-      select
-        distinct region
-      from
-        aws_vpc_eip
-    ),eip_pricing as (
-      select
-        r.region,
-        p.currency as currency,
-        p.price_per_unit::numeric as eip_price_hrs
-      from
-        aws_pricing_product as p
-        join eip_regions as r on
-          p.service_code = 'AmazonEC2'
-          and p.filters = '{
-            "group": "ElasticIP:Address",
-            "usagetype": "ElasticIP:IdleAddress"
-          }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-        where
-        p.begin_range = '1'
-      group by r.region, p.price_per_unit, p.currency
-    ), eip_pricing_monthly as (
-      select
-        case
-          when association_id is null then (30*24*eip_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        currency,
-        e.arn,
-        e.tags,
-        e.account_id,
-        e.region,
-        e.association_id,
-        e.title,
-        e.private_ip_address,
-        e.public_ip
-      from
-        aws_vpc_eip as e,
-        eip_pricing
-    )
-    select
-      arn as resource,
-      case
-        when association_id is null then 'alarm'
-        else 'ok'
-      end as status,
-      case
-        when association_id is null then public_ip || ' has no association.'
-        else public_ip || ' associated with ' || private_ip_address || '.'
-      end as reason
-      ${local.common_dimensions_cost_sql}
-      ${local.common_dimensions_sql}
-    from
-      eip_pricing_monthly
-  EOQ
-
-}
-
 control "vpc_nat_gateway_unused" {
   title       = "Unused NAT gateways should be deleted"
   description = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
   severity    = "low"
+
   tags = merge(local.vpc_common_tags, {
     class = "unused"
   })

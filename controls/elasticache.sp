@@ -17,11 +17,11 @@ locals {
 }
 
 benchmark "elasticache" {
-  title         = "ElastiCache Checks"
+  title         = "ElastiCache Cost Checks"
   description   = "Thrifty developers check their long running ElastiCache clusters are associated with reserved nodes."
   documentation = file("./controls/docs/elasticache.md")
   children = [
-    control.elasticache_cluster_long_running
+    control.elasticache_cluster_running_max_age
   ]
 
   tags = merge(local.elasticache_common_tags, {
@@ -29,9 +29,9 @@ benchmark "elasticache" {
   })
 }
 
-control "elasticache_cluster_long_running" {
-  title       = "Long running ElastiCache clusters should have reserved nodes purchased for them"
-  description = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
+control "elasticache_cluster_running_max_age" {
+  title       = "Long running ElastiCache clusters should be reviewed"
+  description = "Long running clusters should be reviewed and if they are needed they should be associated with reserved nodes, which provide a significant discount."
   severity    = "low"
 
   param "elasticache_running_cluster_age_max_days" {
@@ -45,8 +45,9 @@ control "elasticache_cluster_long_running" {
   }
 
   tags = merge(local.redshift_common_tags, {
-    class = "managed"
+    class = "capacity_planning"
   })
+
   sql = <<-EOQ
     with elasticache_cluster_list as (
       select
@@ -55,6 +56,7 @@ control "elasticache_cluster_long_running" {
         coalesce(replication_group_id,cache_cluster_id) as cache_cluster_id,
         engine,
         region,
+        cache_cluster_create_time,
         account_id,
         title
       from
@@ -68,7 +70,10 @@ control "elasticache_cluster_long_running" {
         e.region,
         e.account_id,
         e.title,
-        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
+        case
+          when date_part('day', now() - cache_cluster_create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings,
         p.currency
       from
         elasticache_cluster_list as e

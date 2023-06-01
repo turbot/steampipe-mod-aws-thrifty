@@ -11,7 +11,7 @@ locals {
 }
 
 benchmark "secretsmanager" {
-  title         = "Secrets Manager Checks"
+  title         = "Secrets Manager Cost Checks"
   description   = "Thrifty developers ensure their secrets manager secret is in use."
   documentation = file("./controls/docs/secretsmanager.md")
 
@@ -26,7 +26,7 @@ benchmark "secretsmanager" {
 
 control "secretsmanager_secret_unused" {
   title       = "Unused Secrets Manager secrets should be deleted"
-  description = "AWS Secrets Manager secrets should be accessed within a specified number of days. The default value is 90 days."
+  description = "Secrets Manager secrets should be accessed within a specified number of days. The default value is 90 days."
   severity    = "low"
 
   tags = merge(local.secretsmanager_common_tags, {

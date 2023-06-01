@@ -35,19 +35,20 @@ locals {
 }
 
 benchmark "ec2" {
-  title         = "EC2 Checks"
+  title         = "EC2 Cost Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
   documentation = file("./controls/docs/ec2.md")
   children = [
     control.ec2_application_lb_unused,
     control.ec2_classic_lb_unused,
+    control.ec2_eips_unattached,
     control.ec2_gateway_lb_unused,
+    control.ec2_instance_large,
+    control.ec2_instance_low_utilization,
     control.ec2_instance_older_generation,
+    control.ec2_instance_running_max_age,
     control.ec2_network_lb_unused,
-    control.ec2_reserved_instance_lease_expiration_days,
-    control.instances_with_low_utilization,
-    control.large_ec2_instances,
-    control.long_running_ec2_instances
+    control.ec2_reserved_instance_lease_expiration_days
   ]
 
   tags = merge(local.ec2_common_tags, {
@@ -84,8 +85,7 @@ control "ec2_application_lb_unused" {
           }' :: jsonb
           and p.attributes ->> 'regionCode' = r.region
       group by r.region, p.price_per_unit, p.currency
-    ) ,
-    target_resource as (
+    ), target_resource as (
       select
         load_balancer_arn,
         target_health_descriptions,
@@ -271,6 +271,75 @@ control "ec2_gateway_lb_unused" {
 
 }
 
+control "ec2_eips_unattached" {
+  title       = "Unattached elastic IP addresses (EIPs) should be released"
+  description = "Unattached Elastic IPs are charged by AWS, they should be released."
+  severity    = "low"
+
+  tags = merge(local.vpc_common_tags, {
+    class = "unused"
+  })
+
+  sql = <<-EOQ
+    with eip_regions as (
+      select
+        distinct region
+      from
+        aws_vpc_eip
+    ),eip_pricing as (
+      select
+        r.region,
+        p.currency as currency,
+        p.price_per_unit::numeric as eip_price_hrs
+      from
+        aws_pricing_product as p
+        join eip_regions as r on
+          p.service_code = 'AmazonEC2'
+          and p.filters = '{
+            "group": "ElasticIP:Address",
+            "usagetype": "ElasticIP:IdleAddress"
+          }' :: jsonb
+          and p.attributes ->> 'regionCode' = r.region
+        where
+        p.begin_range = '1'
+      group by r.region, p.price_per_unit, p.currency
+    ), eip_pricing_monthly as (
+      select
+        case
+          when association_id is null then (30*24*eip_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings,
+        currency,
+        e.arn,
+        e.tags,
+        e.account_id,
+        e.region,
+        e.association_id,
+        e.title,
+        e.private_ip_address,
+        e.public_ip
+      from
+        aws_vpc_eip as e,
+        eip_pricing
+    )
+    select
+      arn as resource,
+      case
+        when association_id is null then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when association_id is null then public_ip || ' has no association.'
+        else public_ip || ' associated with ' || private_ip_address || '.'
+      end as reason
+      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_sql}
+    from
+      eip_pricing_monthly
+  EOQ
+
+}
+
 control "ec2_network_lb_unused" {
   title       = "Network load balancers having no targets attached should be deleted"
   description = "Network load balancers with no targets attached still cost money and should be deleted."
@@ -346,7 +415,7 @@ control "ec2_network_lb_unused" {
   EOQ
 }
 
-control "large_ec2_instances" {
+control "ec2_instance_large" {
   title       = "Large EC2 instances should be reviewed"
   description = "Large EC2 instances are unusual, expensive and should be reviewed."
   severity    = "low"
@@ -357,7 +426,7 @@ control "large_ec2_instances" {
   }
 
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "overused"
   })
 
   sql = <<-EOQ
@@ -376,9 +445,9 @@ control "large_ec2_instances" {
   EOQ
 }
 
-control "long_running_ec2_instances" {
+control "ec2_instance_running_max_age" {
   title       = "Long running EC2 instances should be reviewed"
-  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long."
+  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long. Long running instances should be replaced with reserved instances, which provide a significant discount."
   severity    = "low"
 
   param "ec2_running_instance_age_max_days" {
@@ -387,7 +456,7 @@ control "long_running_ec2_instances" {
   }
 
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "capacity_planning"
   })
 
   sql = <<-EOQ
@@ -408,8 +477,8 @@ control "long_running_ec2_instances" {
   EOQ
 }
 
-control "instances_with_low_utilization" {
-  title       = "Which EC2 instances have very low CPU utilization?"
+control "ec2_instance_low_utilization" {
+  title       = "EC2 instances with very low CPU utilization should be reviewed"
   description = "Resize or eliminate under utilized instances."
   severity    = "low"
 
@@ -424,7 +493,7 @@ control "instances_with_low_utilization" {
   }
 
   tags = merge(local.ec2_common_tags, {
-    class = "unused"
+    class = "underused"
   })
 
   sql = <<-EOQ

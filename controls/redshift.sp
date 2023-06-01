@@ -29,7 +29,7 @@ locals {
 }
 
 benchmark "redshift" {
-  title         = "Redshift Checks"
+  title         = "Redshift Cost Checks"
   description   = "Thrifty developers check their long running Redshift clusters are associated with reserved nodes."
   documentation = file("./controls/docs/redshift.md")
   children = [
@@ -59,7 +59,7 @@ control "redshift_cluster_max_age" {
   }
 
   tags = merge(local.redshift_common_tags, {
-    class = "managed"
+    class = "capacity_planning"
   })
 
   sql = <<-EOQ
@@ -82,16 +82,19 @@ control "redshift_cluster_max_age" {
         r.cluster_create_time,
         r.account_id,
         r.title,
-        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
+        case
+          when date_part('day', now() - cluster_create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings,
         p.currency
       from
         redshift_cluster_list as r
         left join aws_pricing_product as p on
-          p.service_code = 'AmazonRedshift'
-          and p.attributes ->> 'regionCode' = r.region
-          and p.attributes ->> 'instanceType' = r.node_type
-          and p.term = 'OnDemand'
-          and p.attributes ->> 'usagetype' like 'Node:%'
+        p.service_code = 'AmazonRedshift'
+        and p.attributes ->> 'regionCode' = r.region
+        and p.attributes ->> 'instanceType' = r.node_type
+        and p.term = 'OnDemand'
+        and p.attributes ->> 'usagetype' like 'Node:%'
     )
     select
       arn as resource,
@@ -111,43 +114,15 @@ control "redshift_cluster_max_age" {
 }
 
 control "redshift_cluster_schedule_pause_resume_enabled" {
-  title       = "Redshift cluster paused resume should be enabled"
-  description = "Redshift cluster paused resume should be enabled to easily suspend on-demand billing while the cluster is not being used."
+  title       = "Redshift clusters pause and resume feature should be enabled"
+  description = "Redshift clusters should utilise the pause and resume actions to easily suspend on-demand billing while the cluster is not being used."
   severity    = "low"
   tags = merge(local.redshift_common_tags, {
-    class = "managed"
+    class = "overused"
   })
 
   sql = <<-EOQ
-    with redshift_cluster_list as (
-      select
-        arn,
-        node_type,
-        region,
-        cluster_create_time,
-        account_id,
-        title
-      from
-        aws_redshift_cluster
-    ), redshift_pricing as (
-      select
-        r.arn,
-        r.node_type,
-        r.region,
-        r.cluster_create_time,
-        r.account_id,
-        r.title,
-        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
-        p.currency
-      from
-        redshift_cluster_list as r
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonRedshift'
-          and p.attributes ->> 'regionCode' = r.region
-          and p.attributes ->> 'instanceType' = r.node_type
-          and p.term = 'OnDemand'
-          and p.attributes ->> 'usagetype' like 'Node:%'
-    ), cluster_pause_enabled as (
+    with cluster_pause_enabled as (
       select
         arn,
         s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' as pause_cluster
@@ -173,6 +148,38 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
         left join cluster_resume_enabled as r on r.arn = p.arn
       where
         p.pause_cluster = r.resume_cluster
+    ), redshift_cluster_list as (
+      select
+        arn,
+        node_type,
+        region,
+        cluster_create_time,
+        account_id,
+        title
+      from
+        aws_redshift_cluster
+    ), redshift_pricing as (
+      select
+        r.arn,
+        r.node_type,
+        r.region,
+        r.cluster_create_time,
+        r.account_id,
+        r.title,
+        case
+          when e.arn is null then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings,
+        p.currency
+      from
+        redshift_cluster_list as r
+        left join cluster_pause_enabled as e on e.arn = r.arn
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonRedshift'
+          and p.attributes ->> 'regionCode' = r.region
+          and p.attributes ->> 'instanceType' = r.node_type
+          and p.term = 'OnDemand'
+          and p.attributes ->> 'usagetype' like 'Node:%'
     )
     select
       a.arn as resource,
@@ -194,7 +201,7 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
 }
 
 control "redshift_cluster_low_utilization" {
-  title       = "Redshift cluster with low CPU utilization should be reviewed"
+  title       = "Redshift clusters with low CPU utilization should be reviewed"
   description = "Resize or eliminate under utilized clusters."
   severity    = "low"
 
@@ -209,11 +216,22 @@ control "redshift_cluster_low_utilization" {
   }
 
   tags = merge(local.redshift_common_tags, {
-    class = "unused"
+    class = "underused"
   })
 
   sql = <<-EOQ
-    with redshift_cluster_list as (
+    with redshift_cluster_utilization as (
+      select
+        cluster_identifier,
+        round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
+        count(maximum) days
+      from
+        aws_redshift_cluster_metric_cpu_utilization_daily
+      where
+        date_part('day', now() - timestamp) <= 30
+      group by
+        cluster_identifier
+    ), redshift_cluster_list as (
       select
         arn,
         cluster_identifier,
@@ -233,27 +251,20 @@ control "redshift_cluster_low_utilization" {
         r.cluster_create_time,
         r.account_id,
         r.title,
-        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month' as net_savings,
+        case
+          when u.avg_max < $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          else ''
+        end as net_savings,
         p.currency
       from
         redshift_cluster_list as r
+        left join redshift_cluster_utilization as u on u.cluster_identifier = r.cluster_identifier
         left join aws_pricing_product as p on
           p.service_code = 'AmazonRedshift'
           and p.attributes ->> 'regionCode' = r.region
           and p.attributes ->> 'instanceType' = r.node_type
           and p.term = 'OnDemand'
           and p.attributes ->> 'usagetype' like 'Node:%'
-    ), redshift_cluster_utilization as (
-      select
-        cluster_identifier,
-        round(cast(sum(maximum)/count(maximum) as numeric), 1) as avg_max,
-        count(maximum) days
-      from
-        aws_redshift_cluster_metric_cpu_utilization_daily
-      where
-        date_part('day', now() - timestamp) <= 30
-      group by
-        cluster_identifier
     )
     select
       i.cluster_identifier as resource,

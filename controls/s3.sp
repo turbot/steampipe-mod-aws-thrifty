@@ -5,11 +5,11 @@ locals {
 }
 
 benchmark "s3" {
-  title         = "S3 Checks"
+  title         = "S3 Cost Checks"
   description   = "Thrifty developers ensure their S3 buckets have a managed lifecycle."
   documentation = file("./controls/docs/s3.md")
   children = [
-    control.buckets_with_no_lifecycle
+    control.s3_bucket_without_lifecycle
   ]
 
   tags = merge(local.s3_common_tags, {
@@ -17,12 +17,13 @@ benchmark "s3" {
   })
 }
 
-control "buckets_with_no_lifecycle" {
-  title       = "Buckets should have lifecycle policies"
-  description = "S3 Buckets should have a lifecycle policy associated for data retention."
+control "s3_bucket_without_lifecycle" {
+  title       = "S3 buckets should have lifecycle policies"
+  description = "S3 buckets should have an associated lifecycle policy for data retention."
   severity    = "low"
+  
   tags = merge(local.s3_common_tags, {
-    class = "managed"
+    class = "stale_data"
   })
 
   sql = <<-EOQ
