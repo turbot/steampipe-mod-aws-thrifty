@@ -39,9 +39,65 @@ control "lambda_function_high_error_rate" {
         date_part('day', now() - errors.timestamp) <=7 and errors.name = invocations.name
       group by
         errors.name
+    ), lambda_function_list as (
+      select
+        title,
+        name,
+        arn,
+        architecture,
+        memory_size,
+        region,
+        account_id
+      from
+        aws_lambda_function,
+        jsonb_array_elements_text(architectures) as architecture
+    ),
+    lambda_function_regions as (
+      select
+        distinct region
+      from
+        aws_lambda_function
+    ),
+    lambda_pricing as (
+      select
+        r.region,
+        p.currency,
+        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration-ARM' and p.begin_range = '0' then (p.price_per_unit)::numeric else null end) as arm_tier_1_price,
+        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration' and p.begin_range = '0' then  (p.price_per_unit)::numeric else null end) as x86_64_price
+      from
+        aws_pricing_product as p
+        join lambda_function_regions as r on
+          p.service_code = 'AWSLambda'
+          and p.filters in (
+            '{"group": "AWS-Lambda-Duration"}' :: jsonb,
+            '{"group": "AWS-Lambda-Duration-ARM"}' :: jsonb
+          )
+          and p.attributes ->> 'regionCode' = r.region
+          and p.begin_range = '0' -- calculating based on the Tier-1 price
+      group by r.region, p.currency
+    ), calculate_savings_per_function as (
+      select
+        l.arn,
+        l.architecture,
+        e.error_rate,
+        l.name,
+        case
+          when (error_rate is null or  error_rate > 10) then
+            case
+              when l.architecture = 'x86_64' then (p.x86_64_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
+              else (p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
+            end
+          || ' ' || currency || '/month'
+          else ''
+        end as net_savings,
+        p.currency
+      from
+        lambda_function_list as l
+        left join error_rate as e on e.name = l.name
+        left join lambda_pricing as p on l.region = p.region
     )
     select
-      arn as resource,
+      f.arn as resource,
       case
         when error_rate is null then 'error'
         when error_rate > 10 then 'alarm'
@@ -51,11 +107,12 @@ control "lambda_function_high_error_rate" {
         when error_rate is null then 'CloudWatch Lambda function metrics not available for ' || title || '.'
         else title || ' error rate is ' || error_rate || '% the last ' || '7  days.'
       end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_lambda_function f
-      left join error_rate as er on f.name = er.name;
+      lambda_function_list f
+      left join calculate_savings_per_function as er on f.name = er.name;
   EOQ
 }
 
@@ -78,9 +135,65 @@ control "lambda_function_excessive_timeout" {
         date_part('day', now() - timestamp) <=7
       group by
         name
+    ), lambda_function_list as (
+      select
+        title,
+        name,
+        arn,
+        architecture,
+        memory_size,
+        region,
+        account_id
+      from
+        aws_lambda_function,
+        jsonb_array_elements_text(architectures) as architecture
+    ),
+    lambda_function_regions as (
+      select
+        distinct region
+      from
+        aws_lambda_function
+    ),
+    lambda_pricing as (
+      select
+        r.region,
+        p.currency,
+        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration-ARM' and p.begin_range = '0' then (p.price_per_unit)::numeric else null end) as arm_tier_1_price,
+        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration' and p.begin_range = '0' then  (p.price_per_unit)::numeric else null end) as x86_64_price
+      from
+        aws_pricing_product as p
+        join lambda_function_regions as r on
+          p.service_code = 'AWSLambda'
+          and p.filters in (
+            '{"group": "AWS-Lambda-Duration"}' :: jsonb,
+            '{"group": "AWS-Lambda-Duration-ARM"}' :: jsonb
+          )
+          and p.attributes ->> 'regionCode' = r.region
+          and p.begin_range = '0' -- calculating based on the Tier-1 price
+      group by r.region, p.currency
+    ), calculate_savings_per_function as (
+      select
+        l.arn,
+        l.architecture,
+        e.avg_duration,
+        l.name,
+        case
+          when avg_duration is null or ((timeout :: numeric*1000) - avg_duration)/(timeout :: numeric*1000) > 0.1 then
+            case
+              when l.architecture = 'x86_64' then (p.x86_64_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
+              else (p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
+            end
+          || ' ' || currency || '/month'
+          else ''
+        end as net_savings,
+        p.currency
+      from
+        lambda_function_list as l
+        left join lambda_duration as e on e.name = l.name
+        left join lambda_pricing as p on l.region = p.region
     )
     select
-      arn as resource,
+      f.arn as resource,
       case
         when avg_duration is null then 'error'
         when ((timeout :: numeric*1000) - avg_duration)/(timeout :: numeric*1000) > 0.1 then 'alarm'
@@ -90,10 +203,11 @@ control "lambda_function_excessive_timeout" {
         when avg_duration is null then 'CloudWatch lambda metrics not available for ' || title || '.'
         else title || ' Timeout of ' || timeout::numeric*1000 || ' milliseconds is ' || round(((timeout :: numeric*1000)-avg_duration)/(timeout :: numeric*1000)*100,1) || '% more as compared to average of ' || round(avg_duration,0) || ' milliseconds.'
       end as reason
-        ${local.tag_dimensions_sql}
-        ${local.common_dimensions_sql}
+      ${local.common_dimensions_cost_sql}
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
     from
-      aws_lambda_function f
+      aws_lalambda_function_listmbda_function f
       left join lambda_duration as d on f.name = d.name;
   EOQ
 }
@@ -130,8 +244,8 @@ control "lambda_function_with_graviton2" {
       select
         r.region,
         p.currency,
-        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration-ARM' and p.begin_range = '0' then  p.price_per_unit else null end) as arm_tier_1_price,
-        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration' and p.begin_range = '0' then  p.price_per_unit else null end) as x86_64_price
+        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration-ARM' and p.begin_range = '0' then (p.price_per_unit)::numeric else null end) as arm_tier_1_price,
+        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration' and p.begin_range = '0' then  (p.price_per_unit)::numeric else null end) as x86_64_price
       from
         aws_pricing_product as p
         join lambda_function_regions as r on
@@ -153,6 +267,7 @@ control "lambda_function_with_graviton2" {
         l.account_id,
         case
           when l.architecture = 'x86_64' then (p.x86_64_price::float - p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
+          || ' ' || currency || '/month'
           else ''
         end as net_savings,
         p.currency
