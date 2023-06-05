@@ -52,7 +52,7 @@ control "vpc_nat_gateway_unused" {
     ), nat_gateway_pricing_monthly as (
       select
         case
-          when nat.state = 'available' and i.subnet_id is null then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
+          when nat.state = 'available' and i.subnet_id is null then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         instance_id,

@@ -87,7 +87,7 @@ control "lambda_function_high_error_rate" {
               when l.architecture = 'x86_64' then (p.x86_64_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
               else (p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
             end
-          || ' ' || currency || '/month'
+          || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
@@ -140,6 +140,7 @@ control "lambda_function_excessive_timeout" {
         title,
         name,
         arn,
+        timeout,
         architecture,
         memory_size,
         region,
@@ -175,15 +176,19 @@ control "lambda_function_excessive_timeout" {
       select
         l.arn,
         l.architecture,
+        l.title,
+        l.region,
+        l.account_id,
         e.avg_duration,
+        l.timeout,
         l.name,
         case
-          when avg_duration is null or ((timeout :: numeric*1000) - avg_duration)/(timeout :: numeric*1000) > 0.1 then
+          when e.avg_duration is null or ((timeout :: numeric*1000) - e.avg_duration)/(timeout :: numeric*1000) > 0.1 then
             case
               when l.architecture = 'x86_64' then (p.x86_64_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
               else (p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
             end
-          || ' ' || currency || '/month'
+          || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
@@ -195,19 +200,19 @@ control "lambda_function_excessive_timeout" {
     select
       f.arn as resource,
       case
-        when avg_duration is null then 'error'
-        when ((timeout :: numeric*1000) - avg_duration)/(timeout :: numeric*1000) > 0.1 then 'alarm'
+        when d.avg_duration is null then 'error'
+        when ((timeout :: numeric*1000) - d.avg_duration)/(timeout :: numeric*1000) > 0.1 then 'alarm'
         else 'ok'
       end as status,
       case
-        when avg_duration is null then 'CloudWatch lambda metrics not available for ' || title || '.'
-        else title || ' Timeout of ' || timeout::numeric*1000 || ' milliseconds is ' || round(((timeout :: numeric*1000)-avg_duration)/(timeout :: numeric*1000)*100,1) || '% more as compared to average of ' || round(avg_duration,0) || ' milliseconds.'
+        when d.avg_duration is null then 'CloudWatch lambda metrics not available for ' || title || '.'
+        else title || ' Timeout of ' || timeout::numeric*1000 || ' milliseconds is ' || round(((timeout :: numeric*1000)-d.avg_duration)/(timeout :: numeric*1000)*100,1) || '% more as compared to average of ' || round(d.avg_duration,0) || ' milliseconds.'
       end as reason
       ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_lalambda_function_listmbda_function f
+      calculate_savings_per_function f
       left join lambda_duration as d on f.name = d.name;
   EOQ
 }
@@ -267,7 +272,7 @@ control "lambda_function_with_graviton2" {
         l.account_id,
         case
           when l.architecture = 'x86_64' then (p.x86_64_price::float - p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
-          || ' ' || currency || '/month'
+          || ' ' || currency || ' net savings/month 🔺'
           else ''
         end as net_savings,
         p.currency

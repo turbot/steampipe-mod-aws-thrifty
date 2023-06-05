@@ -71,7 +71,7 @@ control "elasticache_cluster_running_max_age" {
         e.account_id,
         e.title,
         case
-          when date_part('day', now() - cache_cluster_create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          when date_part('day', now() - cache_cluster_create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency

@@ -91,7 +91,7 @@ control "rds_db_instance_max_age" {
         r.title,
         r.create_time,
         case
-          when date_part('day', now()-create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          when date_part('day', now()-create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings
       from
@@ -175,7 +175,7 @@ control "rds_db_instance_class_prev_gen" {
     ), rds_instance_pricing_monthly as (
       select
         case
-          when class like '%.t2.%' or class like '%.m3.%' or class like '%.m4.%' then ((30*24*rds_instance_price_per_hour_old_gen) - (30*24*rds_instance_price_per_hour_next_gen))::numeric(10,2) || ' ' || currency || '/month'
+          when class like '%.t2.%' or class like '%.m3.%' or class like '%.m4.%' then ((30*24*rds_instance_price_per_hour_old_gen) - (30*24*rds_instance_price_per_hour_next_gen))::numeric(10,2) || ' ' || currency || ' net savings/month 🔺'
           else ''
         end as net_savings,
         currency,
@@ -249,7 +249,7 @@ control "rds_db_instance_low_connections" {
         u.avg_max,
         u.days,
         case
-          when u.avg_max is null or u.avg_max = 0 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          when u.avg_max is null or u.avg_max = 0 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings
       from
@@ -342,7 +342,7 @@ control "rds_db_instance_low_usage" {
         u.avg_max,
         u.days,
         case
-          when u.avg_max is null or u.avg_max <= $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          when u.avg_max is null or u.avg_max <= $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings
       from

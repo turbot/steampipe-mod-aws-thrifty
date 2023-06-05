@@ -63,7 +63,7 @@ control "dynamodb_table_stale_data" {
       select
         case
           when latest_stream_label is null then ''
-          else ((t.table_size_bytes/1024*1024*1024)*dynamodb_price_gb_per_month)::numeric(10,2) || ' ' || currency || 'GB/month'
+          else ((t.table_size_bytes/1024*1024*1024)*dynamodb_price_gb_per_month)::numeric(10,2) || ' ' || currency || ' total cost/GB/month'
         end as net_savings,
         currency,
         t.arn as arn,

@@ -78,7 +78,7 @@ control "route53_health_check_unused" {
         h.account_id,
         h.tags,
         case
-          when c.health_check_id is null then '0.5' || ' $' || '/month'
+          when c.health_check_id is null then '0.5' || ' $' || ' total cost/month'
           else ''
         end as net_savings
       from

@@ -122,7 +122,7 @@ control "ebs_volume_high_iops" {
         v.account_id,
         case
           when v.volume_type not in ('io1', 'io2') then ''
-          when v.iops <= 3000 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month'
+          when v.iops <= 3000 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
@@ -193,7 +193,7 @@ control "ebs_volume_large" {
         v.account_id,
         case
           when v.size <= $1 then ''
-          else (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
+          else (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month' end as net_savings,
         p.currency
       from
         volume_list as v
@@ -255,7 +255,7 @@ control "ebs_volume_low_iops" {
         v.account_id,
         case
           when v.volume_type not in ('io1', 'io2') then ''
-          when v.iops <= 3000 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month'
+          when v.iops <= 3000 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
@@ -374,7 +374,7 @@ control "ebs_volume_low_usage" {
         v.account_id,
         v.tags,
         case
-          when v.avg_max <= $1 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month'
+          when v.avg_max <= $1 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
@@ -469,7 +469,7 @@ control "ebs_volume_on_stopped_instances" {
         v.running_instances,
         v.instance_id,
         v.account_id,
-        case when v.running_instances = 0 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month'
+        case when v.running_instances = 0 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
         else '' end as net_savings,
         p.currency
       from
@@ -527,7 +527,7 @@ control "ebs_volume_unattached" {
         v.account_id,
         v.attachments,
         case when jsonb_array_length(attachments) > 0 then '' else
-        (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
+        (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month' end as net_savings,
         p.currency
       from
         volume_list as v
@@ -610,7 +610,7 @@ control "ebs_volume_using_gp2" {
         v.region,
         v.account_id,
         case
-          when v.volume_type = 'gp2' then ((p.gp2_price::float - p.gp3_price::float) * v.size)::numeric(10,2) || ' ' || currency || '/month'
+          when v.volume_type = 'gp2' then ((p.gp2_price::float - p.gp3_price::float) * v.size)::numeric(10,2) || ' ' || currency || ' net savings/month 🔺'
           else ''
         end as net_savings,
         p.currency
@@ -680,7 +680,7 @@ control "ebs_volume_using_io1" {
         v.region,
         v.account_id,
         case
-          when v.volume_type = 'io1' then (p.price_per_month::float * v.size)::numeric(10,2) || ' ' || currency || '/month'
+          when v.volume_type = 'io1' then (p.price_per_month::float * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency

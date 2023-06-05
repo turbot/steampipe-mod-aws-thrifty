@@ -83,7 +83,7 @@ control "redshift_cluster_max_age" {
         r.account_id,
         r.title,
         case
-          when date_part('day', now() - cluster_create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          when date_part('day', now() - cluster_create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
@@ -167,7 +167,7 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
         r.account_id,
         r.title,
         case
-          when e.arn is null then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          when e.arn is null then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
@@ -252,7 +252,7 @@ control "redshift_cluster_low_utilization" {
         r.account_id,
         r.title,
         case
-          when u.avg_max < $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
+          when u.avg_max < $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
