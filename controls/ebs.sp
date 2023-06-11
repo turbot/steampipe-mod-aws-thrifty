@@ -4,6 +4,12 @@ variable "ebs_snapshot_age_max_days" {
   default     = 90
 }
 
+variable "ebs_volume_io1_ops" {
+  type        = number
+  description = "The number of io1 iops"
+  default     = 90
+}
+
 variable "ebs_volume_avg_read_write_ops_high" {
   type        = number
   description = "The number of average read/write ops required for volumes to be considered frequently used. This value should be higher than ebs_volume_avg_read_write_ops_low."
@@ -25,7 +31,7 @@ variable "ebs_volume_max_iops" {
 variable "ebs_volume_max_size_gb" {
   type        = number
   description = "The maximum size (GB) allowed for volumes."
-  default     = 7
+  default     = 100
 }
 
 locals {
@@ -70,6 +76,21 @@ control "ebs_snapshot_max_age" {
   })
 
   sql = <<-EOQ
+    with snapshot_pricing as (
+      select
+        arn,
+        start_time,
+        snapshot_id,
+        region,
+        account_id,
+        tags,
+        case
+          when start_time > current_timestamp - ($1 || ' days')::interval then ''
+          else volume_size*0.05 || ' USD' || ' total cost/month'
+        end as net_savings
+      from
+        aws_ebs_snapshot
+    )
     select
       arn as resource,
       case
@@ -77,10 +98,11 @@ control "ebs_snapshot_max_age" {
         else 'alarm'
       end as status,
       snapshot_id || ' created at ' || start_time || '.' as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_ebs_snapshot;
+      snapshot_pricing;
   EOQ
 }
 
@@ -122,7 +144,7 @@ control "ebs_volume_high_iops" {
         v.account_id,
         case
           when v.volume_type not in ('io1', 'io2') then ''
-          when v.iops <= 3000 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
+          when v.iops >= $1 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
@@ -193,7 +215,7 @@ control "ebs_volume_large" {
         v.account_id,
         case
           when v.size <= $1 then ''
-          else (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month' end as net_savings,
+          else ((p.price_per_unit::numeric * v.size) - (p.price_per_unit::numeric * $1)) ::numeric(10,2) || ' ' || currency || ' total cost/month' end as net_savings,
         p.currency
       from
         volume_list as v
@@ -243,8 +265,25 @@ control "ebs_volume_low_iops" {
         account_id
       from
         aws_ebs_volume
-    ),
-    volume_pricing as (
+    ),gp2_volume_pricing as (
+      select
+        v.arn,
+        v.volume_id,
+        v.volume_type,
+        v.size,
+        v.iops,
+        v.region,
+        v.account_id,
+        (price_per_unit::numeric * v.size)::numeric(10,2) as gp2_price
+      from
+        volume_list as v
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonEC2'
+          and p.filters in (
+            '{"volumeApiName": "gp2"}' :: jsonb
+          )
+          and p.attributes ->> 'regionCode' = v.region
+    ),volume_pricing as (
       select
         v.arn,
         v.volume_id,
@@ -255,12 +294,12 @@ control "ebs_volume_low_iops" {
         v.account_id,
         case
           when v.volume_type not in ('io1', 'io2') then ''
-          when v.iops <= 3000 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
+          when v.iops <= 3000 then ((p.price_per_unit::numeric * v.size)::numeric(10,2) - gp2_price) || ' ' || currency || ' total cost/month'
           else ''
         end as net_savings,
         p.currency
       from
-        volume_list as v
+        gp2_volume_pricing as v
         left join aws_pricing_product as p on
           p.service_code = 'AmazonEC2'
           and p.filters in (
@@ -281,7 +320,7 @@ control "ebs_volume_low_iops" {
       end as status,
       case
         when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
-        when iops <= 3000 then volume_id || ' only has ' || iops || ' iops .'
+        when iops <= 3000 then volume_id || ' only has ' || iops || ' iops.'
         else volume_id || ' has ' || iops || ' iops.'
       end as reason
       ${local.common_dimensions_cost_sql}
@@ -642,12 +681,18 @@ control "ebs_volume_using_io1" {
     class = "generation_gaps"
   })
 
+  param "ebs_volume_io1_ops" {
+    description = "The number of io1 ops allowed"
+    default     = var.ebs_volume_io1_ops
+  }
+
   sql = <<-EOQ
     with volume_list as (
       select
         arn,
         volume_id,
         volume_type,
+        iops,
         size,
         region,
         account_id
@@ -658,44 +703,72 @@ control "ebs_volume_using_io1" {
         distinct region
       from
         aws_ebs_volume
-    ), volume_pricing as (
+    ), io1_volume_pricing as (
       select
         r.region,
+        p.attributes,
         p.currency,
-        case when p.attributes ->> 'volumeApiName' = 'io1' then price_per_unit end as price_per_month
+        p.description,
+        (p.price_per_unit)::numeric
       from
         aws_pricing_product as p
         join volume_regions as r on
-          p.service_code = 'AmazonEC2'
-          and p.filters = '{
-            "volumeType": "Provisioned IOPS"
+        p.service_code = 'AmazonEC2'
+        and p.filters = '{
+            "volumeApiName": "io1"
           }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-      group by r.region, p.currency, p.attributes, p.price_per_unit
-    ), calculate_cost_per_month as (
+        and p.attributes ->> 'regionCode' = r.region
+        and p.unit = 'IOPS-Mo'
+      group by r.region, p.currency, p.attributes, p.price_per_unit, p.description
+    ), io2_volume_pricing as (
+      select
+        r.region,
+        p.attributes,
+        p.currency,
+        p.description,
+        (p.price_per_unit)::numeric
+      from
+        aws_pricing_product as p
+        join volume_regions as r on
+        p.service_code = 'AmazonEC2'
+        and p.filters in (
+        '{"volumeApiName": "io2"}' :: jsonb,
+        '{"group": "EBS IOPS Tier 2"}' :: jsonb
+        )
+        and p.attributes ->> 'regionCode' = r.region
+        and p.attributes ->> 'group' = 'EBS IOPS Tier 2'
+        and p.unit = 'IOPS-Mo'
+      group by r.region, p.currency, p.attributes, p.price_per_unit, p.description
+    ),  calculate_cost_per_month as (
       select
         v.arn,
         v.volume_id,
         v.volume_type,
         v.region,
+        v.iops,
         v.account_id,
         case
-          when v.volume_type = 'io1' then (p.price_per_month::float * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
+          when v.volume_type = 'io1' and v.iops > $1 then ((a.price_per_unit * v.iops) -  (b.price_per_unit * v.iops))::numeric(10,2) || ' ' || a.currency || ' net savings/month 🔺'
           else ''
         end as net_savings,
-        p.currency
+        a.currency
       from
         volume_list as v
-        join volume_pricing as p on v.region = p.region
+        join io1_volume_pricing as a on v.region = a.region
+        join io2_volume_pricing as b on v.region = b.region
     )
     select
       arn as resource,
       case
-        when volume_type = 'io1' then 'alarm'
-        when volume_type = 'io2' then 'ok'
+        when volume_type not in ('io1', 'io2') then 'skip'
+        when volume_type = 'io1' and iops > $1 then 'alarm'
         else 'skip'
       end as status,
-      volume_id || ' type is ' || volume_type || '.' as reason
+      case
+        when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
+        else volume_id || ' type is ' || volume_type || ' using ' || iops || ' iops.'
+      end as reason
+      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

@@ -1,9 +1,3 @@
-variable "rds_db_instance_avg_connections" {
-  type        = number
-  description = "The minimum number of average connections per day required for DB instances to be considered in-use."
-  default     = 2
-}
-
 variable "rds_db_instance_avg_cpu_utilization_high" {
   type        = number
   description = "The average CPU utilization required for DB instances to be considered frequently used. This value should be higher than rds_db_instance_avg_cpu_utilization_low."
@@ -214,11 +208,6 @@ control "rds_db_instance_low_connections" {
   description = "These databases have very little usage in last 30 days. Should this instance be shutdown when not in use?"
   severity    = "high"
 
-  param "rds_db_instance_avg_connections" {
-    description = "The minimum number of average connections per day required for DB instances to be considered in-use."
-    default     = var.rds_db_instance_avg_connections
-  }
-
   tags = merge(local.rds_common_tags, {
     class = "underused"
   })
@@ -269,7 +258,6 @@ control "rds_db_instance_low_connections" {
       case
         when avg_max is null then 'error'
         when avg_max = 0 then 'alarm'
-        when avg_max < $1 then 'info'
         else 'ok'
       end as status,
       case

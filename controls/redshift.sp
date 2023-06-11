@@ -73,8 +73,27 @@ control "redshift_cluster_max_age" {
         title
       from
         aws_redshift_cluster
-    ),
-    redshift_pricing as (
+    ),redshift_reserved_pricing as (
+      select
+        r.arn,
+        r.node_type,
+        r.region,
+        r.cluster_create_time,
+        r.account_id,
+        r.title,
+        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) as redshift_reserved_pricing
+      from
+        redshift_cluster_list as r
+        left join aws_pricing_product as p on
+          p.service_code = 'AmazonRedshift'
+          and p.attributes ->> 'regionCode' = r.region
+          and p.attributes ->> 'instanceType' = r.node_type
+          and p.term = 'Reserved'
+          and p.unit = 'Hrs'
+          and p.lease_contract_length = '1yr'
+          and purchase_option = 'No Upfront'
+          and p.attributes ->> 'usagetype' like 'Node:%'
+    ), redshift_pricing as (
       select
         r.arn,
         r.node_type,
@@ -83,12 +102,12 @@ control "redshift_cluster_max_age" {
         r.account_id,
         r.title,
         case
-          when date_part('day', now() - cluster_create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
+          when date_part('day', now() - cluster_create_time) > $1 then (((p.price_per_unit::numeric)*24*30)::numeric(10,2)- redshift_reserved_pricing) || ' ' || currency || ' savings/month'
           else ''
         end as net_savings,
         p.currency
       from
-        redshift_cluster_list as r
+        redshift_reserved_pricing as r
         left join aws_pricing_product as p on
         p.service_code = 'AmazonRedshift'
         and p.attributes ->> 'regionCode' = r.region
@@ -123,80 +142,49 @@ control "redshift_cluster_schedule_pause_resume_enabled" {
 
   sql = <<-EOQ
     with cluster_pause_enabled as (
-      select
-        arn,
-        s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' as pause_cluster
-      from
-        aws_redshift_cluster,
-        jsonb_array_elements(scheduled_actions) as s
-      where
-        s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' is not null
-    ), cluster_resume_enabled as (
-      select
-        arn,
-        s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' as resume_cluster
-      from
-        aws_redshift_cluster,
-        jsonb_array_elements(scheduled_actions) as s
-      where
-        s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' is not null
-    ), pause_and_resume_enabled as (
-      select
-        p.arn
-      from
-        cluster_pause_enabled as p
-        left join cluster_resume_enabled as r on r.arn = p.arn
-      where
-        p.pause_cluster = r.resume_cluster
-    ), redshift_cluster_list as (
-      select
-        arn,
-        node_type,
-        region,
-        cluster_create_time,
-        account_id,
-        title
-      from
-        aws_redshift_cluster
-    ), redshift_pricing as (
-      select
-        r.arn,
-        r.node_type,
-        r.region,
-        r.cluster_create_time,
-        r.account_id,
-        r.title,
-        case
-          when e.arn is null then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
-          else ''
-        end as net_savings,
-        p.currency
-      from
-        redshift_cluster_list as r
-        left join cluster_pause_enabled as e on e.arn = r.arn
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonRedshift'
-          and p.attributes ->> 'regionCode' = r.region
-          and p.attributes ->> 'instanceType' = r.node_type
-          and p.term = 'OnDemand'
-          and p.attributes ->> 'usagetype' like 'Node:%'
-    )
     select
-      a.arn as resource,
-      case
-        when b.arn is not null then 'ok'
-        else 'info'
-      end as status,
-      case
-        when b.arn is not null then a.title || ' pause-resume action enabled.'
-        else a.title || ' pause-resume action not enabled.'
-      end as reason
-      ${local.common_dimensions_cost_sql}
+      arn,
+      s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' as pause_cluster
+    from
+      aws_redshift_cluster,
+      jsonb_array_elements(scheduled_actions) as s
+    where
+      s -> 'TargetAction' -> 'PauseCluster' ->> 'ClusterIdentifier' is not null
+  ),
+  cluster_resume_enabled as (
+    select
+      arn,
+      s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' as resume_cluster
+    from
+      aws_redshift_cluster,
+      jsonb_array_elements(scheduled_actions) as s
+    where
+      s -> 'TargetAction' -> 'ResumeCluster' ->> 'ClusterIdentifier' is not null
+  ),
+  pause_and_resume_enabled as (
+    select
+      p.arn
+    from
+      cluster_pause_enabled as p
+      left join cluster_resume_enabled as r on r.arn = p.arn
+    where
+      p.pause_cluster = r.resume_cluster
+  )
+  select
+    a.arn as resource,
+    case
+      when b.arn is not null then 'ok'
+      else 'info'
+    end as status,
+    case
+      when b.arn is not null then a.title || ' pause-resume action enabled.'
+      else a.title || ' pause-resume action not enabled.'
+    end as reason
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
-    from
-      redshift_pricing as a
-      left join pause_and_resume_enabled as b on a.arn = b.arn
+  from
+    aws_redshift_cluster as a
+    left join pause_and_resume_enabled as b on a.arn = b.arn;
   EOQ
 }
 
@@ -260,11 +248,11 @@ control "redshift_cluster_low_utilization" {
         redshift_cluster_list as r
         left join redshift_cluster_utilization as u on u.cluster_identifier = r.cluster_identifier
         left join aws_pricing_product as p on
-          p.service_code = 'AmazonRedshift'
-          and p.attributes ->> 'regionCode' = r.region
-          and p.attributes ->> 'instanceType' = r.node_type
-          and p.term = 'OnDemand'
-          and p.attributes ->> 'usagetype' like 'Node:%'
+        p.service_code = 'AmazonRedshift'
+        and p.attributes ->> 'regionCode' = r.region
+        and p.attributes ->> 'instanceType' = r.node_type
+        and p.term = 'OnDemand'
+        and p.attributes ->> 'usagetype' like 'Node:%'
     )
     select
       i.cluster_identifier as resource,
