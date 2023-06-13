@@ -85,7 +85,7 @@ control "rds_db_instance_max_age" {
         r.title,
         r.create_time,
         case
-          when date_part('day', now()-create_time) > $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
+          when date_part('day', now()-create_time) > $1 then 0.3*((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' net savings/month 🔺'
           else ''
         end as net_savings
       from
@@ -238,7 +238,7 @@ control "rds_db_instance_low_connections" {
         u.avg_max,
         u.days,
         case
-          when u.avg_max is null or u.avg_max = 0 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
+          when u.avg_max is null or u.avg_max = 0 then (((p.price_per_unit::numeric)*24*30)::numeric(10,2))/2 || ' ' || currency || ' net savings/month 🔺'
           else ''
         end as net_savings
       from
@@ -330,7 +330,7 @@ control "rds_db_instance_low_usage" {
         u.avg_max,
         u.days,
         case
-          when u.avg_max is null or u.avg_max <= $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' total cost/month'
+          when u.avg_max is null or u.avg_max <= $1 then (((p.price_per_unit::numeric)*24*30)/2)::numeric(10,2) || ' ' || currency || ' net savings/month 🔺'
           else ''
         end as net_savings
       from

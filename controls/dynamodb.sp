@@ -1,3 +1,9 @@
+variable "dynamodb_table_stale_data_max_days" {
+  type        = number
+  description = "The maximum number of days table data can be unchanged before it is considered stale."
+  default     = 90
+}
+
 locals {
   dynamodb_common_tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/DynamoDB"
@@ -6,11 +12,12 @@ locals {
 
 benchmark "dynamodb" {
   title         = "DynamoDB Cost Checks"
-  description   = "Thrifty developers delete DynamoDB tables with stale data."
+  description   = "Thrifty developers delete DynamoDB tables with stale or empty data."
   documentation = file("./controls/docs/dynamodb.md")
 
   children = [
-    control.dynamodb_table_no_data
+    control.dynamodb_table_no_data,
+    control.dynamodb_table_stale_data
   ]
 
   tags = merge(local.dynamodb_common_tags, {
@@ -66,7 +73,7 @@ control "dynamodb_table_no_data" {
     ), dynamodb_pricing_monthly as (
       select
         case
-          when t.item_count = '0' then ((t.write_capacity*w.dynamodb_write_price) + (t.read_capacity*r.dynamodb_read_price))::numeric(10,2) || ' ' || w.currency || ' total cost/GB/month'
+          when t.item_count = '0' then ((t.write_capacity*w.dynamodb_write_price) + (t.read_capacity*r.dynamodb_read_price))::numeric(10,2) || ' ' || w.currency || ' total cost/month'
           else ''
         end as net_savings,
         w.currency,
@@ -96,5 +103,38 @@ control "dynamodb_table_no_data" {
       ${local.common_dimensions_sql}
     from
       dynamodb_pricing_monthly;
+  EOQ
+}
+
+control "dynamodb_table_stale_data" {
+  title       = "DynamoDB tables with stale data should be reviewed"
+  description = "If the data has not changed recently and has become stale, the table should be reviewed."
+  severity    = "low"
+
+  param "dynamodb_table_stale_data_max_days" {
+    description = "The maximum number of days table data can be unchanged before it is considered stale."
+    default     = var.dynamodb_table_stale_data_max_days
+  }
+
+  tags = merge(local.dynamodb_common_tags, {
+    class = "stale_data"
+  })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+    case
+      when latest_stream_label is null then 'info'
+      when date_part('day', now() - (latest_stream_label::timestamptz)) > $1 then 'alarm'
+      else 'ok'
+    end as status,
+    case
+      when latest_stream_label is null then name || ' is not configured for change data capture.'
+      else name || ' was changed ' || date_part('day', now() - (latest_stream_label::timestamptz)) || ' days ago.'
+    end as reason
+    ${local.tag_dimensions_sql}
+    ${local.common_dimensions_sql}
+  from
+    aws_dynamodb_table;
   EOQ
 }

@@ -353,96 +353,55 @@ control "ebs_volume_low_usage" {
   sql = <<-EOQ
     with ebs_usage as (
       select
-        arn,
+        partition,
         account_id,
         _ctx,
         region,
         volume_id,
-        volume_type,
-        size,
-        tags,
         round(avg(max)) as avg_max,
         count(max) as days
         from (
           (
             select
-              v.arn,
-              v.account_id,
-              v._ctx,
-              v.region,
-              v.volume_id,
-              v.volume_type,
-              v.size,
-              v.tags,
+              partition,
+              account_id,
+              _ctx,
+              region,
+              volume_id,
               cast(maximum as numeric) as max
             from
-              aws_ebs_volume_metric_read_ops_daily as d
-              left join aws_ebs_volume as v on v.volume_id = d.volume_id
+              aws_ebs_volume_metric_read_ops_daily
             where
               date_part('day', now() - timestamp) <= 30
           )
           UNION
           (
             select
-              v.arn,
-              v.account_id,
-              v._ctx,
-              v.region,
-              v.volume_id,
-              v.volume_type,
-              v.size,
-              v.tags,
+              partition,
+              account_id,
+              _ctx,
+              region,
+              volume_id,
               cast(maximum as numeric) as max
             from
-              aws_ebs_volume_metric_write_ops_daily as d
-              left join aws_ebs_volume as v on v.volume_id = d.volume_id
+              aws_ebs_volume_metric_write_ops_daily
             where
               date_part('day', now() - timestamp) <= 30
           )
         ) as read_and_write_ops
-        group by 1,2,3,4,5,6,7,8
-    ), volume_pricing as (
-      select
-        v.arn,
-        v.volume_id,
-        v.volume_type,
-        v.size,
-        v.avg_max,
-        v.days,
-        v.region,
-        v.account_id,
-        v.tags,
-        case
-          when v.avg_max <= $1 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
-          else ''
-        end as net_savings,
-        p.currency
-      from
-        ebs_usage as v
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonEC2'
-          and p.filters in (
-            '{"volumeType": "General Purpose"}' :: jsonb,
-            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
-            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
-            '{"volumeType": "Cold HDD"}' :: jsonb
-          )
-          and p.attributes ->> 'regionCode' = v.region
-          and p.attributes ->> 'volumeApiName' = v.volume_type
+        group by 1,2,3,4,5
     )
     select
-      arn as resource,
+      'arn:' || partition || ':ec2:' || region || ':' || account_id || ':volume/' || volume_id as resource,
       case
         when avg_max <= $1 then 'alarm'
         when avg_max <= $2 then 'info'
         else 'ok'
       end as status,
       volume_id || ' is averaging ' || avg_max || ' read and write ops over the last ' || days || ' days.' as reason
-      ${local.common_dimensions_cost_sql}
-      ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      volume_pricing;
+      ebs_usage;
   EOQ
 }
 
@@ -739,7 +698,7 @@ control "ebs_volume_using_io1" {
         and p.attributes ->> 'group' = 'EBS IOPS Tier 2'
         and p.unit = 'IOPS-Mo'
       group by r.region, p.currency, p.attributes, p.price_per_unit, p.description
-    ),  calculate_cost_per_month as (
+    ), calculate_cost_per_month as (
       select
         v.arn,
         v.volume_id,
