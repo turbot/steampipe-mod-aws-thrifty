@@ -73,10 +73,12 @@ control "dynamodb_table_no_data" {
     ), dynamodb_pricing_monthly as (
       select
         case
-          when t.item_count = '0' then ((t.write_capacity*w.dynamodb_write_price) + (t.read_capacity*r.dynamodb_read_price))::numeric(10,2) || ' ' || w.currency || ' total cost/month'
+          when (t.item_count = '0' and write_capacity <> '0' and read_capacity <> '0') then ((t.write_capacity*w.dynamodb_write_price) + (t.read_capacity*r.dynamodb_read_price))::numeric(10,2) || ' ' || w.currency || ' total cost/month'
           else ''
         end as net_savings,
         w.currency,
+        t.write_capacity,
+        t.read_capacity,
         t.arn as arn,
         t.item_count,
         t.tags as tags,
@@ -91,11 +93,12 @@ control "dynamodb_table_no_data" {
     select
       arn as resource,
       case
+        when item_count = '0' and write_capacity = '0' and read_capacity = '0' then 'info'
         when item_count = '0' then 'alarm'
         else 'ok'
       end as status,
       case
-        when item_count = '0' then title || ' is empty table.'
+        when item_count = '0' and write_capacity = '0' and read_capacity = '0' then title || ' is on demand table with zero items.'
         else title || ' has ' || item_count || ' items.'
       end as reason
       ${local.common_dimensions_cost_sql}
