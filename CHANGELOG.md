@@ -1,3 +1,9 @@
+## v0.22 [2023-06-14]
+
+_Bug fixes_
+
+- Fixed the inline query of the `secretsmanager_secret_unused` control to correctly verify if a secret has remained unused for a specified duration. ([#138](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/138))
+
 ## v0.21 [2023-05-11]
 
 _Bug fixes_
