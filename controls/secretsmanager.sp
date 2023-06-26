@@ -42,7 +42,7 @@ control "secretsmanager_secret_unused" {
     select
       arn as resource,
       case
-        when date_part('day', now()-last_accessed_date) > $1 then 'ok'
+        when date_part('day', now()-last_accessed_date) < $1 then 'ok'
         else 'alarm'
       end as status,
       case
