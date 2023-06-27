@@ -61,6 +61,7 @@ control "vpc_nat_gateway_unused" {
         i.instance_state,
         nat.arn,
         nat.region,
+        nat._ctx,
         nat.account_id,
         nat.title,
         nat.state

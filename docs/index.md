@@ -132,6 +132,14 @@ The benchmark queries use common properties (like `account_id`, `connection_name
   ```shell
   SP_VAR_tag_dimensions='["Environment", "Owner"]' steampipe check control.large_ebs_volumes
   ```
+  
+### Class
+  
+It is a tag used to categorize controls based on their purpose or function. Each control in the mod is assigned a class tag, which can be one of three values:
+
+- `Deprecated`: Checks for outdated resources or settings, e.g. io1_volumes control.
+- `Unused`: Identifies unused resources to reduce costs, e.g. unassociated_elastic_ips control.
+- `Management`: Optimizes settings for cost savings, e.g. ec2_instance_type control.
 
 ## Contributing
 

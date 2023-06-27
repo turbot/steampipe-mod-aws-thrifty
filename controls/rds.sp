@@ -74,7 +74,8 @@ control "rds_db_instance_max_age" {
         storage_type,
         engine,
         account_id,
-        title
+        title,
+        _ctx
       from
         aws_rds_db_instance
     ), rds_instance_pricing as (
@@ -83,6 +84,7 @@ control "rds_db_instance_max_age" {
         r.region,
         r.account_id,
         r.title,
+        r._ctx,
         r.create_time,
         case
           when date_part('day', now()-create_time) > $1 then 0.3*((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' net savings/month 🔺'
@@ -97,7 +99,7 @@ control "rds_db_instance_max_age" {
         and p.attributes ->> 'instanceType' = r.class
         and p.attributes ->> 'usagetype'  like 'InstanceUsage:%'
         and replace(r.engine, '-', ' ') = lower(p.attributes ->>  'databaseEngine')
-      group by r.region, p.price_per_unit, r.arn, r.account_id, r.title, r.create_time, p.currency
+      group by r.region, p.price_per_unit, r.arn, r.account_id, r.title, r.create_time, p.currency, r._ctx
     )
     select
       arn as resource,
@@ -178,7 +180,8 @@ control "rds_db_instance_class_prev_gen" {
         i.account_id,
         i.region,
         i.title as title,
-        i.class as class
+        i.class as class,
+        i._ctx
       from
         aws_rds_db_instance as i,
         rds_instance_pricing_next_gen,

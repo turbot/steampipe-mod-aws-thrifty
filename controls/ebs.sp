@@ -84,6 +84,7 @@ control "ebs_snapshot_max_age" {
         region,
         account_id,
         tags,
+        _ctx,
         case
           when start_time > current_timestamp - ($1 || ' days')::interval then ''
           else volume_size*0.05 || ' USD' || ' total cost/month'
@@ -202,7 +203,8 @@ control "ebs_volume_large" {
         size,
         attachments,
         region,
-        account_id
+        account_id,
+        _ctx
       from
         aws_ebs_volume
     ),
@@ -213,6 +215,7 @@ control "ebs_volume_large" {
         v.size,
         v.region,
         v.account_id,
+        v._ctx,
         case
           when v.size <= $1 then ''
           else ((p.price_per_unit::numeric * v.size) - (p.price_per_unit::numeric * $1)) ::numeric(10,2) || ' ' || currency || ' total cost/month' end as net_savings,
@@ -262,7 +265,8 @@ control "ebs_volume_low_iops" {
         size,
         iops,
         region,
-        account_id
+        account_id,
+        _ctx
       from
         aws_ebs_volume
     ),gp2_volume_pricing as (
@@ -274,6 +278,7 @@ control "ebs_volume_low_iops" {
         v.iops,
         v.region,
         v.account_id,
+        v._ctx,
         (price_per_unit::numeric * v.size)::numeric(10,2) as gp2_price
       from
         volume_list as v
@@ -291,6 +296,7 @@ control "ebs_volume_low_iops" {
         v.size,
         v.iops,
         v.region,
+        v._ctx,
         v.account_id,
         case
           when v.volume_type not in ('io1', 'io2') then ''
@@ -512,7 +518,8 @@ control "ebs_volume_unattached" {
         size,
         attachments,
         region,
-        account_id
+        account_id,
+        _ctx
       from
         aws_ebs_volume
     ),
@@ -524,6 +531,7 @@ control "ebs_volume_unattached" {
         v.region,
         v.account_id,
         v.attachments,
+        v._ctx,
         case when jsonb_array_length(attachments) > 0 then '' else
         (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month' end as net_savings,
         p.currency
@@ -574,7 +582,8 @@ control "ebs_volume_using_gp2" {
         volume_type,
         size,
         region,
-        account_id
+        account_id,
+        _ctx
       from
         aws_ebs_volume
     ),
@@ -607,6 +616,7 @@ control "ebs_volume_using_gp2" {
         v.volume_type,
         v.region,
         v.account_id,
+        v._ctx,
         case
           when v.volume_type = 'gp2' then ((p.gp2_price::float - p.gp3_price::float) * v.size)::numeric(10,2) || ' ' || currency || ' net savings/month 🔺'
           else ''
@@ -654,7 +664,8 @@ control "ebs_volume_using_io1" {
         iops,
         size,
         region,
-        account_id
+        account_id,
+        _ctx
       from
         aws_ebs_volume
     ), volume_regions as (
@@ -706,6 +717,7 @@ control "ebs_volume_using_io1" {
         v.region,
         v.iops,
         v.account_id,
+        v._ctx,
         case
           when v.volume_type = 'io1' and v.iops > $1 then ((a.price_per_unit * v.iops) -  (b.price_per_unit * v.iops))::numeric(10,2) || ' ' || a.currency || ' net savings/month 🔺'
           else ''
