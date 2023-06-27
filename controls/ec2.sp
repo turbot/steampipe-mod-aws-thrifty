@@ -106,6 +106,7 @@ control "ec2_application_lb_unused" {
         a.tags as tags,
         a.account_id,
         a.region,
+        a._ctx,
         a.title as title
       from
         aws_ec2_application_load_balancer a
@@ -171,6 +172,7 @@ control "ec2_classic_lb_unused" {
         account_id,
         a.region,
         instances,
+        _ctx,
         title
       from
         aws_ec2_classic_load_balancer as a,
@@ -246,6 +248,7 @@ control "ec2_gateway_lb_unused" {
         g.tags as tags,
         g.account_id,
         g.region,
+        g._ctx,
         g.title as title
       from
         aws_ec2_gateway_load_balancer as g
@@ -317,7 +320,8 @@ control "ec2_eips_unattached" {
         e.association_id,
         e.title,
         e.private_ip_address,
-        e.public_ip
+        e.public_ip,
+        e._ctx
       from
         aws_vpc_eip as e,
         eip_pricing
@@ -391,6 +395,7 @@ control "ec2_network_lb_unused" {
         a.tags as tags,
         a.account_id,
         a.region,
+        a._ctx,
         a.title as title
       from
         aws_ec2_network_load_balancer a

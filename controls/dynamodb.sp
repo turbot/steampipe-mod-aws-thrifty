@@ -84,7 +84,8 @@ control "dynamodb_table_no_data" {
         t.tags as tags,
         t.account_id,
         t.region,
-        t.title as title
+        t.title as title,
+        t._ctx
       from
         aws_dynamodb_table as t
         left join dynamodb_write_units_pricing as w on w.region = t.region

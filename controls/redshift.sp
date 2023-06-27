@@ -70,7 +70,8 @@ control "redshift_cluster_max_age" {
         region,
         cluster_create_time,
         account_id,
-        title
+        title,
+        _ctx
       from
         aws_redshift_cluster
     ),redshift_reserved_pricing as (
@@ -81,6 +82,7 @@ control "redshift_cluster_max_age" {
         r.cluster_create_time,
         r.account_id,
         r.title,
+        r._ctx,
         ((p.price_per_unit::numeric)*24*30)::numeric(10,2) as redshift_reserved_pricing
       from
         redshift_cluster_list as r
@@ -101,6 +103,7 @@ control "redshift_cluster_max_age" {
         r.cluster_create_time,
         r.account_id,
         r.title,
+        r._ctx,
         case
           when date_part('day', now() - cluster_create_time) > $1 then (((p.price_per_unit::numeric)*24*30)::numeric(10,2)- redshift_reserved_pricing) || ' ' || currency || ' savings/month'
           else ''
@@ -225,6 +228,7 @@ control "redshift_cluster_low_utilization" {
         cluster_identifier,
         node_type,
         region,
+        _ctx,
         cluster_create_time,
         account_id,
         title
@@ -236,6 +240,7 @@ control "redshift_cluster_low_utilization" {
         r.cluster_identifier,
         r.node_type,
         r.region,
+        r._ctx,
         r.cluster_create_time,
         r.account_id,
         r.title,

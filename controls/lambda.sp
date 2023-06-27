@@ -115,7 +115,8 @@ control "lambda_function_with_graviton2" {
         architecture,
         memory_size,
         region,
-        account_id
+        account_id,
+        _ctx
       from
         aws_lambda_function,
         jsonb_array_elements_text(architectures) as architecture
@@ -151,6 +152,7 @@ control "lambda_function_with_graviton2" {
         l.architecture,
         l.region,
         l.account_id,
+        l._ctx,
         case
           when l.architecture = 'x86_64' then (p.x86_64_price::float - p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024) * 24 * 30
           || ' ' || currency || ' net savings/month 🔺'
