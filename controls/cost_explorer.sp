@@ -15,7 +15,7 @@ benchmark "cost_explorer" {
   description   = "Thrifty developers actively monitor their cloud usage and cost data."
   documentation = file("./controls/docs/cost-explorer.md")
   children = [
-    control.full_month_cost_changes
+    control.cost_explorer_full_month_cost_changes
   ]
 
   tags = merge(local.cost_explorer_common_tags, {
@@ -23,7 +23,7 @@ benchmark "cost_explorer" {
   })
 }
 
-control "full_month_cost_changes" {
+control "cost_explorer_full_month_cost_changes" {
   title       = "What services have changed in cost over last two months?"
   description = "Compares the cost of services between the last two full months of AWS usage."
   severity    = "low"
