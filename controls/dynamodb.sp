@@ -73,7 +73,7 @@ control "dynamodb_table_no_data" {
     ), dynamodb_pricing_monthly as (
       select
         case
-          when (t.item_count = '0' and write_capacity <> '0' and read_capacity <> '0') then ((t.write_capacity*w.dynamodb_write_price) + (t.read_capacity*r.dynamodb_read_price))::numeric(10,2) || ' ' || w.currency || ' total cost/month'
+          when (t.item_count = '0' and write_capacity <> '0' and read_capacity <> '0') then ((t.write_capacity*w.dynamodb_write_price) + (t.read_capacity*r.dynamodb_read_price))::numeric(10,2) || ' ' || w.currency || ' net savings/month'
           else ''
         end as net_savings,
         w.currency,
