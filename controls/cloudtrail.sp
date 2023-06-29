@@ -31,12 +31,16 @@ control "multiple_global_trails" {
   sql = <<-EOQ
     with global_trails as (
       select
+        account_id,
         count(*) as total
       from
         aws_cloudtrail_trail
       where
+        is_multi_region_trail and region = home_region
+      group by
+        account_id,
         is_multi_region_trail
-      )
+    )
     select
       arn as resource,
       case
@@ -47,13 +51,12 @@ control "multiple_global_trails" {
         when total > 1 then name || ' is one of ' || total || ' global trails.'
         else name || ' is the only global trail.'
       end as reason
-      ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
     from
       aws_cloudtrail_trail,
       global_trails
     where
-      is_multi_region_trail;
+      is_multi_region_trail
+      and region = home_region;
   EOQ
 }
 
