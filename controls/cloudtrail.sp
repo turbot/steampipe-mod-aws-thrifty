@@ -51,6 +51,8 @@ control "multiple_global_trails" {
         when total > 1 then name || ' is one of ' || total || ' global trails.'
         else name || ' is the only global trail.'
       end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
     from
       aws_cloudtrail_trail,
       global_trails
