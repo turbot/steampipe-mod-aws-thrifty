@@ -1,3 +1,10 @@
+## v0.23 [2023-07-13]
+
+_Bug fixes_
+
+- Fixed the inline query of the `multiple_global_trails` control to remove redundant global trails when organization trails are in use. ([#141](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/141))
+- Fixed the inline query of the `ebs_snapshot_max_age` control to correctly list out the old EBS snapshots that should be deleted if not required. ([#147](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/147))
+
 ## v0.22 [2023-06-14]
 
 _Bug fixes_
