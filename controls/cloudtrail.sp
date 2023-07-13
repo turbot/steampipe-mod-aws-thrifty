@@ -52,9 +52,9 @@ control "multiple_global_trails" {
         else name || ' is the only global trail.'
       end as reason
       ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "t.")}
     from
-      aws_cloudtrail_trail,
+      aws_cloudtrail_trail as t,
       global_trails
     where
       is_multi_region_trail

@@ -359,7 +359,7 @@ control "ebs_snapshot_max_age" {
     select
       arn as resource,
       case
-        when start_time > current_timestamp - ($1 || ' days')::interval then 'ok'
+        when start_time > (current_timestamp - ($1::int || ' days')::interval) then 'ok'
         else 'alarm'
       end as status,
       snapshot_id || ' created at ' || start_time || '.' as reason
