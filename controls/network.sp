@@ -71,8 +71,7 @@ control "vpc_nat_gateway_unused" {
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "nat.")}
     from
       aws_vpc_nat_gateway as nat
-      left join aws_vpc_nat_gateway_metric_bytes_out_to_destination as dest
-      on nat.nat_gateway_id = dest.nat_gateway_id
+      left join aws_vpc_nat_gateway_metric_bytes_out_to_destination as dest on nat.nat_gateway_id = dest.nat_gateway_id
     group by
       nat.title,
       nat.arn,
