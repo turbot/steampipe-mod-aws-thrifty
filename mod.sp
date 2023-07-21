@@ -14,7 +14,7 @@ variable "common_dimensions" {
   # - account_id
   # - connection_name (_ctx ->> 'connection_name')
   # - region
-  default     = [ "account_id", "region" ]
+  default = ["account_id", "region"]
 }
 
 variable "tag_dimensions" {
@@ -24,7 +24,7 @@ variable "tag_dimensions" {
   # tags (e.g. "Owner", "Environment"). Default to empty since tag names are
   # a personal choice - for commonly used tag names see
   # https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html#tag-categories
-  default     = []
+  default = []
 }
 
 locals {
@@ -32,15 +32,15 @@ locals {
   # Local internal variable to build the SQL select clause for common
   # dimensions using a table name qualifier if required. Do not edit directly.
   common_dimensions_qualifier_sql = <<-EOQ
-  %{~ if contains(var.common_dimensions, "connection_name") }, __QUALIFIER___ctx ->> 'connection_name' as connection_name%{ endif ~}
-  %{~ if contains(var.common_dimensions, "region") }, __QUALIFIER__region%{ endif ~}
-  %{~ if contains(var.common_dimensions, "account_id") }, __QUALIFIER__account_id%{ endif ~}
+  %{~if contains(var.common_dimensions, "connection_name")}, __QUALIFIER___ctx ->> 'connection_name' as connection_name%{endif~}
+  %{~if contains(var.common_dimensions, "region")}, __QUALIFIER__region%{endif~}
+  %{~if contains(var.common_dimensions, "account_id")}, __QUALIFIER__account_id%{endif~}
   EOQ
 
   # Local internal variable to build the SQL select clause for tag
   # dimensions. Do not edit directly.
   tag_dimensions_sql = <<-EOQ
-  %{~ for dim in var.tag_dimensions }, tags ->> '${dim}' as "${replace(dim, "\"", "\"\"")}"%{ endfor ~}
+  %{~for dim in var.tag_dimensions}, tags ->> '${dim}' as "${replace(dim, "\"", "\"\"")}"%{endfor~}
   EOQ
 
 }
@@ -70,7 +70,7 @@ mod "aws_thrifty" {
 
   require {
     plugin "aws" {
-      version = "0.81.0"
+      version = "0.112.0"
     }
   }
 }
