@@ -1,3 +1,9 @@
+## v0.24 [2023-07-24]
+
+_Bug fixes_
+
+- Fixed the inline query of the `vpc_nat_gateway_unused` control to correctly list out the unused NAT gateways that should be deleted. ([#150](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/150))
+
 ## v0.23 [2023-07-13]
 
 _Bug fixes_
