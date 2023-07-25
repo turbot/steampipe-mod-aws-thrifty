@@ -236,7 +236,7 @@ control "rds_db_instance_with_graviton" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      aws_rds_db_instance
+      aws_rds_db_instance;
   EOQ
 }
 

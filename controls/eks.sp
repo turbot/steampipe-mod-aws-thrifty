@@ -79,6 +79,6 @@ control "eks_node_group_with_graviton" {
     ${local.common_dimensions_sql}
   from
     aws_eks_node_group as g
-    left join ami_architecture as a on a.node_group_arn = g.arn
+    left join ami_architecture as a on a.node_group_arn = g.arn;
   EOQ
 }

@@ -148,6 +148,6 @@ control "ecs_cluster_container_instance_with_graviton" {
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "c.")}
     from
       aws_ecs_container_instance as c
-      left join aws_ec2_instance as i on c.ec2_instance_id = i.instance_id
+      left join aws_ec2_instance as i on c.ec2_instance_id = i.instance_id;
   EOQ
 }
