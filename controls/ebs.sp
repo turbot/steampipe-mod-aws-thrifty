@@ -87,7 +87,7 @@ control "ebs_snapshot_max_age" {
         _ctx,
         case
           when start_time > current_timestamp - ($1 || ' days')::interval then ''
-          else volume_size*0.05 || ' USD' || ' total cost/month'
+          else volume_size*0.05 || ' USD' || ' net savings/month'
         end as net_savings
       from
         aws_ebs_snapshot
@@ -145,7 +145,7 @@ control "ebs_volume_high_iops" {
         v.account_id,
         case
           when v.volume_type not in ('io1', 'io2') then ''
-          when v.iops >= $1 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
+          when v.iops >= $1 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' net savings/month'
           else ''
         end as net_savings,
         p.currency
@@ -218,7 +218,7 @@ control "ebs_volume_large" {
         v._ctx,
         case
           when v.size <= $1 then ''
-          else ((p.price_per_unit::numeric * v.size) - (p.price_per_unit::numeric * $1)) ::numeric(10,2) || ' ' || currency || ' total cost/month' end as net_savings,
+          else ((p.price_per_unit::numeric * v.size) - (p.price_per_unit::numeric * $1)) ::numeric(10,2) || ' ' || currency || ' net savings/month' end as net_savings,
         p.currency
       from
         volume_list as v
@@ -300,7 +300,7 @@ control "ebs_volume_low_iops" {
         v.account_id,
         case
           when v.volume_type not in ('io1', 'io2') then ''
-          when v.iops <= 3000 then ((p.price_per_unit::numeric * v.size)::numeric(10,2) - gp2_price) || ' ' || currency || ' total cost/month'
+          when v.iops <= 3000 then ((p.price_per_unit::numeric * v.size)::numeric(10,2) - gp2_price) || ' ' || currency || ' net savings/month'
           else ''
         end as net_savings,
         p.currency
@@ -473,7 +473,7 @@ control "ebs_volume_on_stopped_instances" {
         v.running_instances,
         v.instance_id,
         v.account_id,
-        case when v.running_instances = 0 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month'
+        case when v.running_instances = 0 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' net savings/month'
         else '' end as net_savings,
         p.currency
       from
@@ -533,7 +533,7 @@ control "ebs_volume_unattached" {
         v.attachments,
         v._ctx,
         case when jsonb_array_length(attachments) > 0 then '' else
-        (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' total cost/month' end as net_savings,
+        (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || ' net savings/month' end as net_savings,
         p.currency
       from
         volume_list as v
