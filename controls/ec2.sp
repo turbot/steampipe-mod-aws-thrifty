@@ -43,6 +43,7 @@ benchmark "ec2" {
     control.ec2_classic_lb_unused,
     control.ec2_gateway_lb_unused,
     control.ec2_instance_older_generation,
+    control.ec2_instance_with_graviton,
     control.ec2_network_lb_unused,
     control.ec2_reserved_instance_lease_expiration_days,
     control.instances_with_low_utilization,
@@ -349,6 +350,35 @@ control "ec2_instance_older_generation" {
         else 'ok'
       end as status,
       title || ' has used ' || instance_type || '.' as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_ec2_instance;
+  EOQ
+}
+
+control "ec2_instance_with_graviton" {
+  title       = "EC2 instances without graviton2 processor should be reviewed"
+  description = "With graviton2 processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  severity    = "low"
+
+  tags = merge(local.ec2_common_tags, {
+    class = "deprecated"
+  })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+      case
+        when platform = 'windows' then 'skip'
+        when architecture = 'arm64' then 'ok'
+        else 'alarm'
+      end as status,
+      case
+        when platform = 'windows' then title || ' is windows type machine.'
+        when architecture = 'arm64' then title || ' is using Graviton2 processor.'
+        else title || ' is not using Graviton2 processor.'
+      end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
