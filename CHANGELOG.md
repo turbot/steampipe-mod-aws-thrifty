@@ -2,7 +2,7 @@
 
 _Enhancements_
 
-- Added the following controls to implement findings for non graviton processors and suggest graviton2 instead. ([#144](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/144))
+- Added the following controls to check which resources are using non-graviton processors: ([#144](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/144))
   - `ec2_instance_with_graviton`
   - `ecs_cluster_container_instance_with_graviton`
   - `eks_node_group_with_graviton`
