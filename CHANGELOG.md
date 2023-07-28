@@ -1,5 +1,15 @@
 ## v0.24 [2023-07-24]
 
+_Enhancements_
+
+- Added the following controls to implement findings for non graviton processors and suggest graviton2 instead. ([#144](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/144))
+  - `ec2_instance_with_graviton`
+  - `ecs_cluster_container_instance_with_graviton`
+  - `eks_node_group_with_graviton`
+  - `rds_db_instance_with_graviton`
+
+## v0.24 [2023-07-24]
+
 _Bug fixes_
 
 - Fixed the inline query of the `vpc_nat_gateway_unused` control to correctly list out the unused NAT gateways that should be deleted. ([#150](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/150))
