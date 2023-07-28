@@ -1,6 +1,6 @@
-## v0.24 [2023-07-24]
+## v0.25 [2023-07-24]
 
-_Enhancements_
+_What's new?_
 
 - Added the following controls to check which resources are using non-graviton processors: ([#144](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/144))
   - `ec2_instance_with_graviton`
