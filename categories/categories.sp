@@ -55,7 +55,7 @@ benchmark "generation_gaps" {
 }
 
 benchmark "overused" {
-  title         = "Overused"
+  title         = "Overused Resources"
   description   = "Thrifty developers check overused AWS resources. AWS resources can be overused in a few different ways. When you have long-running resources, consider if they can be stopped intermittently. In non-production environments, for example, it can make sense to spin up resources when needed, or only during working hours."
 //  documentation = file("./thrifty/docs/overused.md")
   children = [
@@ -95,7 +95,7 @@ benchmark "stale_data" {
 }
 
 benchmark "underused" {
-  title         = "Underused"
+  title         = "Underused Resources"
   description   = "Thrifty developers check underused AWS resources. Large EC2 (or RDS, Redshift, ECS, etc) instances may have been created and sized to handle peak utilization but never reviewed later to see how well the storage, compute, and/or memory is being utilized. Consider rightsizing the instance type if an application is overprovisioned in any of these ways. AWS has different pricing for resources that are compute-optimized or memory-optimized. Analyze your inventory and utilization metrics to find underused resources, and prune them as warranted."
 //  documentation = file("./thrifty/docs/underused.md")
   children = [
@@ -114,7 +114,7 @@ benchmark "underused" {
 }
 
 benchmark "unused" {
-  title         = "Unused"
+  title         = "Unused Resources"
   description   = "Thrifty developers need to pay close attention to unused resources. It’s possible to end up with resources that aren’t being used. Load balancers may not have associated resources or targets; RDS databases may have low or no connection counts; a NAT gateway may not have any resources routing to it. And most commonly, EBS volumes may not be attached to running instances. The ability to easily create, attach and unattached disk volumes is a key benefit of working in the cloud, but it can also become a source of unchecked cost if not watched closely. Even if an Amazon EBS volume is unattached, you are still billed for the provisioned storage."
 //  documentation = file("./thrifty/docs/unused.md")
   children = [
