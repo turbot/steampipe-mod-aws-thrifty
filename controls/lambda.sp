@@ -172,7 +172,7 @@ control "lambda_function_with_graviton2" {
         when architecture = 'arm64' then title || ' is using Graviton2 processor.'
         else title || ' is not using Graviton2 processor.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

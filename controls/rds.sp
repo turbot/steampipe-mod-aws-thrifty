@@ -115,7 +115,7 @@ control "rds_db_instance_max_age" {
         else 'ok'
       end as status,
       title || ' has been in use for ' || date_part('day', now()-create_time) || ' days.' as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -204,7 +204,7 @@ control "rds_db_instance_class_prev_gen" {
         else 'info'
       end as status,
       title || ' has a ' || class || ' instance class.' as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -274,7 +274,7 @@ control "rds_db_instance_low_connections" {
         when avg_max = 0 then title || ' has not been connected to in the last ' || days || ' days.'
         else i.title || ' is averaging ' || avg_max || ' max connections/day in the last ' || days || ' days.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -366,7 +366,7 @@ control "rds_db_instance_low_usage" {
         when avg_max is null then 'CloudWatch metrics not available for ' || i.title || '.'
         else i.title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "i.")}
     from

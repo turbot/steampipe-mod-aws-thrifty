@@ -14,7 +14,7 @@ variable "common_dimensions" {
   # - account_id
   # - connection_name (_ctx ->> 'connection_name')
   # - region
-  default = ["account_id", "region", "cost"]
+  default = ["account_id", "region", "savings"]
 }
 
 variable "tag_dimensions" {
@@ -37,8 +37,8 @@ locals {
   %{~if contains(var.common_dimensions, "account_id")}, __QUALIFIER__account_id%{endif~}
   EOQ
 
-  common_dimensions_cost_qualifier_sql = <<-EOQ
-  %{~if contains(var.common_dimensions, "cost")}, __QUALIFIER__net_savings%{endif~}
+  common_dimensions_savings_qualifier_sql = <<-EOQ
+  %{~if contains(var.common_dimensions, "savings")}, __QUALIFIER__net_savings%{endif~}
   EOQ
   # Local internal variable to build the SQL select clause for tag
   # dimensions. Do not edit directly.
@@ -53,7 +53,7 @@ locals {
   # Local internal variable with the full SQL select clause for common
   # dimensions. Do not edit directly.
   common_dimensions_sql      = replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "")
-  common_dimensions_cost_sql = replace(local.common_dimensions_cost_qualifier_sql, "__QUALIFIER__", "")
+  common_dimensions_savings_sql = replace(local.common_dimensions_savings_qualifier_sql, "__QUALIFIER__", "")
 
 }
 

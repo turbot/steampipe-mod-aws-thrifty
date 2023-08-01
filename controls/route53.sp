@@ -92,7 +92,6 @@ control "route53_health_check_unused" {
         when health_check_id is null then title || ' is unnecessary.'
         else title || ' is necessary.'
       end as reason
-      ${local.common_dimensions_cost_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

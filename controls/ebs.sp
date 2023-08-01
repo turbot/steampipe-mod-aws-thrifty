@@ -99,7 +99,7 @@ control "ebs_snapshot_max_age" {
         else 'alarm'
       end as status,
       snapshot_id || ' created at ' || start_time || '.' as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -240,7 +240,7 @@ control "ebs_volume_large" {
         else 'alarm'
       end as status,
       volume_id || ' is ' || size || 'GB.' as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -329,7 +329,7 @@ control "ebs_volume_low_iops" {
         when iops <= 3000 then volume_id || ' only has ' || iops || ' iops.'
         else volume_id || ' has ' || iops || ' iops.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -558,7 +558,7 @@ control "ebs_volume_unattached" {
         when jsonb_array_length(attachments) > 0 then volume_id || ' has attachments.'
         else volume_id || ' has no attachments.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -634,7 +634,7 @@ control "ebs_volume_using_gp2" {
         else 'skip'
       end as status,
       volume_id || ' type is ' || volume_type as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -739,7 +739,7 @@ control "ebs_volume_using_io1" {
         when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
         else volume_id || ' type is ' || volume_type || ' using ' || iops || ' iops.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

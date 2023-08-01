@@ -102,7 +102,7 @@ control "dynamodb_table_no_data" {
         when item_count = '0' and write_capacity = '0' and read_capacity = '0' then title || ' is on demand table with zero items.'
         else title || ' has ' || item_count || ' items.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

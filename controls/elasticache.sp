@@ -145,7 +145,7 @@ control "elasticache_cluster_running_max_age" {
     end as status,
     name || ' ' || c.engine || ' created on ' || cache_cluster_create_time || ' (' || date_part('day', now() - cache_cluster_create_time) || ' days).'
     as reason
-    ${local.common_dimensions_cost_sql}
+    ${local.common_dimensions_savings_sql}
     ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "c.")}
   from
     filter_clusters as c

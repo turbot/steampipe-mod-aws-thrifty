@@ -123,7 +123,7 @@ control "ec2_application_lb_unused" {
         when target_lb is null then title || ' has no target registered.'
         else title || ' has registered target of type ' || target_type || '.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -188,7 +188,7 @@ control "ec2_classic_lb_unused" {
         when jsonb_array_length(instances) > 0 then title || ' has registered instances.'
         else title || ' has no registered instance.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -265,7 +265,7 @@ control "ec2_gateway_lb_unused" {
         when jsonb_array_length(target_health_descriptions) = 0 then title || ' has no target registered.'
         else title || ' has registered target.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -336,7 +336,7 @@ control "ec2_eips_unattached" {
         when association_id is null then public_ip || ' has no association.'
         else public_ip || ' associated with ' || private_ip_address || '.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.common_dimensions_sql}
     from
       eip_pricing_monthly
@@ -412,7 +412,7 @@ control "ec2_network_lb_unused" {
         when jsonb_array_length(target_health_descriptions) = 0 then title || ' has no target registered.'
         else title || ' has registered target.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

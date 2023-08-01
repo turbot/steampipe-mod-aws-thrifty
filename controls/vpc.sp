@@ -84,7 +84,7 @@ control "vpc_nat_gateway_unused" {
         when instance_state <> 'running' then title || ' associated with ' || instance_id || ', which is in ' ||  instance_state || ' state.'
         else title || ' in-use.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from

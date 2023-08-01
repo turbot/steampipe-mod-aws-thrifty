@@ -127,7 +127,7 @@ control "redshift_cluster_max_age" {
       end as status,
       title || ' created on ' || cluster_create_time || ' (' || date_part('day', now() - cluster_create_time) || ' days).'
       as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
@@ -271,7 +271,7 @@ control "redshift_cluster_low_utilization" {
         when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
         else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
       end as reason
-      ${local.common_dimensions_cost_sql}
+      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
