@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "emr" {
-  title         = "EMR Checks"
+  title         = "EMR Cost Checks"
   description   = "Thrifty developers checks EMR clusters of previous generation instances and idle clusters."
   documentation = file("./controls/docs/emr.md")
   children = [

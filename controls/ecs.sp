@@ -17,7 +17,7 @@ locals {
 }
 
 benchmark "ecs" {
-  title         = "ECS Checks"
+  title         = "ECS Cost Checks"
   description   = "Thrifty developers checks under-utilized ECS clusters and ECS service without autoscaling configuration."
   documentation = file("./controls/docs/ecs.md")
   children = [

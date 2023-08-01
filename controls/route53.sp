@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "route53" {
-  title         = "Route 53 Checks"
+  title         = "Route 53 Cost Checks"
   description   = "Thrifty developers keep a careful eye on the actual usage of Route 53 service."
   documentation = file("./controls/docs/route53.md")
 
@@ -51,7 +51,7 @@ control "route53_record_higher_ttl" {
 }
 
 control "route53_health_check_unused" {
-  title       = "Unnecessary health checks should be deleted"
+  title       = "Unused health checks should be deleted"
   description = "When you associate health checks with an endpoint, health check requests are sent to the endpoint's IP address. These health check requests are sent to validate that the requests are operating as intended. Health check charges are incurred based on their associated endpoints. To avoid health check charges, delete any health checks that aren't used with an RRset record and are no longer required."
   severity    = "low"
 

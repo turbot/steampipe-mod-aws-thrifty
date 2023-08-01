@@ -12,8 +12,7 @@ benchmark "capacity_planning" {
     #control.kinesis_stream_consumer_with_enhanced_fan_out,
     control.rds_db_instance_max_age,
     control.redshift_cluster_max_age,
-    control.redshift_cluster_schedule_pause_resume_enabled,
-    control.route53_record_higher_ttl
+    control.redshift_cluster_schedule_pause_resume_enabled
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {
@@ -127,7 +126,6 @@ benchmark "unused" {
     control.ec2_network_lb_unused,
     control.ec2_eips_unattached,
     control.emr_cluster_is_idle_30_minutes,
-    control.route53_health_check_unused,
     control.secretsmanager_secret_unused,
     control.vpc_nat_gateway_unused
   ]

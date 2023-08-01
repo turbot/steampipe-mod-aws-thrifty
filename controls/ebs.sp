@@ -1,5 +1,5 @@
 variable "ebs_snapshot_age_max_days" {
-  type        = string
+  type        = number
   description = "The maximum number of days snapshots can be retained."
   default     = 90
 }
@@ -86,7 +86,7 @@ control "ebs_snapshot_max_age" {
         tags,
         _ctx,
         case
-          when start_time > current_timestamp - ($1 || ' days')::interval then ''
+          when start_time > current_timestamp - ($1::int || ' days')::interval then ''
           else volume_size*0.05 || ' USD' || '/month'
         end as net_savings
       from
@@ -95,7 +95,7 @@ control "ebs_snapshot_max_age" {
     select
       arn as resource,
       case
-        when start_time > current_timestamp - ($1 || ' days')::interval then 'ok'
+        when start_time > current_timestamp - ($1::int || ' days')::interval then 'ok'
         else 'alarm'
       end as status,
       snapshot_id || ' created at ' || start_time || '.' as reason
