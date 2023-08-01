@@ -21,7 +21,7 @@ benchmark "cloudtrail" {
 
 control "cloudtrail_trail_global_multiple" {
   title       = "Are there redundant global CloudTrail trails?"
-  description = "Your first cloudtrail in each account is free, additional trails are expensive."
+  description = "Your first trail in each account is free, additional trails are expensive."
   severity    = "low"
 
   tags = merge(local.cloudtrail_common_tags, {
@@ -59,7 +59,7 @@ control "cloudtrail_trail_global_multiple" {
 
 control "cloudtrail_trail_regional_multiple" {
   title       = "Are there redundant regional CloudTrail trails?"
-  description = "Your first cloudtrail in each region is free, additional trails are expensive."
+  description = "Your first trail in each region is free, additional trails are expensive."
   severity    = "low"
 
   tags = merge(local.cloudtrail_common_tags, {

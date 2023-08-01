@@ -1,6 +1,6 @@
 variable "secretsmanager_secret_last_used" {
   type        = number
-  description = "The default number of days secrets manager secrets to be considered in-use."
+  description = "The default number of days Secrets Manager secrets to be considered in-use."
   default     = 90
 }
 
@@ -12,7 +12,7 @@ locals {
 
 benchmark "secretsmanager" {
   title         = "Secrets Manager Cost Checks"
-  description   = "Thrifty developers ensure their secrets manager secret is in use."
+  description   = "Thrifty developers ensure their Secrets Manager secret is in use."
   documentation = file("./controls/docs/secretsmanager.md")
 
   children = [
@@ -34,7 +34,7 @@ control "secretsmanager_secret_unused" {
   })
 
   param "secretsmanager_secret_last_used" {
-    description = "The specified number of days since secrets manager secret last used."
+    description = "The specified number of days since Secrets Manager secret last used."
     default     = var.secretsmanager_secret_last_used
   }
 

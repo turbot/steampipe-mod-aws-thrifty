@@ -6,7 +6,7 @@ locals {
 
 benchmark "cloudfront" {
   title         = "CloudFront Cost Checks"
-  description   = "Thrifty developers checks price class of cloudfront distribution for cost optimization."
+  description   = "Thrifty developers checks price class of CloudFront distribution for cost optimization."
   documentation = file("./controls/docs/cloudfront.md")
 
   children = [
@@ -41,5 +41,4 @@ control "cloudfront_distribution_pricing_class" {
     from
       aws_cloudfront_distribution;
   EOQ
-
 }

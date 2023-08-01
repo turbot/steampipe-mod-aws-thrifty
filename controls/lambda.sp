@@ -21,7 +21,7 @@ benchmark "lambda" {
 }
 
 control "lambda_function_high_error_rate" {
-  title       = "Are there any lambda functions with high error rate?"
+  title       = "Are there any Lambda functions with high error rate?"
   description = "Function errors may result in retries that incur extra charges. The control checks for functions with an error rate of more than 10% a day in one of the last 7 days."
   severity    = "low"
   tags = merge(local.lambda_common_tags, {
@@ -60,7 +60,7 @@ control "lambda_function_high_error_rate" {
 }
 
 control "lambda_function_excessive_timeout" {
-  title       = "Are there any lambda functions with excessive timeout?"
+  title       = "Are there any Lambda functions with excessive timeout?"
   description = "Excessive timeouts result in retries and additional execution time for the function, incurring request charges and billed duration. The control checks for functions with a timeout rate of more than 10% a day in one of the last 7 days."
   severity    = "low"
   tags = merge(local.lambda_common_tags, {
@@ -87,7 +87,7 @@ control "lambda_function_excessive_timeout" {
         else 'ok'
       end as status,
       case
-        when avg_duration is null then 'CloudWatch lambda metrics not available for ' || title || '.'
+        when avg_duration is null then 'CloudWatch Lambda metrics not available for ' || title || '.'
         else title || ' Timeout of ' || timeout::numeric*1000 || ' milliseconds is ' || round(((timeout :: numeric*1000)-avg_duration)/(timeout :: numeric*1000)*100,1) || '% more as compared to average of ' || round(avg_duration,0) || ' milliseconds.'
       end as reason
         ${local.tag_dimensions_sql}
@@ -99,7 +99,7 @@ control "lambda_function_excessive_timeout" {
 }
 
 control "lambda_function_with_graviton2" {
-  title       = "Are there any lambda functions without graviton2 processor?"
+  title       = "Are there any Lambda functions without graviton2 processor?"
   description = "With graviton2 processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   severity    = "low"
 

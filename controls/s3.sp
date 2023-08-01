@@ -21,7 +21,7 @@ control "s3_bucket_without_lifecycle" {
   title       = "S3 buckets should have lifecycle policies"
   description = "S3 buckets should have an associated lifecycle policy for data retention."
   severity    = "low"
-  
+
   tags = merge(local.s3_common_tags, {
     class = "stale_data"
   })
