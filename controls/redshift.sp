@@ -245,7 +245,7 @@ control "redshift_cluster_low_utilization" {
         r.account_id,
         r.title,
         case
-          when u.avg_max < $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || ' net savings/month'
+          when u.avg_max < $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
           else ''
         end as net_savings,
         p.currency

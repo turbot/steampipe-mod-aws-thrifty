@@ -96,7 +96,7 @@ control "ec2_application_lb_unused" {
     ), application_load_balancer_pricing_monthly as (
       select
         case
-          when b.load_balancer_arn is null then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || ' net savings/month'
+          when b.load_balancer_arn is null then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
           else ''
          end as net_savings,
         currency,
@@ -164,7 +164,7 @@ control "ec2_classic_lb_unused" {
       select
         case
           when jsonb_array_length(instances) > 0 then ''
-          else (30*24*clb_price_hrs)::numeric(10,2) || ' ' || currency || ' net savings/month'
+          else (30*24*clb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
         end as net_savings,
         currency,
         arn,
@@ -237,7 +237,7 @@ control "ec2_gateway_lb_unused" {
     ), glb_pricing_monthly as (
       select
         case
-          when jsonb_array_length(b.target_health_descriptions) = 0 then (30*24*clb_price_hrs)::numeric(10,2) || ' ' || currency || ' net savings/month'
+          when jsonb_array_length(b.target_health_descriptions) = 0 then (30*24*clb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
           else ''
         end as net_savings,
         currency,
@@ -309,7 +309,7 @@ control "ec2_eips_unattached" {
     ), eip_pricing_monthly as (
       select
         case
-          when association_id is null then (30*24*eip_price_hrs)::numeric(10,2) || ' ' || currency || ' net savings/month'
+          when association_id is null then (30*24*eip_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
           else ''
         end as net_savings,
         currency,
@@ -384,7 +384,7 @@ control "ec2_network_lb_unused" {
     ),network_load_balancer_pricing_monthly as (
       select
         case
-          when jsonb_array_length(b.target_health_descriptions) = 0 then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || ' net savings/month'
+          when jsonb_array_length(b.target_health_descriptions) = 0 then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
           else ''
         end as net_savings,
         currency,

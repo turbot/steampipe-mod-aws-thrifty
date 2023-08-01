@@ -96,7 +96,7 @@ control "elasticache_cluster_running_max_age" {
         e.account_id,
         e.title,
         case
-          when date_part('day', now() - cache_cluster_create_time) > $1 then (((p.price_per_unit::numeric)*24*30)::numeric(10,2) - reserved_elasticache_cluster_price )|| ' ' || p.currency || '  net savings/month 🔺'
+          when date_part('day', now() - cache_cluster_create_time) > $1 then (((p.price_per_unit::numeric)*24*30)::numeric(10,2) - reserved_elasticache_cluster_price )|| ' ' || p.currency || ' /month'
           else ''
         end as net_savings,
         p.currency
