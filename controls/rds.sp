@@ -1,3 +1,9 @@
+variable "rds_db_instance_avg_connections" {
+  type        = number
+  description = "The minimum number of average connections per day required for DB instances to be considered in-use."
+  default     = 2
+}
+
 variable "rds_db_instance_avg_cpu_utilization_high" {
   type        = number
   description = "The average CPU utilization required for DB instances to be considered frequently used. This value should be higher than rds_db_instance_avg_cpu_utilization_low."
