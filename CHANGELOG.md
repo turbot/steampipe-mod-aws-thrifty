@@ -81,7 +81,7 @@ _What's new?_
   - Secrets Manager Checks (`steampipe check benchmark.secretsmanager`) ([#85](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/85))
 - New controls added:
   - ec2_instance_older_generation ([#79](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/79))
-  - lambda_function_with_graviton ([#82](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/82))
+  - lambda_function_with_graviton2 ([#82](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/82))
 
 _Enhancements_
 
