@@ -214,8 +214,8 @@ control "rds_db_low_utilization" {
 }
 
 control "rds_db_instance_with_graviton" {
-  title       = "RDS DB instances without graviton2 processor should be reviewed"
-  description = "With graviton2 processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  title       = "RDS DB instances without graviton processor should be reviewed"
+  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   severity    = "low"
 
   tags = merge(local.rds_common_tags, {
@@ -230,8 +230,8 @@ control "rds_db_instance_with_graviton" {
         else 'alarm'
       end as status,
       case
-        when class like 'db.%g%.%' then title || ' is using Graviton2 processor.'
-        else title || ' is not using Graviton2 processor.'
+        when class like 'db.%g%.%' then title || ' is using Graviton processor.'
+        else title || ' is not using Graviton processor.'
       end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
