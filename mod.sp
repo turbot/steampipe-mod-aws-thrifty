@@ -71,7 +71,7 @@ mod "aws_thrifty" {
 
   require {
     plugin "aws" {
-      version = "0.112.0"
+      min_version = "0.112.0"
     }
   }
 }
