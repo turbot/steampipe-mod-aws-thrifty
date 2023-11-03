@@ -1,3 +1,9 @@
+## v0.26 [2023-11-03]
+
+_Breaking changes_
+
+- Updated the plugin dependency section of the mod to use `min_version` instead of `version`. ([#161](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/161))
+
 ## v0.25 [2023-07-28]
 
 _What's new?_
