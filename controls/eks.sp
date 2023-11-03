@@ -18,8 +18,8 @@ benchmark "eks" {
 }
 
 control "eks_node_group_with_graviton" {
-  title       = "EKS node groups without graviton2 processor should be reviewed"
-  description = "With graviton2 processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  title       = "EKS node groups without graviton processor should be reviewed"
+  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   severity    = "low"
 
   tags = merge(local.eks_common_tags, {
@@ -69,11 +69,11 @@ control "eks_node_group_with_graviton" {
     end as status,
     case
       when ami_type = 'CUSTOM%' and a.platform <> 'linux' then title || ' is not using linux platform.'
-      when ami_type = 'CUSTOM%' and a.architecture = 'x86_64' and a.platform = 'linux' then title || ' is using Graviton2 processor.'
-      when ami_type = 'CUSTOM%' and a.architecture <> 'arm_64' and a.platform = 'linux' then title || ' is not using Graviton2 processor.'
+      when ami_type = 'CUSTOM%' and a.architecture = 'x86_64' and a.platform = 'linux' then title || ' is using Graviton processor.'
+      when ami_type = 'CUSTOM%' and a.architecture <> 'arm_64' and a.platform = 'linux' then title || ' is not using Graviton processor.'
       when ami_type not like 'AL2_%' then title || ' is not using linux platform.'
-      when ami_type = 'AL2_ARM_64' then title || ' is using Graviton2 processor.'
-      else title || ' is not using Graviton2 processor.'
+      when ami_type = 'AL2_ARM_64' then title || ' is using Graviton processor.'
+      else title || ' is not using Graviton processor.'
     end as reason
     ${local.tag_dimensions_sql}
     ${local.common_dimensions_sql}

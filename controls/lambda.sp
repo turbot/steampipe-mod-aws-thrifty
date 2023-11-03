@@ -12,7 +12,7 @@ benchmark "lambda" {
   children = [
     control.lambda_function_excessive_timeout,
     control.lambda_function_high_error_rate,
-    control.lambda_function_with_graviton2
+    control.lambda_function_with_graviton
   ]
 
   tags = merge(local.lambda_common_tags, {
@@ -98,9 +98,9 @@ control "lambda_function_excessive_timeout" {
   EOQ
 }
 
-control "lambda_function_with_graviton2" {
-  title       = "Are there any lambda functions without graviton2 processor?"
-  description = "With graviton2 processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton2 architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton2 are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+control "lambda_function_with_graviton" {
+  title       = "Are there any lambda functions without graviton processor?"
+  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   severity    = "low"
 
   tags = merge(local.lambda_common_tags, {
@@ -115,8 +115,8 @@ control "lambda_function_with_graviton2" {
         else 'alarm'
       end as status,
       case
-        when architecture = 'arm64' then title || ' is using Graviton2 processor.'
-        else title || ' is not using Graviton2 processor.'
+        when architecture = 'arm64' then title || ' is using Graviton processor.'
+        else title || ' is not using Graviton processor.'
       end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
