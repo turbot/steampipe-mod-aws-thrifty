@@ -2,7 +2,7 @@
 
 _Bug fixes_
 
-- Fixed the `low_iops_ebs_volumes` control to convert `io1` and `io2` volumes with less than 16,000 IOPS to `GP3` volumes. ([#167](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/167))
+- Fixed the `low_iops_ebs_volumes` control to now suggest converting `io1` and `io2` volumes to `GP3` volumes, when the base `IOPS` is less than `16,000` instead of `3000`. ([#167](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/167))
 
 ## v0.26 [2023-11-03]
 
