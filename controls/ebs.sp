@@ -192,7 +192,7 @@ control "high_iops_ebs_volumes" {
 
 control "low_iops_ebs_volumes" {
   title       = "What provisioned IOPS volumes would be better as GP3?"
-  description = "GP3 provides 3k base IOPS performance, don't use more costly io1 & io2 volumes."
+  description = "GP3 provides 16k base IOPS performance, don't use more costly io1 & io2 volumes."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "management"
@@ -203,12 +203,12 @@ control "low_iops_ebs_volumes" {
     arn as resource,
     case
       when volume_type not in ('io1', 'io2') then 'skip'
-      when iops <= 3000 then 'alarm'
+      when iops <= 16000 then 'alarm'
       else 'ok'
     end as status,
     case
       when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
-      when iops <= 3000 then volume_id || ' only has ' || iops || ' iops.'
+      when iops <= 16000 then volume_id || ' only has ' || iops || ' iops.'
       else volume_id || ' has ' || iops || ' iops.'
     end as reason
     ${local.tag_dimensions_sql}
