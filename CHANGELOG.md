@@ -1,3 +1,19 @@
+## v0.27 [2024-01-22]
+
+_Bug fixes_
+
+- Fixed the `low_iops_ebs_volumes` control to convert `io1` and `io2` volumes with less than 16,000 IOPS to `GP3` volumes. ([#167](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/167))
+
+## v0.25 [2023-07-28]
+
+_What's new?_
+
+- Added the following controls to check which resources are using non-graviton processors: ([#144](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/144))
+  - `ec2_instance_with_graviton`
+  - `ecs_cluster_container_instance_with_graviton`
+  - `eks_node_group_with_graviton`
+  - `rds_db_instance_with_graviton`
+
 ## v0.26 [2023-11-03]
 
 _Breaking changes_
