@@ -79,24 +79,31 @@ powerpipe benchmark run ec2
 Different output formats are also available, for more information please see
 [Output Formats](https://powerpipe.io/docs/reference/cli/benchmark#output-formats).
 
-### Configuration
+### Configure Variables
 
 Several benchmarks have [input variables](https://powerpipe.io/docs/build/mod-variables#input-variables) that can be configured to better match your environment and requirements. Each variable has a default defined in its source file, e.g., `controls/rds.sp`, but these can be overwritten in several ways:
 
-- Copy and rename the `steampipe.spvars.example` file to `steampipe.spvars`, and then modify the variable values inside that file
-- Pass in a value on the command line:
+It's easiest to setup your vars file, starting with the sample:
 
-  ```sh
-  powerpipe benchmark run ec2 --var=ec2_running_instance_age_max_days=90
-  ```
+```sh
+cp steampipe.spvars.example steampipe.spvars
+vi steampipe.spvars
+```
 
-- Set an environment variable:
+Alternatively you can pass variables on the command line:
 
-  ```sh
-  PP_VAR_ec2_running_instance_age_max_days=90 steampipe check control.long_running_ec2_instances
-  ```
+```sh
+powerpipe benchmark run ec2 --var=ec2_running_instance_age_max_days=90
+```
 
-  - Note: When using environment variables, if the variable is defined in `steampipe.spvars` or passed in through the command line, either of those will take precedence over the environment variable value. For more information on variable definition precedence, please see the link below.
+Or through environment variables:
+
+```sh
+export PP_VAR_ec2_running_instance_age_max_days=90 
+powerpipe control run long_running_ec2_instances
+```
+
+- Note: When using environment variables, if the variable is defined in `steampipe.spvars` or passed in through the command line, either of those will take precedence over the environment variable value. For more information on variable definition precedence, please see the link below.
 
 These are only some of the ways you can set variables. For a full list, please see [Passing Input Variables](https://powerpipe.io/docs/build/mod-variables#passing-input-variables).
 
@@ -104,26 +111,26 @@ These are only some of the ways you can set variables. For a full list, please s
 
 The benchmark queries use common properties (like `account_id`, `connection_name` and `region`) and tags that are defined in the form of a default list of strings in the `variables.sp` file. These properties can be overwritten in several ways:
 
-- Copy and rename the `steampipe.spvars.example` file to `steampipe.spvars`, and then modify the variable values inside that file
-- Pass in a value on the command line:
+It's easiest to setup your vars file, starting with the sample:
 
-  ```sh
-  powerpipe benchmark run lambda --var 'common_dimensions=["account_id", "connection_name", "region"]'
-  ```
+```sh
+cp steampipe.spvars.example steampipe.spvars
+vi steampipe.spvars
+```
 
-  ```sh
-  powerpipe benchmark run lambda --var 'tag_dimensions=["Environment", "Owner"]'
-  ```
+Alternatively you can pass variables on the command line:
 
-- Set an environment variable:
+```sh
+powerpipe benchmark run cloudfront --var 'tag_dimensions=["Environment", "Owner"]'
+```
 
-  ```sh
-  PP_VAR_common_dimensions='["account_id", "connection_name", "region"]' powerpipe control run long_running_ec2_instances
-  ```
+Or through environment variables:
 
-  ```sh
-  PP_VAR_tag_dimensions='["Environment", "Owner"]' powerpipe control run long_running_ec2_instances
-  ```
+```sh
+export PP_VAR_common_dimensions='["account_id", "connection_name", "region"]'
+export PP_VAR_tag_dimensions='["Environment", "Owner"]'
+powerpipe benchmark run cloudfront
+```
 
 ## Open Source & Contributing
 
