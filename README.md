@@ -103,8 +103,6 @@ export PP_VAR_ec2_running_instance_age_max_days=90
 powerpipe control run long_running_ec2_instances
 ```
 
-- Note: When using environment variables, if the variable is defined in `steampipe.spvars` or passed in through the command line, either of those will take precedence over the environment variable value. For more information on variable definition precedence, please see the link below.
-
 These are only some of the ways you can set variables. For a full list, please see [Passing Input Variables](https://powerpipe.io/docs/build/mod-variables#passing-input-variables).
 
 ### Common and Tag Dimensions
