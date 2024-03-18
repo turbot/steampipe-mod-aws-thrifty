@@ -242,7 +242,7 @@ control "rds_db_instance_with_graviton" {
 }
 
 control "rds_mysql_postresql_db_no_unsupported_version" {
-  title       = "RDS MySQL and PostgreSQL DB instances with unsupported version should be removed"
+  title       = "RDS MySQL and PostgreSQL DB instances with unsupported version should be reviewed"
   description = "MySQL 5.7 and PostgreSQL 11 database instances running on Amazon Aurora and Amazon Relational Database Service (Amazon RDS) will be automatically enrolled into Amazon RDS Extended Support. This automatic enrollment may mean that you will experience higher charges when RDS Extended Support begins. You can avoid these charges by upgrading your database to a newer DB version."
   severity    = "low"
 
