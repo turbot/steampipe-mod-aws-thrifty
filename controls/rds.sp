@@ -43,7 +43,8 @@ benchmark "rds" {
     control.long_running_rds_db_instances,
     control.rds_db_instance_with_graviton,
     control.rds_db_low_connection_count,
-    control.rds_db_low_utilization
+    control.rds_db_low_utilization,
+    control.rds_mysql_postresql_db_no_unsupported_version
   ]
 
   tags = merge(local.rds_common_tags, {
@@ -239,4 +240,40 @@ control "rds_db_instance_with_graviton" {
       aws_rds_db_instance;
   EOQ
 }
+
+control "rds_mysql_postresql_db_no_unsupported_version" {
+  title       = "RDS MySQL and PostgreSQL DB instances with unsupported version should be removed"
+  description = "MySQL 5.7 and PostgreSQL 11 database instances running on Amazon Aurora and Amazon Relational Database Service (Amazon RDS) will be automatically enrolled into Amazon RDS Extended Support. This automatic enrollment may mean that you will experience higher charges when RDS Extended Support begins. You can avoid these charges by upgrading your database to a newer DB version."
+  severity    = "low"
+
+  tags = merge(local.rds_common_tags, {
+    class = "deprecated"
+  })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+      engine_version,
+      engine,
+      case
+        when not engine ilike any (array ['%mysql%', '%postgres%']) then 'skip'
+        when
+          (engine like '%mysql' and engine_version like '5.7.%' )
+          or (engine like '%postgres%' and engine_version like '11.%') then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when not engine ilike any (array ['%mysql%', '%postgres%']) then title || ' is of ' || engine || ' engine type.'
+        when
+          (engine like '%mysql' and engine_version like '5.7.%' )
+          or (engine like '%postgres%' and engine_version like '11.%') then title || ' is using RDS Extended Support.'
+        else title || ' is not using RDS Extended Support.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_rds_db_instance;
+  EOQ
+}
+
 
