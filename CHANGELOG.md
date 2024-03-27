@@ -1,3 +1,10 @@
+## v0.29 [2024-03-27]
+
+_What's new?_
+
+- New control added:
+  - `rds_mysql_postresql_db_no_unsupported_version` ([#174](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/174))
+
 ## v0.28 [2024-04-06]
 
 _Powerpipe_
