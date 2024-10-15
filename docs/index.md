@@ -82,8 +82,8 @@ Several benchmarks have [input variables](https://powerpipe.io/docs/build/mod-va
 It's easiest to setup your vars file, starting with the sample:
 
 ```sh
-cp steampipe.ppvars.example steampipe.ppvars
-vi steampipe.ppvars
+cp steampipe.spvars.example steampipe.spvars
+vi steampipe.spvars
 ```
 
 Alternatively you can pass variables on the command line:
@@ -108,8 +108,8 @@ The benchmark queries use common properties (like `account_id`, `connection_name
 It's easiest to setup your vars file, starting with the sample:
 
 ```sh
-cp steampipe.ppvars.example steampipe.ppvars
-vi steampipe.ppvars
+cp steampipe.spvars.example steampipe.spvars
+vi steampipe.spvars
 ```
 
 Alternatively you can pass variables on the command line:
