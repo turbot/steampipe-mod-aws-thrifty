@@ -22,4 +22,23 @@ To enable caching for a stage:
 3. Under "Settings", enable "Cache Settings"
 4. Configure the cache size and other parameters as needed
 
-Note that caching does incur additional costs, but these are often offset by reduced backend costs and improved performance. 
+Note that caching does incur additional costs, but these are often offset by reduced backend costs and improved performance.
+
+### API Gateway Stage Low Usage
+
+API Gateway stages that haven't been updated in over 90 days may indicate unused or underutilized resources. Identifying and removing these resources can help reduce costs.
+
+When an API Gateway has low usage:
+- You're paying for resources that aren't providing value
+- The API may be obsolete or replaced by newer versions
+- Associated resources (Lambda functions, VPC endpoints, etc.) may also be unused
+
+To optimize costs:
+1. Review the usage patterns of flagged APIs
+2. Determine if the API is still needed
+3. If not needed:
+   - Back up any important configurations
+   - Delete the API and associated resources
+4. If needed but rarely used:
+   - Consider consolidating with other APIs
+   - Implement auto-scaling if appropriate 
