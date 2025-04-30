@@ -4,6 +4,18 @@ locals {
   })
 }
 
+variable "lambda_memory_excessive_threshold" {
+  type        = number
+  description = "Memory threshold (in MB) above which Lambda functions are considered to have excessive allocation."
+  default     = 1024
+}
+
+variable "lambda_memory_high_threshold" {
+  type        = number
+  description = "Memory threshold (in MB) above which Lambda functions are considered to have high allocation."
+  default     = 512
+}
+
 benchmark "lambda" {
   title         = "Lambda Checks"
   description   = "Thrifty developers ensure their Lambda functions are optimized."
@@ -12,7 +24,8 @@ benchmark "lambda" {
   children = [
     control.lambda_function_excessive_timeout,
     control.lambda_function_high_error_rate,
-    control.lambda_function_with_graviton
+    control.lambda_function_with_graviton,
+    control.lambda_function_excessive_memory
   ]
 
   tags = merge(local.lambda_common_tags, {
@@ -125,4 +138,45 @@ control "lambda_function_with_graviton" {
       jsonb_array_elements_text(architectures) as architecture;
   EOQ
 
+}
+
+control "lambda_function_excessive_memory" {
+  title       = "Which lambda functions have excessive memory allocation?"
+  description = "Lambda functions with excessive memory allocation can lead to unnecessary costs. Functions with more than ${var.lambda_memory_excessive_threshold}MB of memory should be reviewed for optimization opportunities."
+  severity    = "low"
+
+  tags = merge(local.lambda_common_tags, {
+    class = "managed"
+  })
+
+  param "memory_excessive_threshold" {
+    description = "Memory threshold (in MB) above which Lambda functions are considered to have excessive allocation."
+    default     = var.lambda_memory_excessive_threshold
+  }
+
+  param "memory_high_threshold" {
+    description = "Memory threshold (in MB) above which Lambda functions are considered to have high allocation."
+    default     = var.lambda_memory_high_threshold
+  }
+
+  sql = <<-EOQ
+    select
+      f.arn as resource,
+      case
+        when f.memory_size >= ($1::int) then 'alarm'
+        when f.memory_size >= ($2::int) then 'info'
+        else 'ok'
+      end as status,
+      case
+        when f.memory_size >= ($1::int) then title || ' has excessive memory allocation of ' || f.memory_size || ' MB.'
+        when f.memory_size >= ($2::int) then title || ' has high memory allocation of ' || f.memory_size || ' MB.'
+        else title || ' has reasonable memory allocation of ' || f.memory_size || ' MB.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_lambda_function f
+    order by
+      f.memory_size desc;
+  EOQ
 }
