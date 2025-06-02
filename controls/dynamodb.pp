@@ -4,12 +4,6 @@ variable "dynamodb_table_stale_data_max_days" {
   default     = 90
 }
 
-variable "dynamodb_table_max_provisioned_capacity" {
-  type        = number
-  description = "The maximum provisioned capacity (RCU/WCU) allowed before the table is considered over-provisioned."
-  default     = 10
-}
-
 locals {
   dynamodb_common_tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/DynamoDB"
