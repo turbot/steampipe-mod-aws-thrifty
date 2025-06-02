@@ -23,8 +23,7 @@ benchmark "dynamodb" {
 
   children = [
     control.stale_dynamodb_table_data,
-    control.dynamodb_table_without_autoscaling,
-    control.over_provisioned_dynamodb_table
+    control.dynamodb_table_without_autoscaling
   ]
 
   tags = merge(local.dynamodb_common_tags, {
@@ -103,40 +102,5 @@ control "dynamodb_table_without_autoscaling" {
     from
       aws_dynamodb_table as t
       left join dynamodb_autoscaling as a on t.name = a.table_name;
-  EOQ
-}
-
-control "over_provisioned_dynamodb_table" {
-  title       = "DynamoDB tables with high provisioned capacity should be reviewed"
-  description = "DynamoDB tables with high provisioned capacity may be over-provisioned and incurring unnecessary costs. Consider using auto-scaling or on-demand capacity mode for more cost-effective operations."
-  severity    = "low"
-
-  param "dynamodb_table_max_provisioned_capacity" {
-    description = "The maximum provisioned capacity (RCU/WCU) allowed before the table is considered over-provisioned."
-    default     = var.dynamodb_table_max_provisioned_capacity
-  }
-
-  tags = merge(local.dynamodb_common_tags, {
-    class = "cost"
-  })
-
-  sql = <<-EOQ
-    select
-      'arn:' || t.partition || ':dynamodb:' || t.region || ':' || t.account_id || ':table/' || t.name as resource,
-      case
-        when t.billing_mode = 'PAY_PER_REQUEST' then 'ok'
-        when t.read_capacity >= $1 or t.write_capacity >= $1 then 'alarm'
-        else 'ok'
-      end as status,
-      case
-        when t.billing_mode = 'PAY_PER_REQUEST' then t.name || ' uses on-demand capacity mode'
-        when t.read_capacity >= $1 or t.write_capacity >= $1
-          then t.name || ' may be over-provisioned with RCUs: ' || t.read_capacity || ', WCUs: ' || t.write_capacity
-        else t.name || ' has appropriate provisioned capacity'
-      end as reason
-      ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
-    from
-      aws_dynamodb_table t;
   EOQ
 }
