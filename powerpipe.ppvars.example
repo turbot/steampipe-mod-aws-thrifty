@@ -25,6 +25,9 @@ ec2_instance_avg_cpu_utilization_low          = 20
 ec2_reserved_instance_expiration_warning_days = 30
 ec2_running_instance_age_max_days             = 90
 
+# ECR
+ecr_repository_image_age_max_days          = 90
+
 # ECS
 ecs_cluster_avg_cpu_utilization_high = 35
 ecs_cluster_avg_cpu_utilization_low  = 20

@@ -1,4 +1,4 @@
-variable "ecr_unused_image_days" {
+variable "ecr_repository_image_age_max_days" {
   type        = number
   description = "The number of days an ECR repository can go without image pulls before being considered unused."
   default     = 90
@@ -12,7 +12,7 @@ locals {
 
 benchmark "ecr" {
   title         = "ECR Checks"
-  description   = "Thrifty developers eliminate unused ECR repositories and images."
+  description   = "Thrifty developers eliminate unused ECR repository images."
   documentation = file("./controls/docs/ecr.md")
   children = [
     control.ecr_repository_unused_images
@@ -46,13 +46,13 @@ control "ecr_repository_unused_images" {
       r.arn as resource,
       case
         when i.last_pull is null then 'alarm'
-        when i.last_pull < (current_timestamp - interval '${ var.ecr_unused_image_days } days') then 'alarm'
+        when i.last_pull < (current_timestamp - interval '${var.ecr_repository_image_age_max_days} days') then 'alarm'
         else 'ok'
       end as status,
       case
         when i.last_pull is null then r.title || ' has no images that have ever been pulled.'
-        when i.last_pull < (current_timestamp - interval '${ var.ecr_unused_image_days } days') then r.title || ' has not had any images pulled in the last ${ var.ecr_unused_image_days } days. Last pull was on ' || to_char(i.last_pull, 'YYYY-MM-DD')
-        else r.title || ' has had images pulled within the last ${ var.ecr_unused_image_days } days. Last pull was on ' || to_char(i.last_pull, 'YYYY-MM-DD')
+        when i.last_pull < (current_timestamp - interval '${var.ecr_repository_image_age_max_days} days') then r.title || ' has not had any images pulled in the last ${var.ecr_repository_image_age_max_days} days. Last pull was on ' || to_char(i.last_pull, 'YYYY-MM-DD')
+        else r.title || ' has had images pulled within the last ${var.ecr_repository_image_age_max_days} days. Last pull was on ' || to_char(i.last_pull, 'YYYY-MM-DD')
       end as reason,
       r.region,
       r.account_id
