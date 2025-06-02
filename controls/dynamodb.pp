@@ -16,7 +16,8 @@ benchmark "dynamodb" {
   documentation = file("./controls/docs/dynamodb.md")
 
   children = [
-    control.stale_dynamodb_table_data
+    control.stale_dynamodb_table_data,
+    control.dynamodb_table_without_autoscaling
   ]
 
   tags = merge(local.dynamodb_common_tags, {
@@ -54,5 +55,46 @@ control "stale_dynamodb_table_data" {
       ${local.common_dimensions_sql}
     from
       aws_dynamodb_table;
+  EOQ
+}
+
+control "dynamodb_table_without_autoscaling" {
+  title       = "DynamoDB tables without auto-scaling should be reviewed"
+  description = "DynamoDB tables with provisioned capacity mode should use auto-scaling to optimize costs. Auto-scaling automatically adjusts read and write capacity based on actual usage patterns, helping to avoid over-provisioning and reduce costs."
+  severity    = "low"
+
+  tags = merge(local.dynamodb_common_tags, {
+    class = "cost"
+  })
+
+  sql = <<-EOQ
+    with dynamodb_autoscaling as (
+      select
+        split_part(resource_id, '/', 2) as table_name,
+        count(*) as scaling_configs
+      from
+        aws_appautoscaling_target
+      where
+        service_namespace = 'dynamodb'
+      group by
+        split_part(resource_id, '/', 2)
+    )
+    select
+      'arn:' || t.partition || ':dynamodb:' || t.region || ':' || t.account_id || ':table/' || t.name as resource,
+      case
+        when t.billing_mode = 'PAY_PER_REQUEST' then 'ok'
+        when coalesce(a.scaling_configs, 0) > 0 then 'ok'
+        else 'alarm'
+      end as status,
+      case
+        when t.billing_mode = 'PAY_PER_REQUEST' then t.name || ' uses on-demand capacity mode.'
+        when coalesce(a.scaling_configs, 0) > 0 then t.name || ' has auto-scaling configured.'
+        else t.name || ' uses provisioned capacity without auto-scaling.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_dynamodb_table as t
+      left join dynamodb_autoscaling as a on t.name = a.table_name;
   EOQ
 }
