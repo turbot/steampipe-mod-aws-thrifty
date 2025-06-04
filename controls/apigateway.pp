@@ -23,6 +23,10 @@ control "apigateway_stage_with_caching_disabled" {
   description = "API Gateway stages should have caching enabled to improve performance and reduce backend load. Stages without caching may experience higher latency and increased costs."
   severity    = "low"
 
+  tags = merge(local.apigateway_common_tags, {
+    class = "managed"
+  })
+
   sql = <<-EOQ
     select 
       rest_api_id as resource,
@@ -34,17 +38,10 @@ control "apigateway_stage_with_caching_disabled" {
         when not cache_cluster_enabled or cache_cluster_enabled is null 
           then name || ' stage in API Gateway ' || rest_api_id || ' has caching disabled which may impact performance.'
         else name || ' stage in API Gateway ' || rest_api_id || ' has caching enabled.'
-      end as reason,
-      region,
-      account_id,
-      arn,
-      _ctx ->> 'connection_name' as connection_name
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
     from 
       aws_api_gateway_stage;
   EOQ
-
-  tags = merge(local.apigateway_common_tags, {
-    class = "managed"
-    type  = "Performance"
-  })
 } 
