@@ -48,7 +48,7 @@ benchmark "rds" {
     control.rds_db_instance_class_prev_gen,
     control.rds_db_instance_max_age,
     control.rds_db_instance_low_connections,
-    control.rds_db_instance_low_usage
+    control.rds_db_instance_low_usage,
     control.rds_db_instance_with_graviton,
     control.rds_mysql_postresql_db_no_unsupported_version,
     control.rds_unused_snapshots

@@ -12,7 +12,7 @@ benchmark "lambda" {
   children = [
     control.lambda_function_excessive_timeout,
     control.lambda_function_high_error_rate,
-    control.lambda_function_with_graviton
+    control.lambda_function_with_graviton2
   ]
 
   tags = merge(local.lambda_common_tags, {
@@ -98,7 +98,7 @@ control "lambda_function_excessive_timeout" {
   EOQ
 }
 
-control "lambda_function_with_graviton" {
+control "lambda_function_with_graviton2" {
   title       = "Are there any lambda functions without graviton processor?"
   description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   severity    = "low"
