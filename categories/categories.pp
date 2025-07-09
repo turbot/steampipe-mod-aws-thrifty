@@ -3,7 +3,7 @@ benchmark "capacity_planning" {
   description   = "Thrifty developers ensure that long running resources are strategically planned. If you have long-running resources, it's a good idea to prepurchase reserved instances at lower cost. This can apply to long-running resources including EC2 instances, RDS instances, and Redshift clusters. You should also keep an eye on EC2 reserved instances that are scheduled for expiration, or have expired in the preceding 30 days, to verify that these cost-savers are in fact no longer needed."
   //documentation = file("./thrifty/docs/capacity_planning.md")
   children = [
-    #control.dynamodb_table_autoscaling_disabled,
+    control.dynamodb_table_autoscaling_disabled,
     control.ebs_volume_low_iops,
     control.ec2_instance_running_max_age,
     control.ec2_reserved_instance_lease_expiration_days,
@@ -12,7 +12,9 @@ benchmark "capacity_planning" {
     #control.kinesis_stream_consumer_with_enhanced_fan_out,
     control.rds_db_instance_max_age,
     control.redshift_cluster_max_age,
-    control.redshift_cluster_schedule_pause_resume_enabled
+    control.redshift_cluster_schedule_pause_resume_enabled,
+    control.route53_record_higher_ttl,
+    control.apigateway_stage_with_caching_disabled,
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {
@@ -43,9 +45,14 @@ benchmark "generation_gaps" {
     control.ebs_volume_using_io1,
     control.ec2_instance_older_generation,
     control.emr_cluster_instance_prev_gen,
-    control.lambda_function_with_graviton2,
+    control.lambda_function_with_graviton,
+    control.rds_db_instance_with_graviton,
+    control.ecs_cluster_container_instance_with_graviton,
     #control.redshift_cluster_node_type_prev_gen,
-    control.rds_db_instance_class_prev_gen
+    control.rds_db_instance_class_prev_gen,
+    control.rds_mysql_postresql_db_no_unsupported_version,
+    control.eks_node_group_with_graviton,
+    control.ec2_instance_with_graviton,
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {
@@ -127,7 +134,11 @@ benchmark "unused" {
     control.ec2_eips_unattached,
     control.emr_cluster_is_idle_30_minutes,
     control.secretsmanager_secret_unused,
-    control.vpc_nat_gateway_unused
+    control.vpc_nat_gateway_unused,
+    control.route53_health_check_unused,
+    control.rds_unused_snapshots,
+    control.ecr_repository_unused_images,
+    control.dynamodb_table_no_data,
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {

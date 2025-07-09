@@ -4,7 +4,7 @@ _What's new?_
 
 - New controls added:
   - `apigateway_stage_with_caching_disabled` ([#186](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/186))
-  - `dynamodb_table_without_autoscaling` ([#187](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/187))
+  - `dynamodb_table_autoscaling_disabled` ([#187](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/187))
   - `ecr_repository_unused_images` ([#183](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/183))
   - `rds_unused_snapshots` ([#183](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/183))
 

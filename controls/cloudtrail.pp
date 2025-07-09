@@ -25,7 +25,7 @@ control "cloudtrail_trail_global_multiple" {
   severity    = "low"
 
   tags = merge(local.cloudtrail_common_tags, {
-    class = "managed"
+    class = "overused"
   })
 
   sql = <<-EOQ
@@ -68,7 +68,7 @@ control "cloudtrail_trail_regional_multiple" {
   severity    = "low"
 
   tags = merge(local.cloudtrail_common_tags, {
-    class = "managed"
+    class = "overused"
   })
 
   sql = <<-EOQ

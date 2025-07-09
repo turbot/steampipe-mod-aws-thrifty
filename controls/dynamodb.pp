@@ -18,7 +18,7 @@ benchmark "dynamodb" {
   children = [
     control.dynamodb_table_no_data,
     control.dynamodb_table_stale_data,
-    control.dynamodb_table_without_autoscaling
+    control.dynamodb_table_autoscaling_disabled
   ]
 
   tags = merge(local.dynamodb_common_tags, {
@@ -32,7 +32,7 @@ control "dynamodb_table_no_data" {
   severity    = "low"
 
   tags = merge(local.dynamodb_common_tags, {
-    class = "stale_data"
+    class = "unused"
   })
 
   sql = <<-EOQ
@@ -144,13 +144,13 @@ control "dynamodb_table_stale_data" {
   EOQ
 }
 
-control "dynamodb_table_without_autoscaling" {
+control "dynamodb_table_autoscaling_disabled" {
   title       = "DynamoDB tables without auto-scaling should be reviewed"
   description = "DynamoDB tables with provisioned capacity mode should use auto-scaling to optimize costs. Auto-scaling automatically adjusts read and write capacity based on actual usage patterns, helping to avoid over-provisioning and reduce costs."
   severity    = "low"
 
   tags = merge(local.dynamodb_common_tags, {
-    class = "cost"
+    class = "capacity_planning"
   })
 
   sql = <<-EOQ

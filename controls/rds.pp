@@ -390,7 +390,7 @@ control "rds_db_instance_with_graviton" {
   severity    = "low"
 
   tags = merge(local.rds_common_tags, {
-    class = "deprecated"
+    class = "generation_gaps"
   })
 
   sql = <<-EOQ

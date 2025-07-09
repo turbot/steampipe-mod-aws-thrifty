@@ -23,7 +23,7 @@ control "eks_node_group_with_graviton" {
   severity    = "low"
 
   tags = merge(local.eks_common_tags, {
-    class = "deprecated"
+    class = "generation_gaps"
   })
 
   sql = <<-EOQ

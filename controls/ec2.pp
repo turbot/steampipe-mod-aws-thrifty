@@ -593,7 +593,7 @@ control "ec2_instance_with_graviton" {
   severity    = "low"
 
   tags = merge(local.ec2_common_tags, {
-    class = "deprecated"
+    class = "generation_gaps"
   })
 
   sql = <<-EOQ

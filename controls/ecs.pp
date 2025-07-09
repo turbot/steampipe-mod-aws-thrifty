@@ -37,7 +37,7 @@ control "ecs_cluster_container_instance_with_graviton" {
   severity    = "low"
 
   tags = merge(local.ecs_common_tags, {
-    class = "deprecated"
+    class = "generation_gaps"
   })
 
   sql = <<-EOQ

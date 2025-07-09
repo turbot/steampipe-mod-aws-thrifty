@@ -30,7 +30,7 @@ control "cloudwatch_log_group_no_retention" {
   severity    = "low"
 
   tags = merge(local.cloudwatch_common_tags, {
-    class = "managed"
+    class = "stale_data"
   })
   sql = <<-EOQ
     select

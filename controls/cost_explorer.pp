@@ -34,8 +34,9 @@ control "cost_explorer_full_month_cost_changes" {
   }
 
   tags = merge(local.cost_explorer_common_tags, {
-    class = "managed"
+    class = "cost_variance"
   })
+
   sql = <<-EOQ
     with
     base_month as (
