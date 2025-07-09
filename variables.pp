@@ -42,8 +42,8 @@ locals {
   EOQ
   # Local internal variable to build the SQL select clause for tag
   # dimensions. Do not edit directly.
-  tag_dimensions_sql = <<-EOQ
-  %{~for dim in var.tag_dimensions}, tags ->> '${dim}' as "${replace(dim, "\"", "\"\"")}"%{endfor~}
+  tag_dimensions_qualifier_sql = <<-EOQ
+  %{~for dim in var.tag_dimensions},  __QUALIFIER__tags ->> '${dim}' as "${replace(dim, "\"", "\"\"")}"%{endfor~}
   EOQ
 
 }
@@ -54,27 +54,6 @@ locals {
   # dimensions. Do not edit directly.
   common_dimensions_sql      = replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "")
   common_dimensions_savings_sql = replace(local.common_dimensions_savings_qualifier_sql, "__QUALIFIER__", "")
+  tag_dimensions_sql    = replace(local.tag_dimensions_qualifier_sql, "__QUALIFIER__", "")
 
-}
-
-mod "aws_thrifty" {
-  # hub metadata
-  title         = "AWS Thrifty"
-  description   = "Are you a Thrifty AWS developer? This Steampipe mod checks your AWS account(s) for unused and under utilized resources."
-  color         = "#FF9900"
-  documentation = file("./docs/index.md")
-  icon          = "/images/mods/turbot/aws-thrifty.svg"
-  categories    = ["aws", "cost", "thrifty", "public cloud"]
-
-  opengraph {
-    title       = "Thrifty mod for AWS"
-    description = "Are you a Thrifty AWS dev? This Steampipe mod checks your AWS account(s) for unused and under-utilized resources."
-    image       = "/images/mods/turbot/aws-thrifty-social-graphic.png"
-  }
-
-  require {
-    plugin "aws" {
-      version = "0.81.0"
-    }
-  }
 }

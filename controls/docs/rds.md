@@ -11,3 +11,4 @@ Thrifty developers eliminate their unused and under-utilized RDS instances. This
 | rds_db_instance_avg_cpu_utilization_low | The average CPU utilization required for DB instances to be considered infrequently used. This value should be lower than rds_db_instance_avg_cpu_utilization_high. | 25% |
 | rds_running_db_instance_age_max_days | The maximum number of days DB instances are allowed to run. | 90 days |
 | rds_running_db_instance_age_warning_days | The number of days DB instances can be running before sending a warning. | 30 days |
+| rds_snapshot_unused_max_days | The maximum number of days an RDS snapshot can be retained after its source DB instance is deleted. | 30 days |

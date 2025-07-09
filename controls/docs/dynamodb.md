@@ -1,9 +1,10 @@
 ## Thrifty DynamoDB Benchmark
 
-Thrifty developers archive DynamoDB tables with stale data. This benchmark focuses on finding tables where the data has not been changed recently.
+Thrifty developers optimize their DynamoDB tables for cost efficiency. This benchmark focuses on identifying tables with stale data and those that could benefit from auto-scaling to reduce costs.
 
 ## Variables
 
 | Variable | Description | Default |
 | - | - | - |
 | dynamodb_table_stale_data_max_days | The maximum number of days table data can be unchanged before it is considered stale. | 90 days |
+

@@ -21,6 +21,7 @@ benchmark "ecs" {
   description   = "Thrifty developers checks under-utilized ECS clusters and ECS service without autoscaling configuration."
   documentation = file("./controls/docs/ecs.md")
   children = [
+    control.ecs_cluster_container_instance_with_graviton,
     control.ecs_cluster_low_utilization,
     control.ecs_service_without_autoscaling
   ]
@@ -28,6 +29,36 @@ benchmark "ecs" {
   tags = merge(local.ecs_common_tags, {
     type = "Benchmark"
   })
+}
+
+control "ecs_cluster_container_instance_with_graviton" {
+  title       = "ECS cluster container instances without graviton processor should be reviewed"
+  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  severity    = "low"
+
+  tags = merge(local.ecs_common_tags, {
+    class = "deprecated"
+  })
+
+  sql = <<-EOQ
+    select
+      c.arn as resource,
+      case
+        when i.platform = 'windows' then 'skip'
+        when i.architecture = 'arm64' then 'ok'
+        else 'alarm'
+      end as status,
+      case
+        when i.platform = 'windows' then i.title || ' is windows type machine.'
+        when i.architecture = 'arm64' then i.title || ' is using Graviton processor.'
+        else i.title || ' is not using Graviton processor.'
+      end as reason
+      ${replace(local.tag_dimensions_qualifier_sql, "__QUALIFIER__", "c.")}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "c.")}
+    from
+      aws_ecs_container_instance as c
+      left join aws_ec2_instance as i on c.ec2_instance_id = i.instance_id;
+  EOQ
 }
 
 control "ecs_cluster_low_utilization" {

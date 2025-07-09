@@ -1,3 +1,79 @@
+## v1.1.0 [2025-06-04]
+
+_What's new?_
+
+- New controls added:
+  - `apigateway_stage_with_caching_disabled` ([#186](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/186))
+  - `dynamodb_table_without_autoscaling` ([#187](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/187))
+  - `ecr_repository_unused_images` ([#183](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/183))
+  - `rds_unused_snapshots` ([#183](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/183))
+
+## v1.0.1 [2024-10-24]
+
+_Bug fixes_
+
+- Renamed `steampipe.spvars.example` files to `powerpipe.ppvars.example` and updated documentation. ([#180](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/180))
+
+## v1.0.0 [2024-10-22]
+
+This mod now requires [Powerpipe](https://powerpipe.io). [Steampipe](https://steampipe.io) users should check the [migration guide](https://powerpipe.io/blog/migrating-from-steampipe).
+
+## v0.29 [2024-03-27]
+
+_What's new?_
+
+- New control added:
+  - `rds_mysql_postresql_db_no_unsupported_version` ([#174](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/174))
+
+## v0.28 [2024-04-06]
+
+_Powerpipe_
+
+[Powerpipe](https://powerpipe.io) is now the preferred way to run this mod!  [Migrating from Steampipe →](https://powerpipe.io/blog/migrating-from-steampipe)
+
+All v0.x versions of this mod will work in both Steampipe and Powerpipe, but v1.0.0 onwards will be in Powerpipe format only.
+
+_Enhancements_
+
+- Focus documentation on Powerpipe commands.
+- Show how to combine Powerpipe mods with Steampipe plugins.
+
+## v0.27 [2024-01-22]
+
+_Bug fixes_
+
+- Fixed the `low_iops_ebs_volumes` control to now suggest converting `io1` and `io2` volumes to `GP3` volumes, when the base `IOPS` is less than `16,000` instead of `3000`. ([#167](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/167))
+
+## v0.26 [2023-11-03]
+
+_Breaking changes_
+
+- Updated the plugin dependency section of the mod to use `min_version` instead of `version`. ([#161](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/161))
+- Renamed the control `lambda_function_with_graviton2` to `lambda_function_with_graviton` in order to maintain consistency. ([#158](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/158)) (Thanks [@bluedoors](https://github.com/bluedoors) for the contribution!)
+
+## v0.25 [2023-07-28]
+
+_What's new?_
+
+- Added the following controls to check which resources are using non-graviton processors: ([#144](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/144))
+  - `ec2_instance_with_graviton`
+  - `ecs_cluster_container_instance_with_graviton`
+  - `eks_node_group_with_graviton`
+  - `rds_db_instance_with_graviton`
+
+## v0.24 [2023-07-24]
+
+_Bug fixes_
+
+- Fixed the inline query of the `vpc_nat_gateway_unused` control to correctly list out the unused NAT gateways that should be deleted. ([#150](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/150))
+
+## v0.23 [2023-07-13]
+
+_Bug fixes_
+
+- Fixed the inline query of the `multiple_global_trails` control to remove redundant global trails when organization trails are in use. ([#141](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/141))
+- Fixed the inline query of the `ebs_snapshot_max_age` control to correctly list out the old EBS snapshots that should be deleted if not required. ([#147](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/147))
+
 ## v0.22 [2023-06-14]
 
 _Bug fixes_

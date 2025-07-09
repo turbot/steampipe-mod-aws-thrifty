@@ -28,6 +28,12 @@ variable "rds_running_db_instance_age_warning_days" {
   default     = 30
 }
 
+variable "rds_snapshot_unused_max_days" {
+  type        = number
+  description = "The maximum number of days an RDS snapshot can be retained after its source DB instance is deleted."
+  default     = 30
+}
+
 locals {
   rds_common_tags = merge(local.aws_thrifty_common_tags, {
     service = "AWS/RDS"
@@ -43,6 +49,9 @@ benchmark "rds" {
     control.rds_db_instance_max_age,
     control.rds_db_instance_low_connections,
     control.rds_db_instance_low_usage
+    control.rds_db_instance_with_graviton,
+    control.rds_mysql_postresql_db_no_unsupported_version,
+    control.rds_unused_snapshots
   ]
 
   tags = merge(local.rds_common_tags, {
@@ -374,3 +383,123 @@ control "rds_db_instance_low_usage" {
       left join rds_instance_pricing as u on u.db_instance_identifier = i.db_instance_identifier;
   EOQ
 }
+
+control "rds_db_instance_with_graviton" {
+  title       = "RDS DB instances without graviton processor should be reviewed"
+  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  severity    = "low"
+
+  tags = merge(local.rds_common_tags, {
+    class = "deprecated"
+  })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+      case
+        when class like 'db.%g%.%' then 'ok'
+        else 'alarm'
+      end as status,
+      case
+        when class like 'db.%g%.%' then title || ' is using Graviton processor.'
+        else title || ' is not using Graviton processor.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_rds_db_instance;
+  EOQ
+}
+
+control "rds_mysql_postresql_db_no_unsupported_version" {
+  title       = "RDS MySQL and PostgreSQL DB instances with unsupported version should be reviewed"
+  description = "MySQL 5.7 and PostgreSQL 11 database instances running on Amazon Aurora and Amazon Relational Database Service (Amazon RDS) will be automatically enrolled into Amazon RDS Extended Support. This automatic enrollment may mean that you will experience higher charges when RDS Extended Support begins. You can avoid these charges by upgrading your database to a newer DB version."
+  severity    = "low"
+
+  tags = merge(local.rds_common_tags, {
+    class = "deprecated"
+  })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+      engine_version,
+      engine,
+      case
+        when not engine ilike any (array ['%mysql%', '%postgres%']) then 'skip'
+        when
+          (engine like '%mysql' and engine_version like '5.7.%' )
+          or (engine like '%postgres%' and engine_version like '11.%') then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when not engine ilike any (array ['%mysql%', '%postgres%']) then title || ' is of ' || engine || ' engine type.'
+        when
+          (engine like '%mysql' and engine_version like '5.7.%' )
+          or (engine like '%postgres%' and engine_version like '11.%') then title || ' is using RDS Extended Support.'
+        else title || ' is not using RDS Extended Support.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_rds_db_instance;
+  EOQ
+}
+
+control "rds_unused_snapshots" {
+  title       = "RDS snapshots without source DB instances should be reviewed"
+  description = "RDS snapshots whose source DB instances no longer exist may be unnecessary and should be reviewed for deletion to reduce costs."
+  severity    = "low"
+
+  param "rds_snapshot_unused_max_days" {
+    description = "The maximum number of days an RDS snapshot can be retained after its source DB instance is deleted."
+    default     = var.rds_snapshot_unused_max_days
+  }
+
+  tags = merge(local.rds_common_tags, {
+    class = "unused"
+  })
+
+  sql = <<-EOQ
+    with snapshot_age as (
+      select
+        db_snapshot_identifier,
+        date_part('day', now() - create_time) as age_in_days,
+        db_instance_identifier,
+        create_time,
+        status
+      from
+        aws_rds_db_snapshot
+      where
+        status = 'available'
+    ),
+    instance_exists as (
+      select
+        db_instance_identifier
+      from
+        aws_rds_db_instance
+    )
+    select
+      s.arn as resource,
+      case
+        when s.status != 'available' then 'skip'
+        when i.db_instance_identifier is null and a.age_in_days > $1 then 'alarm'
+        when i.db_instance_identifier is null then 'info'
+        else 'ok'
+      end as status,
+      case
+        when s.status != 'available' then s.title || ' is in ' || s.status || ' status.'
+        when i.db_instance_identifier is null and a.age_in_days > $1 then s.title || ' is ' || a.age_in_days || ' days old and its source DB instance no longer exists.'
+        when i.db_instance_identifier is null then s.title || ' source DB instance no longer exists but snapshot is only ' || a.age_in_days || ' days old.'
+        else s.title || ' has an existing source DB instance.'
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_rds_db_snapshot s
+      left join snapshot_age a on a.db_snapshot_identifier = s.db_snapshot_identifier
+      left join instance_exists i on i.db_instance_identifier = a.db_instance_identifier;
+  EOQ
+}
+
+
