@@ -7,12 +7,12 @@ benchmark "capacity_planning" {
     control.ebs_volume_low_iops,
     control.ec2_instance_running_max_age,
     control.ec2_reserved_instance_lease_expiration_days,
-    control.ecs_service_without_autoscaling,
+    control.ecs_service_autoscaling_disabled,
     control.elasticache_cluster_running_max_age,
     #control.kinesis_stream_consumer_with_enhanced_fan_out,
     control.rds_db_instance_max_age,
     control.redshift_cluster_max_age,
-    control.redshift_cluster_schedule_pause_resume_enabled,
+    control.redshift_cluster_schedule_pause_resume_disabled,
     control.route53_record_higher_ttl,
     control.apigateway_stage_with_caching_disabled,
   ]
@@ -85,7 +85,7 @@ benchmark "stale_data" {
   description   = "Thrifty developers need to keep an eye on data which is no longer required. It's great to be able to programmatically create backups and snapshots, but these too can become a source of unchecked cost if not watched closely. It's easy to delete an individual snapshot with a few clicks, but challenging to manage snapshots programmatically across multiple accounts. Over time, dozens of snapshots can turn into hundreds or thousands."
 //  documentation = file("./thrifty/docs/stale_data.md")
   children = [
-    control.cloudwatch_log_group_no_retention,
+    control.cloudwatch_log_group_retention_disabled,
     control.dynamodb_table_stale_data,
     control.ebs_snapshot_max_age,
     #control.kinesis_stream_high_retention_period,
@@ -136,8 +136,8 @@ benchmark "unused" {
     control.secretsmanager_secret_unused,
     control.vpc_nat_gateway_unused,
     control.route53_health_check_unused,
-    control.rds_unused_snapshots,
-    control.ecr_repository_unused_images,
+    control.rds_db_snapshot_unused,
+    control.ecr_repository_image_unused,
     control.dynamodb_table_no_data,
   ]
 

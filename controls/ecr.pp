@@ -15,7 +15,7 @@ benchmark "ecr" {
   description   = "Thrifty developers eliminate unused ECR repository images."
   documentation = file("./controls/docs/ecr.md")
   children = [
-    control.ecr_repository_unused_images
+    control.ecr_repository_image_unused
   ]
 
   tags = merge(local.ecr_common_tags, {
@@ -23,7 +23,7 @@ benchmark "ecr" {
   })
 }
 
-control "ecr_repository_unused_images" {
+control "ecr_repository_image_unused" {
   title       = "ECR repositories with unused images should be reviewed"
   description = "ECR repositories with images that haven't been pulled in a long time may be unused and should be reviewed for cleanup."
   severity    = "low"
@@ -34,15 +34,15 @@ control "ecr_repository_unused_images" {
 
   sql = <<-EOQ
     with latest_pulls as (
-      select 
+      select
         repository_name,
         max(last_recorded_pull_time) as last_pull
-      from 
+      from
         aws_ecr_image
-      group by 
+      group by
         repository_name
     )
-    select 
+    select
       r.arn as resource,
       case
         when i.last_pull is null then 'alarm'
@@ -56,8 +56,8 @@ control "ecr_repository_unused_images" {
       end as reason,
       r.region,
       r.account_id
-    from 
+    from
       aws_ecr_repository r
       left join latest_pulls i on r.repository_name = i.repository_name;
   EOQ
-} 
+}

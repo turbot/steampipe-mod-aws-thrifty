@@ -35,7 +35,7 @@ benchmark "redshift" {
   children = [
     control.redshift_cluster_low_utilization,
     control.redshift_cluster_max_age,
-    control.redshift_cluster_schedule_pause_resume_enabled
+    control.redshift_cluster_schedule_pause_resume_disabled
   ]
 
   tags = merge(local.redshift_common_tags, {
@@ -135,7 +135,7 @@ control "redshift_cluster_max_age" {
   EOQ
 }
 
-control "redshift_cluster_schedule_pause_resume_enabled" {
+control "redshift_cluster_schedule_pause_resume_disabled" {
   title       = "Redshift clusters pause and resume feature should be enabled"
   description = "Redshift clusters should utilise the pause and resume actions to easily suspend on-demand billing while the cluster is not being used."
   severity    = "low"

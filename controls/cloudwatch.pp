@@ -15,7 +15,7 @@ benchmark "cloudwatch" {
   description   = "Thrifty developers actively manage the retention of their Cloudtrail logs."
   documentation = file("./controls/docs/cloudwatch.md")
   children = [
-    control.cloudwatch_log_group_no_retention,
+    control.cloudwatch_log_group_retention_disabled,
     control.cloudwatch_log_stream_unused
   ]
 
@@ -24,7 +24,7 @@ benchmark "cloudwatch" {
   })
 }
 
-control "cloudwatch_log_group_no_retention" {
+control "cloudwatch_log_group_retention_disabled" {
   title       = "CloudWatch log groups retention should be enabled"
   description = "All log groups should have a defined retention configuration."
   severity    = "low"

@@ -23,7 +23,7 @@ benchmark "ecs" {
   children = [
     control.ecs_cluster_container_instance_with_graviton,
     control.ecs_cluster_low_utilization,
-    control.ecs_service_without_autoscaling
+    control.ecs_service_autoscaling_disabled
   ]
 
   tags = merge(local.ecs_common_tags, {
@@ -113,7 +113,7 @@ control "ecs_cluster_low_utilization" {
   EOQ
 }
 
-control "ecs_service_without_autoscaling" {
+control "ecs_service_autoscaling_disabled" {
   title       = "ECS service should use autoscaling policy"
   description = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
   severity    = "low"

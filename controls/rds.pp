@@ -51,7 +51,7 @@ benchmark "rds" {
     control.rds_db_instance_low_usage,
     control.rds_db_instance_with_graviton,
     control.rds_mysql_postresql_db_no_unsupported_version,
-    control.rds_unused_snapshots
+    control.rds_db_snapshot_unused
   ]
 
   tags = merge(local.rds_common_tags, {
@@ -446,7 +446,7 @@ control "rds_mysql_postresql_db_no_unsupported_version" {
   EOQ
 }
 
-control "rds_unused_snapshots" {
+control "rds_db_snapshot_unused" {
   title       = "RDS snapshots without source DB instances should be reviewed"
   description = "RDS snapshots whose source DB instances no longer exist may be unnecessary and should be reviewed for deletion to reduce costs."
   severity    = "low"
