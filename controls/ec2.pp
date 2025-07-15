@@ -47,7 +47,7 @@ benchmark "ec2" {
     control.ec2_instance_low_utilization,
     control.ec2_instance_older_generation,
     control.ec2_instance_running_max_age,
-    control.ec2_instance_with_graviton,
+    control.ec2_instance_without_graviton,
     control.ec2_network_lb_unused,
     control.ec2_reserved_instance_lease_expiration_days
   ]
@@ -58,8 +58,8 @@ benchmark "ec2" {
 }
 
 control "ec2_application_lb_unused" {
-  title       = "Application load balancers having no targets attached should be deleted"
-  description = "Application load balancers with no targets attached still cost money and should be deleted."
+  title       = "EC2 application load balancers without targets should be removed"
+  description = "Application Load Balancers (ALBs) with no registered targets continue to incur hourly charges. Review and delete unused ALBs to reduce unnecessary costs, as recommended by AWS cost optimization best practices."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -133,8 +133,8 @@ control "ec2_application_lb_unused" {
 }
 
 control "ec2_classic_lb_unused" {
-  title       = "Classic load balancers having no instances attached should be deleted"
-  description = "Classic load balancers with no instances attached still cost money should be deleted."
+  title       = "EC2 classic load balancers without instances should be removed"
+  description = "Classic Load Balancers (CLBs) with no attached instances still incur charges. Remove unused CLBs to avoid unnecessary costs and improve resource hygiene."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -198,8 +198,8 @@ control "ec2_classic_lb_unused" {
 }
 
 control "ec2_gateway_lb_unused" {
-  title       = "Gateway load balancers having no targets attached should be deleted"
-  description = "Gateway load balancers with no targets attached still cost money and should be deleted."
+  title       = "EC2 gateway load balancers without targets should be removed"
+  description = "Gateway Load Balancers (GLBs) with no registered targets continue to incur hourly charges. Review and delete unused GLBs to optimize costs."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -277,7 +277,7 @@ control "ec2_gateway_lb_unused" {
 
 control "ec2_eips_unattached" {
   title       = "Unattached elastic IP addresses (EIPs) should be released"
-  description = "Unattached Elastic IPs are charged by AWS, they should be released."
+  description = "Elastic IP addresses (EIPs) that are not associated with a running resource incur hourly charges. Release unattached EIPs to avoid unnecessary costs, as recommended by AWS best practices."
   severity    = "low"
 
   tags = merge(local.vpc_common_tags, {
@@ -346,8 +346,8 @@ control "ec2_eips_unattached" {
 }
 
 control "ec2_network_lb_unused" {
-  title       = "Network load balancers having no targets attached should be deleted"
-  description = "Network load balancers with no targets attached still cost money and should be deleted."
+  title       = "EC2 network load balancers without targets should be removed"
+  description = "Network Load Balancers (NLBs) with no registered targets continue to incur hourly charges. Review and delete unused NLBs to reduce costs."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -422,8 +422,8 @@ control "ec2_network_lb_unused" {
 }
 
 control "ec2_instance_large" {
-  title       = "Large EC2 instances should be reviewed"
-  description = "Large EC2 instances are unusual, expensive and should be reviewed."
+  title       = "Large EC2 instances should be reviewed for right-sizing"
+  description = "Large EC2 instances may be over-provisioned and incur unnecessary costs. Regularly review instance sizes and right-size or terminate instances as appropriate to optimize spend."
   severity    = "low"
 
   param "ec2_instance_allowed_types" {
@@ -452,8 +452,8 @@ control "ec2_instance_large" {
 }
 
 control "ec2_instance_running_max_age" {
-  title       = "Long running EC2 instances should be reviewed"
-  description = "Instances should ideally be ephemeral and rehydrated frequently, check why these instances have been running for so long. Long running instances should be replaced with reserved instances, which provide a significant discount."
+  title       = "Long-running EC2 instances should be reviewed for reserved instance purchase"
+  description = "EC2 instances running for extended periods should be evaluated for reserved instance purchase to take advantage of cost savings, as recommended by AWS cost optimization best practices."
   severity    = "low"
 
   param "ec2_running_instance_age_max_days" {
@@ -484,8 +484,8 @@ control "ec2_instance_running_max_age" {
 }
 
 control "ec2_instance_low_utilization" {
-  title       = "EC2 instances with very low CPU utilization should be reviewed"
-  description = "Resize or eliminate under utilized instances."
+  title       = "EC2 instances with low CPU utilization should be reviewed"
+  description = "EC2 instances with consistently low CPU utilization may be over-provisioned or unused. Review and right-size or terminate underutilized instances to reduce costs."
   severity    = "low"
 
   param "ec2_instance_avg_cpu_utilization_low" {
@@ -537,7 +537,7 @@ control "ec2_instance_low_utilization" {
 
 control "ec2_reserved_instance_lease_expiration_days" {
   title       = "EC2 reserved instances scheduled for expiration should be reviewed"
-  description = "EC2 reserved instances that are scheduled for expiration or have expired in the preceding 30 days should be reviewed."
+  description = "Reserved instances that are about to expire or have recently expired should be reviewed to ensure continued cost savings and uninterrupted service."
   severity    = "low"
 
   param "ec2_reserved_instance_expiration_warning_days" {
@@ -565,8 +565,8 @@ control "ec2_reserved_instance_lease_expiration_days" {
 }
 
 control "ec2_instance_older_generation" {
-  title       = "EC2 instances should not use older generation t2, m3, and m4 instance types"
-  description = "EC2 instances should not use older generation t2, m3, and m4 instance types as t3 and m5 are more cost effective."
+  title       = "EC2 instances should not use older generation instance types"
+  description = "Older generation EC2 instance types (e.g., t2, m3, m4) are less cost-effective and may not offer the best performance. Migrate to newer instance types to optimize costs and performance."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -587,7 +587,7 @@ control "ec2_instance_older_generation" {
   EOQ
 }
 
-control "ec2_instance_with_graviton" {
+control "ec2_instance_without_graviton" {
   title       = "EC2 instances without graviton processor should be reviewed"
   description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
   severity    = "low"

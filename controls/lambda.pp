@@ -21,8 +21,8 @@ benchmark "lambda" {
 }
 
 control "lambda_function_high_error_rate" {
-  title       = "Are there any Lambda functions with high error rate?"
-  description = "Function errors may result in retries that incur extra charges. The control checks for functions with an error rate of more than 10% a day in one of the last 7 days."
+  title       = "Lambda functions with high error rates should be reviewed"
+  description = "Lambda functions with high error rates may indicate code issues, misconfigurations, or integration problems, leading to increased costs due to retries and failed executions. Regularly review and remediate functions with elevated error rates to optimize reliability and cost efficiency."
   severity    = "low"
   tags = merge(local.lambda_common_tags, {
     class = "managed"
@@ -60,8 +60,8 @@ control "lambda_function_high_error_rate" {
 }
 
 control "lambda_function_excessive_timeout" {
-  title       = "Are there any Lambda functions with excessive timeout?"
-  description = "Excessive timeouts result in retries and additional execution time for the function, incurring request charges and billed duration. The control checks for functions with a timeout rate of more than 10% a day in one of the last 7 days."
+  title       = "Lambda functions with excessive timeouts should be reviewed"
+  description = "Lambda functions with excessive timeout settings may result in unnecessary execution time, increased costs, and delayed error handling. Review and optimize function timeout values to align with expected execution duration and improve cost efficiency."
   severity    = "low"
   tags = merge(local.lambda_common_tags, {
     class = "managed"
@@ -99,8 +99,8 @@ control "lambda_function_excessive_timeout" {
 }
 
 control "lambda_function_with_graviton" {
-  title       = "Are there any lambda functions without graviton processor?"
-  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  title       = "Lambda functions not using Graviton processor should be reviewed"
+  description = "Lambda functions running on x86_64 architecture may incur higher costs and lower performance compared to those using Graviton (arm64) processors. Review and migrate eligible functions to Graviton to benefit from improved performance and reduced costs, as recommended by AWS best practices."
   severity    = "low"
 
   tags = merge(local.lambda_common_tags, {

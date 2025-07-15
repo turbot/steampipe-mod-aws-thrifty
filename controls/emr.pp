@@ -10,7 +10,7 @@ benchmark "emr" {
   documentation = file("./controls/docs/emr.md")
   children = [
     control.emr_cluster_instance_prev_gen,
-    control.emr_cluster_is_idle_30_minutes
+    control.emr_cluster_idle_over_30_minutes
   ]
 
   tags = merge(local.emr_common_tags, {
@@ -19,8 +19,8 @@ benchmark "emr" {
 }
 
 control "emr_cluster_instance_prev_gen" {
-  title       = "EMR clusters of previous generation instances should be reviewed"
-  description = "EMR clusters of previous generations instance types (c1,cc2,cr1,m2,g2,i2,m1) should be replaced by latest generation instance types for better hardware performance."
+  title       = "EMR clusters using previous generation instance types should be reviewed"
+  description = "EMR clusters running on previous generation instance types (such as c1, cc2, cr1, m2, g2, i2, m1) may have lower performance and higher costs compared to newer instance types. Review and migrate clusters to the latest generation instance types to optimize performance and cost efficiency, as recommended by AWS best practices."
   severity    = "low"
 
   tags = merge(local.emr_common_tags, {
@@ -55,9 +55,9 @@ control "emr_cluster_instance_prev_gen" {
   EOQ
 }
 
-control "emr_cluster_is_idle_30_minutes" {
+control "emr_cluster_idle_over_30_minutes" {
   title       = "EMR clusters idle for more than 30 minutes should be reviewed"
-  description = "EMR clusters which is live but not currently running tasks should be reviewed and checked whether the cluster has been idle for more than 30 minutes."
+  description = "EMR clusters that remain idle for extended periods may indicate underutilized or forgotten resources, leading to unnecessary costs. Regularly review clusters that have been idle for more than 30 minutes and consider terminating or resizing them to optimize resource usage and reduce expenses."
   severity    = "low"
 
   tags = merge(local.emr_common_tags, {

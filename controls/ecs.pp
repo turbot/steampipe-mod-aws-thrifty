@@ -21,7 +21,7 @@ benchmark "ecs" {
   description   = "Thrifty developers checks under-utilized ECS clusters and ECS service without autoscaling configuration."
   documentation = file("./controls/docs/ecs.md")
   children = [
-    control.ecs_cluster_container_instance_with_graviton,
+    control.ecs_cluster_container_instance_without_graviton,
     control.ecs_cluster_low_utilization,
     control.ecs_service_autoscaling_disabled
   ]
@@ -31,9 +31,9 @@ benchmark "ecs" {
   })
 }
 
-control "ecs_cluster_container_instance_with_graviton" {
+control "ecs_cluster_container_instance_without_graviton" {
   title       = "ECS cluster container instances without graviton processor should be reviewed"
-  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  description = "ECS cluster container instances running on x86_64 architecture may incur higher costs and lower performance compared to those using Graviton (arm64) processors. Review and migrate eligible container instances to Graviton to benefit from improved performance and reduced costs, as recommended by AWS best practices."
   severity    = "low"
 
   tags = merge(local.ecs_common_tags, {
@@ -63,7 +63,7 @@ control "ecs_cluster_container_instance_with_graviton" {
 
 control "ecs_cluster_low_utilization" {
   title       = "ECS clusters with low CPU utilization should be reviewed"
-  description = "Resize or eliminate under utilized clusters."
+  description = "ECS clusters with consistently low CPU utilization may be over-provisioned or underused, resulting in unnecessary costs. Review clusters with low utilization and consider resizing, pausing, or terminating them to optimize resource usage and reduce expenses."
   severity    = "low"
 
   param "ecs_cluster_avg_cpu_utilization_low" {
@@ -114,8 +114,8 @@ control "ecs_cluster_low_utilization" {
 }
 
 control "ecs_service_autoscaling_disabled" {
-  title       = "ECS service should use autoscaling policy"
-  description = "ECS service should use autoscaling policy to improve service performance in a cost-efficient way."
+  title       = "ECS services autoscaling should be enabled"
+  description = "ECS services without autoscaling enabled may not scale efficiently to meet demand, leading to performance issues or unnecessary costs. Enable autoscaling for ECS services to automatically adjust capacity based on actual usage, optimizing both performance and cost."
   severity    = "low"
 
   tags = merge(local.ecs_common_tags, {

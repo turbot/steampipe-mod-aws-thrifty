@@ -19,8 +19,8 @@ benchmark "vpc" {
 }
 
 control "vpc_nat_gateway_unused" {
-  title       = "Unused NAT gateways should be deleted"
-  description = "NAT gateway are charged on an hourly basis once they are provisioned and available, so unused gateways should be deleted."
+  title       = "Unused VPC NAT gateways should be removed"
+  description = "NAT gateways incur hourly charges as long as they are provisioned and available, regardless of actual usage. Unused NAT gateways can lead to unnecessary costs. Review and remove NAT gateways that are not actively in use to optimize network resources and reduce expenses."
   severity    = "low"
 
   tags = merge(local.vpc_common_tags, {

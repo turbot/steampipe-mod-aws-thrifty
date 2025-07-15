@@ -63,7 +63,7 @@ benchmark "ebs" {
 
 control "ebs_snapshot_max_age" {
   title       = "Old EBS snapshots should be deleted if not required"
-  description = "Old EBS snapshots are likely unnecessary and costly to maintain."
+  description = "EBS snapshots that have been retained beyond the defined threshold may be unnecessary and can incur significant storage costs. Regularly review and delete old snapshots that are no longer required for backup or compliance purposes."
   severity    = "low"
 
   param "ebs_snapshot_age_max_days" {
@@ -108,8 +108,8 @@ control "ebs_snapshot_max_age" {
 }
 
 control "ebs_volume_high_iops" {
-  title       = "EBS volumes with high IOPS should be resized if too large"
-  description = "High IOPS io1 and io2 volumes are costly and usage should be reviewed."
+  title       = "EBS volumes with high IOPS should be reviewed"
+  description = "EBS volumes provisioned with high IOPS (io1 or io2) can be expensive. Review these volumes to ensure the provisioned IOPS matches actual workload requirements, and consider resizing or switching to a more cost-effective volume type if possible."
   severity    = "low"
 
   param "ebs_volume_max_iops" {
@@ -182,7 +182,7 @@ control "ebs_volume_high_iops" {
 
 control "ebs_volume_large" {
   title       = "EBS volumes should be resized if too large"
-  description = "Large EBS volumes are unusual, expensive and should be reviewed."
+  description = "EBS volumes with large capacity may be over-provisioned, leading to unnecessary costs. Review and resize large volumes to align with actual storage needs."
   severity    = "low"
 
   param "ebs_volume_max_size_gb" {
@@ -249,8 +249,8 @@ control "ebs_volume_large" {
 }
 
 control "ebs_volume_low_iops" {
-  title       = "What provisioned IOPS volumes would be better as GP3?"
-  description = "GP3 provides 3k base IOPS performance, don't use more costly io1 & io2 volumes."
+  title       = "Provisioned IOPS volumes with low IOPS should be migrated to GP3"
+  description = "Provisioned IOPS (io1/io2) volumes with low IOPS may be more cost-effectively served by GP3 volumes, which provide 3,000 base IOPS at a lower cost. Review and migrate eligible volumes to GP3 to optimize performance and reduce expenses."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "overused"
@@ -338,8 +338,8 @@ control "ebs_volume_low_iops" {
 }
 
 control "ebs_volume_low_usage" {
-  title       = "Are there any EBS volumes with low usage?"
-  description = "Volumes that are unused should be archived and deleted"
+  title       = "EBS volumes with low usage should be reviewed"
+  description = "EBS volumes with consistently low read/write operations may be underutilized or obsolete. Review these volumes and consider archiving or deleting them to reduce storage costs."
   severity    = "low"
 
   param "ebs_volume_avg_read_write_ops_low" {
@@ -413,7 +413,7 @@ control "ebs_volume_low_usage" {
 
 control "ebs_volume_on_stopped_instances" {
   title       = "EBS volumes attached to stopped instances should be reviewed"
-  description = "Instances that are stopped may no longer need any attached EBS volumes"
+  description = "EBS volumes attached to stopped EC2 instances may not be needed and can incur unnecessary costs. Review and detach or delete these volumes if they are no longer required."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "unused"
@@ -503,8 +503,8 @@ control "ebs_volume_on_stopped_instances" {
 }
 
 control "ebs_volume_unattached" {
-  title       = "Are there any unattached EBS volumes?"
-  description = "Unattached EBS volumes render little usage, are expensive to maintain and should be reviewed."
+  title       = "Unattached EBS volumes should be deleted"
+  description = "EBS volumes that are not attached to any EC2 instance are likely unused and continue to incur storage charges. Regularly review and delete unattached volumes to optimize costs."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "unused"
@@ -567,8 +567,8 @@ control "ebs_volume_unattached" {
 }
 
 control "ebs_volume_using_gp2" {
-  title       = "Still using gp2 EBS volumes? Should use gp3 instead."
-  description = "EBS gp2 volumes are more costly and lower performance than gp3."
+  title       = "EBS volumes using gp2 should be migrated to gp3"
+  description = "GP3 volumes offer better performance and lower cost compared to GP2. Review and migrate EBS volumes using GP2 to GP3 to optimize storage performance and reduce expenses."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "generation_gaps"
@@ -643,8 +643,8 @@ control "ebs_volume_using_gp2" {
 }
 
 control "ebs_volume_using_io1" {
-  title       = "Still using io1 EBS volumes? Should use io2 instead."
-  description = "io1 Volumes are less reliable than io2 for same cost."
+  title       = "EBS volumes using io1 should be migrated to io2"
+  description = "IO2 volumes provide higher durability and reliability at the same cost as IO1. Review and migrate EBS volumes using IO1 to IO2 to improve data durability and optimize costs."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
     class = "generation_gaps"

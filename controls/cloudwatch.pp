@@ -26,7 +26,7 @@ benchmark "cloudwatch" {
 
 control "cloudwatch_log_group_retention_disabled" {
   title       = "CloudWatch log groups retention should be enabled"
-  description = "All log groups should have a defined retention configuration."
+  description = "CloudWatch log groups without a defined retention period will retain logs indefinitely, which can lead to unnecessary storage costs and potential compliance issues. AWS best practices recommend configuring a retention policy for all log groups to ensure logs are kept only as long as required for operational and compliance needs. Review and set appropriate retention periods for all CloudWatch log groups."
   severity    = "low"
 
   tags = merge(local.cloudwatch_common_tags, {
@@ -51,8 +51,8 @@ control "cloudwatch_log_group_retention_disabled" {
 }
 
 control "cloudwatch_log_stream_unused" {
-  title       = "Unused CloudWatch log streams should be removed if not required"
-  description = "Unnecessary CloudWatch log streams should be deleted for storage cost savings."
+  title       = "CloudWatch log streams not receiving log events should be reviewed"
+  description = "Unused CloudWatch log streams can accumulate over time, increasing storage costs and making log management more difficult. Regularly review and remove log streams that have not received log events within your organization’s defined retention period."
   severity    = "low"
 
   param "cloudwatch_log_stream_age_max_days" {

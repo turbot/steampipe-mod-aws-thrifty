@@ -9,7 +9,7 @@ benchmark "eks" {
   description   = "Thrifty developers ensure their EKS resources are optimized."
   documentation = file("./controls/docs/eks.md")
   children = [
-    control.eks_node_group_with_graviton
+    control.eks_node_group_without_graviton
   ]
 
   tags = merge(local.eks_common_tags, {
@@ -17,9 +17,9 @@ benchmark "eks" {
   })
 }
 
-control "eks_node_group_with_graviton" {
+control "eks_node_group_without_graviton" {
   title       = "EKS node groups without graviton processor should be reviewed"
-  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+  description = "EKS node groups running on x86_64 architecture may incur higher costs and lower performance compared to those using Graviton (arm64) processors. AWS recommends migrating eligible node groups to Graviton-based instances to benefit from improved performance and reduced costs. Review all EKS node groups and consider switching to Graviton where supported."
   severity    = "low"
 
   tags = merge(local.eks_common_tags, {

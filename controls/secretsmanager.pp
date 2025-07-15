@@ -26,7 +26,7 @@ benchmark "secretsmanager" {
 
 control "secretsmanager_secret_unused" {
   title       = "Unused Secrets Manager secrets should be deleted"
-  description = "Secrets Manager secrets should be accessed within a specified number of days. The default value is 90 days."
+  description = "Secrets stored in AWS Secrets Manager that have not been accessed for an extended period may be obsolete or no longer required. Retaining unused secrets increases costs and the risk of credential sprawl. Review and remove secrets that have not been accessed within the defined threshold to optimize security and reduce unnecessary expenses."
   severity    = "low"
 
   tags = merge(local.secretsmanager_common_tags, {

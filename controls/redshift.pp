@@ -35,7 +35,7 @@ benchmark "redshift" {
   children = [
     control.redshift_cluster_low_utilization,
     control.redshift_cluster_max_age,
-    control.redshift_cluster_schedule_pause_resume_disabled
+    control.redshift_cluster_pause_resume_disabled
   ]
 
   tags = merge(local.redshift_common_tags, {
@@ -44,8 +44,8 @@ benchmark "redshift" {
 }
 
 control "redshift_cluster_max_age" {
-  title       = "Long running Redshift clusters should have reserved nodes purchased for them"
-  description = "Long running clusters should be associated with reserved nodes, which provide a significant discount."
+  title       = "Long-running Redshift clusters should use reserved nodes"
+  description = "Redshift clusters that have been running for an extended period should be associated with reserved nodes to take advantage of significant cost savings. Review clusters that have been running longer than the defined threshold and consider purchasing reserved nodes for them."
   severity    = "low"
 
   param "redshift_running_cluster_age_max_days" {
@@ -135,9 +135,9 @@ control "redshift_cluster_max_age" {
   EOQ
 }
 
-control "redshift_cluster_schedule_pause_resume_disabled" {
+control "redshift_cluster_pause_resume_disabled" {
   title       = "Redshift clusters pause and resume feature should be enabled"
-  description = "Redshift clusters should utilise the pause and resume actions to easily suspend on-demand billing while the cluster is not being used."
+  description = "Redshift clusters that do not have scheduled pause and resume actions enabled may incur unnecessary on-demand charges during periods of inactivity. Enable and configure pause/resume scheduling to optimize costs for clusters that are not required to be available at all times."
   severity    = "low"
   tags = merge(local.redshift_common_tags, {
     class = "overused"
@@ -193,7 +193,7 @@ control "redshift_cluster_schedule_pause_resume_disabled" {
 
 control "redshift_cluster_low_utilization" {
   title       = "Redshift clusters with low CPU utilization should be reviewed"
-  description = "Resize or eliminate under utilized clusters."
+  description = "Redshift clusters with consistently low CPU utilization may be over-provisioned or underused, resulting in unnecessary costs. Review clusters with low utilization and consider resizing, pausing, or terminating them to optimize resource usage and reduce expenses."
   severity    = "low"
 
   param "redshift_cluster_avg_cpu_utilization_low" {

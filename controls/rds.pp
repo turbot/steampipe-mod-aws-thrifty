@@ -45,12 +45,12 @@ benchmark "rds" {
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
   documentation = file("./controls/docs/rds.md")
   children = [
-    control.rds_db_instance_class_prev_gen,
+    control.rds_instance_prev_gen_class,
     control.rds_db_instance_max_age,
-    control.rds_db_instance_low_connections,
-    control.rds_db_instance_low_usage,
-    control.rds_db_instance_with_graviton,
-    control.rds_mysql_postresql_db_no_unsupported_version,
+    control.rds_db_instance_low_connection,
+    control.rds_instance_low_cpu_utilization,
+    control.rds_instance_without_graviton,
+    control.rds_instance_unsupported_engine_version,
     control.rds_db_snapshot_unused
   ]
 
@@ -60,8 +60,8 @@ benchmark "rds" {
 }
 
 control "rds_db_instance_max_age" {
-  title       = "Long running RDS DBs should have reserved instances purchased for them"
-  description = "Long running database servers should be associated with a reserve instance."
+  title       = "Long running RDS DB instances should use reserved instances"
+  description = "DS DB instances that have been running for an extended period should be converted to reserved instances to take advantage of significant cost savings. Review long-running instances and consider purchasing reserved capacity for them."
   severity    = "low"
 
   param "rds_running_db_instance_age_max_days" {
@@ -132,9 +132,9 @@ control "rds_db_instance_max_age" {
   EOQ
 }
 
-control "rds_db_instance_class_prev_gen" {
-  title       = "RDS instances should use the latest generation instance types"
-  description = "M5 and T3 instance types are less costly than previous generations."
+control "rds_instance_prev_gen_class" {
+  title       = "RDS DB instances using previous generation instance types should be reviewed"
+  description = "RDS DB instances running on previous generation instance types may have higher costs and lower performance. Review and migrate these instances to the latest generation types to optimize cost and performance."
   severity    = "low"
 
   tags = merge(local.rds_common_tags, {
@@ -221,9 +221,9 @@ control "rds_db_instance_class_prev_gen" {
   EOQ
 }
 
-control "rds_db_instance_low_connections" {
-  title       = "RDS DB instances with a low number connections per day should be reviewed"
-  description = "These databases have very little usage in last 30 days. Should this instance be shutdown when not in use?"
+control "rds_db_instance_low_connection" {
+  title       = "RDS DB instances with low connection counts should be reviewed"
+  description = "RDS DB instances with consistently low connection counts may be underutilized or unnecessary. Review these instances and consider resizing or terminating them to reduce costs."
   severity    = "high"
 
   tags = merge(local.rds_common_tags, {
@@ -292,9 +292,9 @@ control "rds_db_instance_low_connections" {
   EOQ
 }
 
-control "rds_db_instance_low_usage" {
-  title       = "RDS DB instance having low CPU utilization should be reviewed"
-  description = "DB instances may be oversized for their usage."
+control "rds_instance_low_cpu_utilization" {
+  title       = "RDS DB instances with low CPU utilization should be reviewed"
+  description = "RDS DB instances with low CPU utilization may be over-provisioned. Review and resize or terminate these instances to optimize resource usage and reduce costs."
   severity    = "low"
 
   param "rds_db_instance_avg_cpu_utilization_low" {
@@ -384,9 +384,9 @@ control "rds_db_instance_low_usage" {
   EOQ
 }
 
-control "rds_db_instance_with_graviton" {
-  title       = "RDS DB instances without graviton processor should be reviewed"
-  description = "With graviton processor (arm64 - 64-bit ARM architecture), you can save money in two ways. First, your functions run more efficiently due to the Graviton architecture. Second, you pay less for the time that they run. In fact, Lambda functions powered by Graviton are designed to deliver up to 19 percent better performance at 20 percent lower cost."
+control "rds_instance_without_graviton" {
+  title       = "RDS DB instances not using Graviton processor should be reviewed"
+  description = "EC2 instances running on x86_64 architecture may incur higher costs compared to Graviton (arm64) instances. Review and migrate eligible workloads to Graviton-based instances to benefit from improved performance and reduced costs."
   severity    = "low"
 
   tags = merge(local.rds_common_tags, {
@@ -411,9 +411,9 @@ control "rds_db_instance_with_graviton" {
   EOQ
 }
 
-control "rds_mysql_postresql_db_no_unsupported_version" {
-  title       = "RDS MySQL and PostgreSQL DB instances with unsupported version should be reviewed"
-  description = "MySQL 5.7 and PostgreSQL 11 database instances running on Amazon Aurora and Amazon Relational Database Service (Amazon RDS) will be automatically enrolled into Amazon RDS Extended Support. This automatic enrollment may mean that you will experience higher charges when RDS Extended Support begins. You can avoid these charges by upgrading your database to a newer DB version."
+control "rds_instance_unsupported_engine_version" {
+  title       = "RDS MySQL and PostgreSQL DB instances with unsupported versions should be upgraded"
+  description = "RDS MySQL and PostgreSQL DB instances running unsupported engine versions may incur higher charges and lack security updates. Upgrade these instances to supported versions to avoid extended support costs and maintain compliance."
   severity    = "low"
 
   tags = merge(local.rds_common_tags, {
@@ -448,7 +448,7 @@ control "rds_mysql_postresql_db_no_unsupported_version" {
 
 control "rds_db_snapshot_unused" {
   title       = "RDS snapshots without source DB instances should be reviewed"
-  description = "RDS snapshots whose source DB instances no longer exist may be unnecessary and should be reviewed for deletion to reduce costs."
+  description = "RDS snapshots whose source DB instances no longer exist may be obsolete and can incur unnecessary storage costs. Regularly review and delete unused snapshots to optimize storage usage and reduce costs."
   severity    = "low"
 
   param "rds_snapshot_unused_max_days" {

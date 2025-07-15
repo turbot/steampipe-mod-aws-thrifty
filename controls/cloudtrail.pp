@@ -20,8 +20,8 @@ benchmark "cloudtrail" {
 }
 
 control "cloudtrail_trail_global_multiple" {
-  title       = "Are there redundant global CloudTrail trails?"
-  description = "Your first trail in each account is free, additional trails are expensive."
+  title       = "Multiple global CloudTrail trails should not exist"
+  description = "AWS best practices recommend having only one global CloudTrail trail per account. Additional global trails can increase costs and may lead to redundant or conflicting logging configurations. Ensure that only a single global trail is enabled unless there is a specific compliance or operational requirement for more."
   severity    = "low"
 
   tags = merge(local.cloudtrail_common_tags, {
@@ -63,8 +63,8 @@ control "cloudtrail_trail_global_multiple" {
 }
 
 control "cloudtrail_trail_regional_multiple" {
-  title       = "Are there redundant regional CloudTrail trails?"
-  description = "Your first trail in each region is free, additional trails are expensive."
+  title       = "ultiple regional CloudTrail trails should not exist"
+  description = "AWS best practices recommend having only one regional CloudTrail trail per region. Additional regional trails can increase costs and may result in redundant or conflicting logging configurations. Ensure that only a single regional trail is enabled in each region unless there is a specific compliance or operational requirement for more."
   severity    = "low"
 
   tags = merge(local.cloudtrail_common_tags, {

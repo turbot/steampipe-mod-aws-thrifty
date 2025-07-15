@@ -25,7 +25,7 @@ benchmark "ecr" {
 
 control "ecr_repository_image_unused" {
   title       = "ECR repositories with unused images should be reviewed"
-  description = "ECR repositories with images that haven't been pulled in a long time may be unused and should be reviewed for cleanup."
+  description = "ECR repositories containing images that have not been pulled for an extended period may indicate obsolete or unused resources. Retaining unused images increases storage costs and can lead to repository clutter. Regularly review and remove images that have not been pulled within the defined threshold to optimize storage usage and reduce costs."
   severity    = "low"
 
   tags = merge(local.ecr_common_tags, {

@@ -16,7 +16,7 @@ benchmark "dynamodb" {
   documentation = file("./controls/docs/dynamodb.md")
 
   children = [
-    control.dynamodb_table_no_data,
+    control.dynamodb_table_zero_items,
     control.dynamodb_table_stale_data,
     control.dynamodb_table_autoscaling_disabled
   ]
@@ -26,9 +26,9 @@ benchmark "dynamodb" {
   })
 }
 
-control "dynamodb_table_no_data" {
-  title       = "DynamoDB empty tables should be reviewed"
-  description = "If the tables has not items then the table should be reviewed."
+control "dynamodb_table_zero_items" {
+  title       = "DynamoDB tables with zero items should be reviewed"
+  description = "DynamoDB tables that contain no items may indicate unused or obsolete resources. Retaining empty tables can lead to unnecessary costs and clutter. Review and delete tables with zero items unless they are required for future use or compliance purposes."
   severity    = "low"
 
   tags = merge(local.dynamodb_common_tags, {
@@ -113,7 +113,7 @@ control "dynamodb_table_no_data" {
 
 control "dynamodb_table_stale_data" {
   title       = "DynamoDB tables with stale data should be reviewed"
-  description = "If the data has not changed recently and has become stale, the table should be reviewed."
+  description = "DynamoDB tables that have not been updated for an extended period may be underutilized or obsolete. Retaining tables with stale data can increase costs and complicate data management. Review tables that have not changed recently and consider archiving or deleting them if they are no longer needed."
   severity    = "low"
 
   param "dynamodb_table_stale_data_max_days" {

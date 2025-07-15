@@ -21,7 +21,7 @@ benchmark "elasticache" {
   description   = "Thrifty developers check their long running ElastiCache clusters are associated with reserved nodes."
   documentation = file("./controls/docs/elasticache.md")
   children = [
-    control.elasticache_cluster_running_max_age
+    control.elasticache_cluster_max_age
   ]
 
   tags = merge(local.elasticache_common_tags, {
@@ -29,9 +29,9 @@ benchmark "elasticache" {
   })
 }
 
-control "elasticache_cluster_running_max_age" {
+control "elasticache_cluster_max_age" {
   title       = "Long running ElastiCache clusters should be reviewed"
-  description = "Long running clusters should be reviewed and if they are needed they should be associated with reserved nodes, which provide a significant discount."
+  description = "ElastiCache clusters that have been running for an extended period may benefit from reserved node pricing, which offers significant cost savings over on-demand pricing. Review clusters that have been running longer than the defined threshold and consider purchasing reserved nodes for them to optimize costs, as recommended by AWS best practices."
   severity    = "low"
 
   param "elasticache_running_cluster_age_max_days" {

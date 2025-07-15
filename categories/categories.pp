@@ -8,11 +8,10 @@ benchmark "capacity_planning" {
     control.ec2_instance_running_max_age,
     control.ec2_reserved_instance_lease_expiration_days,
     control.ecs_service_autoscaling_disabled,
-    control.elasticache_cluster_running_max_age,
-    #control.kinesis_stream_consumer_with_enhanced_fan_out,
+    control.elasticache_cluster_max_age,
     control.rds_db_instance_max_age,
     control.redshift_cluster_max_age,
-    control.redshift_cluster_schedule_pause_resume_disabled,
+    control.redshift_cluster_pause_resume_disabled,
     control.route53_record_higher_ttl,
     control.apigateway_stage_with_caching_disabled,
   ]
@@ -28,7 +27,6 @@ benchmark "cost_variance" {
  // documentation = file("./thrifty/docs/cost_variance.md")
   children = [
     control.cost_explorer_full_month_cost_changes
-    #control.cost_explorer_full_month_forecast_cost_changes
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {
@@ -46,13 +44,13 @@ benchmark "generation_gaps" {
     control.ec2_instance_older_generation,
     control.emr_cluster_instance_prev_gen,
     control.lambda_function_with_graviton,
-    control.rds_db_instance_with_graviton,
-    control.ecs_cluster_container_instance_with_graviton,
+    control.rds_instance_without_graviton,
+    control.ecs_cluster_container_instance_without_graviton,
     #control.redshift_cluster_node_type_prev_gen,
-    control.rds_db_instance_class_prev_gen,
-    control.rds_mysql_postresql_db_no_unsupported_version,
-    control.eks_node_group_with_graviton,
-    control.ec2_instance_with_graviton,
+    control.rds_instance_prev_gen_class,
+    control.rds_instance_unsupported_engine_version,
+    control.eks_node_group_without_graviton,
+    control.ec2_instance_without_graviton,
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {
@@ -88,10 +86,6 @@ benchmark "stale_data" {
     control.cloudwatch_log_group_retention_disabled,
     control.dynamodb_table_stale_data,
     control.ebs_snapshot_max_age,
-    #control.kinesis_stream_high_retention_period,
-    #control.rds_db_cluster_snapshot_max_age,
-    #control.rds_db_instance_snapshot_max_age,
-    #control.redshift_snapshot_max_age,
     control.s3_bucket_without_lifecycle
   ]
 
@@ -108,9 +102,8 @@ benchmark "underused" {
     control.ebs_volume_low_usage,
     control.ec2_instance_low_utilization,
     control.ecs_cluster_low_utilization,
-    #control.elasticache_redis_cluster_low_utilization,
-    control.rds_db_instance_low_connections,
-    control.rds_db_instance_low_usage,
+    control.rds_db_instance_low_connection,
+    control.rds_instance_low_cpu_utilization,
     control.redshift_cluster_low_utilization
   ]
 
@@ -132,13 +125,13 @@ benchmark "unused" {
     control.ec2_gateway_lb_unused,
     control.ec2_network_lb_unused,
     control.ec2_eips_unattached,
-    control.emr_cluster_is_idle_30_minutes,
+    control.emr_cluster_idle_over_30_minutes,
     control.secretsmanager_secret_unused,
     control.vpc_nat_gateway_unused,
     control.route53_health_check_unused,
     control.rds_db_snapshot_unused,
     control.ecr_repository_image_unused,
-    control.dynamodb_table_no_data,
+    control.dynamodb_table_zero_items,
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {
