@@ -46,7 +46,7 @@ benchmark "ec2" {
     control.ec2_instance_large,
     control.ec2_instance_low_utilization,
     control.ec2_instance_older_generation,
-    control.ec2_instance_running_max_age,
+    control.ec2_instance_max_age,
     control.ec2_instance_without_graviton,
     control.ec2_network_lb_unused,
     control.ec2_reserved_instance_lease_expiration_days
@@ -59,7 +59,7 @@ benchmark "ec2" {
 
 control "ec2_application_lb_unused" {
   title       = "EC2 application load balancers without targets should be removed"
-  description = "Application Load Balancers (ALBs) with no registered targets continue to incur hourly charges. Review and delete unused ALBs to reduce unnecessary costs, as recommended by AWS cost optimization best practices."
+  description = "Application load balancers (ALBs) with no registered targets continue to incur hourly charges. Review and delete unused ALBs to reduce unnecessary costs, as recommended by AWS cost optimization best practices."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -134,7 +134,7 @@ control "ec2_application_lb_unused" {
 
 control "ec2_classic_lb_unused" {
   title       = "EC2 classic load balancers without instances should be removed"
-  description = "Classic Load Balancers (CLBs) with no attached instances still incur charges. Remove unused CLBs to avoid unnecessary costs and improve resource hygiene."
+  description = "Classic load balancers (CLBs) with no attached instances still incur charges. Remove unused CLBs to avoid unnecessary costs and improve resource hygiene."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -199,7 +199,7 @@ control "ec2_classic_lb_unused" {
 
 control "ec2_gateway_lb_unused" {
   title       = "EC2 gateway load balancers without targets should be removed"
-  description = "Gateway Load Balancers (GLBs) with no registered targets continue to incur hourly charges. Review and delete unused GLBs to optimize costs."
+  description = "Gateway load balancers (GLBs) with no registered targets continue to incur hourly charges. Review and delete unused GLBs to optimize costs."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -342,12 +342,11 @@ control "ec2_eips_unattached" {
     from
       eip_pricing_monthly
   EOQ
-
 }
 
 control "ec2_network_lb_unused" {
   title       = "EC2 network load balancers without targets should be removed"
-  description = "Network Load Balancers (NLBs) with no registered targets continue to incur hourly charges. Review and delete unused NLBs to reduce costs."
+  description = "Network load balancers (NLBs) with no registered targets continue to incur hourly charges. Review and delete unused NLBs to reduce costs."
   severity    = "low"
   tags = merge(local.ec2_common_tags, {
     class = "unused"
@@ -451,7 +450,7 @@ control "ec2_instance_large" {
   EOQ
 }
 
-control "ec2_instance_running_max_age" {
+control "ec2_instance_max_age" {
   title       = "Long-running EC2 instances should be reviewed for reserved instance purchase"
   description = "EC2 instances running for extended periods should be evaluated for reserved instance purchase to take advantage of cost savings, as recommended by AWS cost optimization best practices."
   severity    = "low"

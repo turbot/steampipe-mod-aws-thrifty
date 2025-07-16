@@ -69,11 +69,11 @@ control "eks_node_group_without_graviton" {
     end as status,
     case
       when ami_type = 'CUSTOM%' and a.platform <> 'linux' then title || ' is not using linux platform.'
-      when ami_type = 'CUSTOM%' and a.architecture = 'x86_64' and a.platform = 'linux' then title || ' is using Graviton processor.'
-      when ami_type = 'CUSTOM%' and a.architecture <> 'arm_64' and a.platform = 'linux' then title || ' is not using Graviton processor.'
+      when ami_type = 'CUSTOM%' and a.architecture = 'x86_64' and a.platform = 'linux' then title || ' is using graviton processor.'
+      when ami_type = 'CUSTOM%' and a.architecture <> 'arm_64' and a.platform = 'linux' then title || ' is not using graviton processor.'
       when ami_type not like 'AL2_%' then title || ' is not using linux platform.'
-      when ami_type = 'AL2_ARM_64' then title || ' is using Graviton processor.'
-      else title || ' is not using Graviton processor.'
+      when ami_type = 'AL2_ARM_64' then title || ' is using graviton processor.'
+      else title || ' is not using graviton processor.'
     end as reason
     ${local.tag_dimensions_sql}
     ${local.common_dimensions_sql}

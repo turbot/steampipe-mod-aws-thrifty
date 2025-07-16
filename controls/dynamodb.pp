@@ -145,7 +145,7 @@ control "dynamodb_table_stale_data" {
 }
 
 control "dynamodb_table_autoscaling_disabled" {
-  title       = "DynamoDB tables without auto-scaling should be reviewed"
+  title       = "DynamoDB tables auto scaling should be enabled"
   description = "DynamoDB tables with provisioned capacity mode should use auto-scaling to optimize costs. Auto-scaling automatically adjusts read and write capacity based on actual usage patterns, helping to avoid over-provisioning and reduce costs."
   severity    = "low"
 

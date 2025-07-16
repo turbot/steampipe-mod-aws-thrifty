@@ -19,7 +19,7 @@ benchmark "apigateway" {
 }
 
 control "apigateway_stage_with_caching_disabled" {
-  title       = "API Gateway Stage with Caching Disabled"
+  title       = "API Gateway stage with caching disabled"
   description = "API Gateway stages should have caching enabled to improve performance and reduce backend load. Stages without caching may experience higher latency and increased costs."
   severity    = "low"
 

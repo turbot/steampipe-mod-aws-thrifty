@@ -99,7 +99,7 @@ control "lambda_function_excessive_timeout" {
 }
 
 control "lambda_function_with_graviton" {
-  title       = "Lambda functions not using Graviton processor should be reviewed"
+  title       = "Lambda functions not using graviton processor should be reviewed"
   description = "Lambda functions running on x86_64 architecture may incur higher costs and lower performance compared to those using Graviton (arm64) processors. Review and migrate eligible functions to Graviton to benefit from improved performance and reduced costs, as recommended by AWS best practices."
   severity    = "low"
 
@@ -169,8 +169,8 @@ control "lambda_function_with_graviton" {
         else 'alarm'
       end as status,
       case
-        when architecture = 'arm64' then title || ' is using Graviton processor.'
-        else title || ' is not using Graviton processor.'
+        when architecture = 'arm64' then title || ' is using graviton processor.'
+        else title || ' is not using graviton processor.'
       end as reason
       ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}

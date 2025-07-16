@@ -25,7 +25,7 @@ benchmark "secretsmanager" {
 }
 
 control "secretsmanager_secret_unused" {
-  title       = "Unused Secrets Manager secrets should be deleted"
+  title       = "Unused Secrets Manager secrets should be removed"
   description = "Secrets stored in AWS Secrets Manager that have not been accessed for an extended period may be obsolete or no longer required. Retaining unused secrets increases costs and the risk of credential sprawl. Review and remove secrets that have not been accessed within the defined threshold to optimize security and reduce unnecessary expenses."
   severity    = "low"
 

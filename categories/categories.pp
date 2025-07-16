@@ -5,7 +5,7 @@ benchmark "capacity_planning" {
   children = [
     control.dynamodb_table_autoscaling_disabled,
     control.ebs_volume_low_iops,
-    control.ec2_instance_running_max_age,
+    control.ec2_instance_max_age,
     control.ec2_reserved_instance_lease_expiration_days,
     control.ecs_service_autoscaling_disabled,
     control.elasticache_cluster_max_age,

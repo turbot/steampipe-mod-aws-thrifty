@@ -50,8 +50,8 @@ control "ecs_cluster_container_instance_without_graviton" {
       end as status,
       case
         when i.platform = 'windows' then i.title || ' is windows type machine.'
-        when i.architecture = 'arm64' then i.title || ' is using Graviton processor.'
-        else i.title || ' is not using Graviton processor.'
+        when i.architecture = 'arm64' then i.title || ' is using graviton processor.'
+        else i.title || ' is not using graviton processor.'
       end as reason
       ${replace(local.tag_dimensions_qualifier_sql, "__QUALIFIER__", "c.")}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "c.")}

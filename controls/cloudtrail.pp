@@ -63,7 +63,7 @@ control "cloudtrail_trail_global_multiple" {
 }
 
 control "cloudtrail_trail_regional_multiple" {
-  title       = "ultiple regional CloudTrail trails should not exist"
+  title       = "Multiple regional CloudTrail trails should not exist"
   description = "AWS best practices recommend having only one regional CloudTrail trail per region. Additional regional trails can increase costs and may result in redundant or conflicting logging configurations. Ensure that only a single regional trail is enabled in each region unless there is a specific compliance or operational requirement for more."
   severity    = "low"
 

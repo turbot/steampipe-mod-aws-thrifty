@@ -385,7 +385,7 @@ control "rds_instance_low_cpu_utilization" {
 }
 
 control "rds_instance_without_graviton" {
-  title       = "RDS DB instances not using Graviton processor should be reviewed"
+  title       = "RDS DB instances not using graviton processor should be reviewed"
   description = "EC2 instances running on x86_64 architecture may incur higher costs compared to Graviton (arm64) instances. Review and migrate eligible workloads to Graviton-based instances to benefit from improved performance and reduced costs."
   severity    = "low"
 
@@ -401,8 +401,8 @@ control "rds_instance_without_graviton" {
         else 'alarm'
       end as status,
       case
-        when class like 'db.%g%.%' then title || ' is using Graviton processor.'
-        else title || ' is not using Graviton processor.'
+        when class like 'db.%g%.%' then title || ' is using graviton processor.'
+        else title || ' is not using graviton processor.'
       end as reason
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
@@ -447,7 +447,7 @@ control "rds_instance_unsupported_engine_version" {
 }
 
 control "rds_db_snapshot_unused" {
-  title       = "RDS snapshots without source DB instances should be reviewed"
+  title       = "RDS snapshots without source DB instances should be removed"
   description = "RDS snapshots whose source DB instances no longer exist may be obsolete and can incur unnecessary storage costs. Regularly review and delete unused snapshots to optimize storage usage and reduce costs."
   severity    = "low"
 
