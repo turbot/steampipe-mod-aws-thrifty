@@ -1,8 +1,9 @@
-benchmark "foundational_services" {
-  title         = "Foundational Services"
+benchmark "all_controls" {
+  title         = "All Controls"
   description   = "AWS services."
   //documentation = file("./thrifty/docs/foundational_services.md")
   children = [
+    benchmark.apigateway,
     benchmark.cloudfront,
     benchmark.cloudtrail,
     benchmark.cloudwatch,
@@ -11,6 +12,8 @@ benchmark "foundational_services" {
     benchmark.ebs,
     benchmark.ec2,
     benchmark.ecs,
+    benchmark.ecr,
+    benchmark.eks,
     benchmark.elasticache,
     benchmark.emr,
     benchmark.lambda,

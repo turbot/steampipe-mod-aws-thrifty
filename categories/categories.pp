@@ -24,7 +24,7 @@ benchmark "capacity_planning" {
 benchmark "cost_variance" {
   title         = "Cost Variance"
   description   = "Thrifty developers keep an eye on the service usage and the accompanied cost variance over a period of time. They pay close attention to the cost spikes and check if per-service costs have changed more than allowed between this month and last month. By asking the right questions one can often justify the cost or prompt review and optimization."
- // documentation = file("./thrifty/docs/cost_variance.md")
+  //documentation = file("./thrifty/docs/cost_variance.md")
   children = [
     control.cost_explorer_full_month_cost_changes
   ]
@@ -37,7 +37,7 @@ benchmark "cost_variance" {
 benchmark "generation_gaps" {
   title         = "Generation Gaps"
   description   = "Thrifty developers prefer new generation of cloud resources to deliver better performance and capacity at a lower unit price. For instance by simply upgrading from `gp2` EBS volumes to `gp3` EBS volumes you can save up to 20% on your bills. The same theme applies to EC2, RDS, and EMR instance types: older instance types should be replaced by latest instance types for better hardware performance. In the case of RDS instances, for example, switching from the M3 generation to M5 can save over 7% on your RDS bill. Upgrading to the latest generation is often a quick configuration change, with little downtime impact, that yields a nice cost-saving benefit."
- // documentation = file("./thrifty/docs/generation_gaps.md")
+  //documentation = file("./thrifty/docs/generation_gaps.md")
   children = [
     control.ebs_volume_using_gp2,
     control.ebs_volume_using_io1,
@@ -61,7 +61,7 @@ benchmark "generation_gaps" {
 benchmark "overused" {
   title         = "Overused Resources"
   description   = "Thrifty developers check overused AWS resources. AWS resources can be overused in a few different ways. When you have long-running resources, consider if they can be stopped intermittently. In non-production environments, for example, it can make sense to spin up resources when needed, or only during working hours."
-//  documentation = file("./thrifty/docs/overused.md")
+  //documentation = file("./thrifty/docs/overused.md")
   children = [
     control.cloudfront_distribution_pricing_class,
     control.cloudtrail_trail_global_multiple,
@@ -81,7 +81,7 @@ benchmark "overused" {
 benchmark "stale_data" {
   title         = "Stale Data"
   description   = "Thrifty developers need to keep an eye on data which is no longer required. It's great to be able to programmatically create backups and snapshots, but these too can become a source of unchecked cost if not watched closely. It's easy to delete an individual snapshot with a few clicks, but challenging to manage snapshots programmatically across multiple accounts. Over time, dozens of snapshots can turn into hundreds or thousands."
-//  documentation = file("./thrifty/docs/stale_data.md")
+  //documentation = file("./thrifty/docs/stale_data.md")
   children = [
     control.cloudwatch_log_group_retention_disabled,
     control.dynamodb_table_stale_data,
@@ -97,7 +97,7 @@ benchmark "stale_data" {
 benchmark "underused" {
   title         = "Underused Resources"
   description   = "Thrifty developers check underused AWS resources. Large EC2 (or RDS, Redshift, ECS, etc) instances may have been created and sized to handle peak utilization but never reviewed later to see how well the storage, compute, and/or memory is being utilized. Consider rightsizing the instance type if an application is overprovisioned in any of these ways. AWS has different pricing for resources that are compute-optimized or memory-optimized. Analyze your inventory and utilization metrics to find underused resources, and prune them as warranted."
-//  documentation = file("./thrifty/docs/underused.md")
+  // documentation = file("./thrifty/docs/underused.md")
   children = [
     control.ebs_volume_low_usage,
     control.ec2_instance_low_utilization,
