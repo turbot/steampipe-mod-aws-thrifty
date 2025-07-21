@@ -23,7 +23,7 @@ control "eks_node_group_without_graviton" {
   severity    = "low"
 
   tags = merge(local.eks_common_tags, {
-    class = "generation_gaps"
+    class = "outdated_resources"
   })
 
   sql = <<-EOQ

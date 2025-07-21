@@ -11,7 +11,7 @@ locals {
 }
 
 benchmark "cloudwatch" {
-  title         = "CloudWatch Cost Checks"
+  title         = "CloudWatch Checks"
   description   = "Thrifty developers actively manage the retention of their Cloudtrail logs."
   documentation = file("./controls/docs/cloudwatch.md")
   children = [

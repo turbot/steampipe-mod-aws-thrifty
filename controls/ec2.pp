@@ -35,7 +35,7 @@ locals {
 }
 
 benchmark "ec2" {
-  title         = "EC2 Cost Checks"
+  title         = "EC2 Checks"
   description   = "Thrifty developers eliminate unused and under-utilized EC2 instances."
   documentation = file("./controls/docs/ec2.md")
   children = [
@@ -66,27 +66,7 @@ control "ec2_application_lb_unused" {
   })
 
   sql = <<-EOQ
-    with alb_regions as (
-      select
-        distinct a.region
-      from
-        aws_ec2_application_load_balancer as a
-    ),application_load_balancer_pricing as (
-      select
-        r.region,
-        p.price_per_unit::numeric as alb_price_hrs,
-        p.currency as currency
-      from
-        aws_pricing_product as p
-        join alb_regions as r on
-          p.service_code = 'AmazonEC2'
-          and p.filters = '{
-            "operation": "LoadBalancing:Application",
-            "usagetype": "LoadBalancerUsage"
-          }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-      group by r.region, p.price_per_unit, p.currency
-    ), target_resource as (
+     with target_resource as (
       select
         load_balancer_arn,
         target_health_descriptions,
@@ -94,41 +74,22 @@ control "ec2_application_lb_unused" {
       from
         aws_ec2_target_group,
         jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
-    ), application_load_balancer_pricing_monthly as (
-      select
-        case
-          when b.load_balancer_arn is null then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-         end as net_savings,
-        currency,
-        a.arn as alb,
-        b.load_balancer_arn as target_lb,
-        b.target_type as target_type,
-        a.tags as tags,
-        a.account_id,
-        a.region,
-        a._ctx,
-        a.title as title
-      from
-        aws_ec2_application_load_balancer a
-        left join target_resource b on a.arn = b.load_balancer_arn,
-        application_load_balancer_pricing
     )
     select
-      distinct alb as resource,
+      a.arn as resource,
       case
-        when target_lb is null then 'alarm'
+        when b.load_balancer_arn is null then 'alarm'
         else 'ok'
       end as status,
       case
-        when target_lb is null then title || ' has no target registered.'
-        else title || ' has registered target of type ' || target_type || '.'
+        when b.load_balancer_arn is null then a.title || ' has no target registered.'
+        else a.title || ' has registered target of type ' || b.target_type || '.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
-      application_load_balancer_pricing_monthly
+      aws_ec2_application_load_balancer a
+      left join target_resource b on a.arn = b.load_balancer_arn;
   EOQ
 }
 
@@ -141,44 +102,6 @@ control "ec2_classic_lb_unused" {
   })
 
   sql = <<-EOQ
-    with clb_regions as (
-      select
-        distinct region
-      from
-        aws_ec2_classic_load_balancer
-    ),clb_pricing as (
-      select
-        r.region,
-        p.currency,
-        p.price_per_unit::numeric as clb_price_hrs
-      from
-        aws_pricing_product as p
-        join clb_regions as r on
-          p.service_code = 'AWSELB'
-          and p.filters = '{
-            "groupDescription" : "LoadBalancer hourly usage by Classic Load Balancer",
-            "group": "ELB:Balancing"
-          }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-      group by r.region, p.price_per_unit, p.currency
-    ), clb_pricing_daily as (
-      select
-        case
-          when jsonb_array_length(instances) > 0 then ''
-          else (30*24*clb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-        end as net_savings,
-        currency,
-        arn,
-        tags,
-        account_id,
-        a.region,
-        instances,
-        _ctx,
-        title
-      from
-        aws_ec2_classic_load_balancer as a,
-        clb_pricing
-    )
     select
       arn as resource,
       case
@@ -187,13 +110,12 @@ control "ec2_classic_lb_unused" {
       end as status,
       case
         when jsonb_array_length(instances) > 0 then title || ' has registered instances.'
-        else title || ' has no registered instance.'
+        else title || ' has no instances registered.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      clb_pricing_daily;
+      aws_ec2_classic_load_balancer;
   EOQ
 }
 
@@ -206,28 +128,7 @@ control "ec2_gateway_lb_unused" {
   })
 
   sql = <<-EOQ
-    with glb_regions as (
-      select
-        distinct region
-      from
-        aws_ec2_gateway_load_balancer
-    ),glb_pricing as (
-      select
-        r.region,
-        p.currency,
-        p.price_per_unit::numeric as clb_price_hrs
-      from
-        aws_pricing_product as p
-        join glb_regions as r on
-          p.service_code = 'AWSELB'
-          and p.filters = '{
-            "operation" : "LoadBalancing:Gateway",
-            "group": "ELB:Balancing",
-            "groupDescription" : "LoadBalancer hourly usage by Gateway Load Balancer"
-          }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-      group by r.region, p.price_per_unit, p.currency
-    ), target_resource as (
+    with target_resource as (
       select
         load_balancer_arn,
         target_health_descriptions,
@@ -235,44 +136,23 @@ control "ec2_gateway_lb_unused" {
       from
         aws_ec2_target_group,
         jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
-    ), glb_pricing_monthly as (
-      select
-        case
-          when jsonb_array_length(b.target_health_descriptions) = 0 then (30*24*clb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        currency,
-        g.arn as arn,
-        b.load_balancer_arn as target_lb,
-        b.target_health_descriptions as target_health_descriptions,
-        b.target_type as target_type,
-        g.tags as tags,
-        g.account_id,
-        g.region,
-        g._ctx,
-        g.title as title
-      from
-        aws_ec2_gateway_load_balancer as g
-        left join target_resource b on g.arn = b.load_balancer_arn,
-        glb_pricing
     )
     select
-      arn as resource,
+      a.arn as resource,
       case
-        when jsonb_array_length(target_health_descriptions) = 0 then 'alarm'
+        when jsonb_array_length(b.target_health_descriptions) = 0 then 'alarm'
         else 'ok'
       end as status,
       case
-        when jsonb_array_length(target_health_descriptions) = 0 then title || ' has no target registered.'
-        else title || ' has registered target.'
+        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered.'
+        else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
-      glb_pricing_monthly;
+      aws_ec2_gateway_load_balancer a
+      left join target_resource b on a.arn = b.load_balancer_arn;
   EOQ
-
 }
 
 control "ec2_eips_unattached" {
@@ -285,50 +165,8 @@ control "ec2_eips_unattached" {
   })
 
   sql = <<-EOQ
-    with eip_regions as (
-      select
-        distinct region
-      from
-        aws_vpc_eip
-    ),eip_pricing as (
-      select
-        r.region,
-        p.currency as currency,
-        p.price_per_unit::numeric as eip_price_hrs
-      from
-        aws_pricing_product as p
-        join eip_regions as r on
-          p.service_code = 'AmazonEC2'
-          and p.filters = '{
-            "group": "ElasticIP:Address",
-            "usagetype": "ElasticIP:IdleAddress"
-          }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-        where
-        p.begin_range = '1'
-      group by r.region, p.price_per_unit, p.currency
-    ), eip_pricing_monthly as (
-      select
-        case
-          when association_id is null then (30*24*eip_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        currency,
-        e.arn,
-        e.tags,
-        e.account_id,
-        e.region,
-        e.association_id,
-        e.title,
-        e.private_ip_address,
-        e.public_ip,
-        e._ctx
-      from
-        aws_vpc_eip as e,
-        eip_pricing
-    )
     select
-      arn as resource,
+      'arn:' || partition || ':ec2:' || region || ':' || account_id || ':eip/' || allocation_id as resource,
       case
         when association_id is null then 'alarm'
         else 'ok'
@@ -337,10 +175,9 @@ control "ec2_eips_unattached" {
         when association_id is null then public_ip || ' has no association.'
         else public_ip || ' associated with ' || private_ip_address || '.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.common_dimensions_sql}
     from
-      eip_pricing_monthly
+      aws_vpc_eip;
   EOQ
 }
 
@@ -353,27 +190,7 @@ control "ec2_network_lb_unused" {
   })
 
   sql = <<-EOQ
-    with network_regions as (
-      select
-        distinct region
-      from
-        aws_ec2_network_load_balancer
-    ),network_load_balancer_pricing as (
-      select
-        r.region,
-        p.price_per_unit::numeric as alb_price_hrs,
-         p.currency as currency
-      from
-        aws_pricing_product as p
-        join network_regions as r on
-          p.service_code = 'AmazonEC2'
-          and p.filters = '{
-            "operation": "LoadBalancing:Network",
-            "usagetype": "LoadBalancerUsage"
-          }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-      group by r.region, p.price_per_unit, p.currency
-    ),target_resource as (
+    with target_resource as (
       select
         load_balancer_arn,
         target_health_descriptions,
@@ -381,42 +198,22 @@ control "ec2_network_lb_unused" {
       from
         aws_ec2_target_group,
         jsonb_array_elements_text(load_balancer_arns) as load_balancer_arn
-    ),network_load_balancer_pricing_monthly as (
-      select
-        case
-          when jsonb_array_length(b.target_health_descriptions) = 0 then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        currency,
-        a.arn as arn,
-        b.load_balancer_arn as target_lb,
-        b.target_health_descriptions as target_health_descriptions,
-        b.target_type as target_type,
-        a.tags as tags,
-        a.account_id,
-        a.region,
-        a._ctx,
-        a.title as title
-      from
-        aws_ec2_network_load_balancer a
-        left join target_resource b on a.arn = b.load_balancer_arn,
-        network_load_balancer_pricing
     )
     select
-      arn as resource,
+      a.arn as resource,
       case
-        when jsonb_array_length(target_health_descriptions) = 0 then 'alarm'
+        when jsonb_array_length(b.target_health_descriptions) = 0 then 'alarm'
         else 'ok'
       end as status,
       case
-        when jsonb_array_length(target_health_descriptions) = 0 then title || ' has no target registered.'
-        else title || ' has registered target.'
+        when jsonb_array_length(b.target_health_descriptions) = 0 then a.title || ' has no target registered.'
+        else a.title || ' has registered target of type' || ' ' || b.target_type || '.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "a.")}
     from
-      network_load_balancer_pricing_monthly
+      aws_ec2_network_load_balancer a
+      left join target_resource b on a.arn = b.load_balancer_arn;
   EOQ
 }
 
@@ -592,7 +389,7 @@ control "ec2_instance_without_graviton" {
   severity    = "low"
 
   tags = merge(local.ec2_common_tags, {
-    class = "generation_gaps"
+    class = "outdated_resources"
   })
 
   sql = <<-EOQ

@@ -41,12 +41,13 @@ locals {
 }
 
 benchmark "ebs" {
-  title         = "EBS Cost Checks"
+  title         = "EBS Checks"
   description   = "Thrifty developers keep a careful eye for unused and under-utilized EBS volumes."
   documentation = file("./controls/docs/ebs.md")
   children = [
     control.ebs_snapshot_max_age,
     control.ebs_volume_high_iops,
+    control.ebs_volume_io1_io2_migrate_to_gp3,
     control.ebs_volume_large,
     control.ebs_volume_low_iops,
     control.ebs_volume_low_usage,
@@ -76,22 +77,6 @@ control "ebs_snapshot_max_age" {
   })
 
   sql = <<-EOQ
-    with snapshot_pricing as (
-      select
-        arn,
-        start_time,
-        snapshot_id,
-        region,
-        account_id,
-        tags,
-        _ctx,
-        case
-          when start_time > current_timestamp - ($1::int || ' days')::interval then ''
-          else volume_size*0.05 || ' USD' || '/month'
-        end as net_savings
-      from
-        aws_ebs_snapshot
-    )
     select
       arn as resource,
       case
@@ -99,11 +84,10 @@ control "ebs_snapshot_max_age" {
         else 'alarm'
       end as status,
       snapshot_id || ' created at ' || start_time || '.' as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      snapshot_pricing;
+      aws_ebs_snapshot;
   EOQ
 }
 
@@ -122,46 +106,6 @@ control "ebs_volume_high_iops" {
   })
 
   sql = <<-EOQ
-    with volume_list as (
-      select
-        arn,
-        volume_id,
-        volume_type,
-        size,
-        iops,
-        region,
-        account_id
-      from
-        aws_ebs_volume
-    ),
-    volume_pricing as (
-      select
-        v.arn,
-        v.volume_id,
-        v.volume_type,
-        v.size,
-        v.iops,
-        v.region,
-        v.account_id,
-        case
-          when v.volume_type not in ('io1', 'io2') then ''
-          when v.iops >= $1 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        p.currency
-      from
-        volume_list as v
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonEC2'
-          and p.filters in (
-            '{"volumeType": "General Purpose"}' :: jsonb,
-            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
-            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
-            '{"volumeType": "Cold HDD"}' :: jsonb
-          )
-          and p.attributes ->> 'regionCode' = v.region
-          and p.attributes ->> 'volumeApiName' = v.volume_type
-    )
     select
       arn as resource,
       case
@@ -195,44 +139,6 @@ control "ebs_volume_large" {
   })
 
   sql = <<-EOQ
-    with volume_list as (
-      select
-        arn,
-        volume_id,
-        volume_type,
-        size,
-        attachments,
-        region,
-        account_id,
-        _ctx
-      from
-        aws_ebs_volume
-    ),
-    volume_pricing as (
-      select
-        v.arn,
-        v.volume_id,
-        v.size,
-        v.region,
-        v.account_id,
-        v._ctx,
-        case
-          when v.size <= $1 then ''
-          else ((p.price_per_unit::numeric * v.size) - (p.price_per_unit::numeric * $1)) ::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
-        p.currency
-      from
-        volume_list as v
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonEC2'
-          and p.filters in (
-            '{"volumeType": "General Purpose"}' :: jsonb,
-            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
-            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
-            '{"volumeType": "Cold HDD"}' :: jsonb
-          )
-          and p.attributes ->> 'regionCode' = v.region
-          and p.attributes ->> 'volumeApiName' = v.volume_type
-    )
     select
       arn as resource,
       case
@@ -240,11 +146,10 @@ control "ebs_volume_large" {
         else 'alarm'
       end as status,
       volume_id || ' is ' || size || 'GB.' as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      volume_pricing;
+      aws_ebs_volume;
   EOQ
 }
 
@@ -257,66 +162,6 @@ control "ebs_volume_low_iops" {
   })
 
   sql = <<-EOQ
-    with volume_list as (
-      select
-        arn,
-        volume_id,
-        volume_type,
-        size,
-        iops,
-        region,
-        account_id,
-        _ctx
-      from
-        aws_ebs_volume
-    ),gp2_volume_pricing as (
-      select
-        v.arn,
-        v.volume_id,
-        v.volume_type,
-        v.size,
-        v.iops,
-        v.region,
-        v.account_id,
-        v._ctx,
-        (price_per_unit::numeric * v.size)::numeric(10,2) as gp2_price
-      from
-        volume_list as v
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonEC2'
-          and p.filters in (
-            '{"volumeApiName": "gp2"}' :: jsonb
-          )
-          and p.attributes ->> 'regionCode' = v.region
-    ),volume_pricing as (
-      select
-        v.arn,
-        v.volume_id,
-        v.volume_type,
-        v.size,
-        v.iops,
-        v.region,
-        v._ctx,
-        v.account_id,
-        case
-          when v.volume_type not in ('io1', 'io2') then ''
-          when v.iops <= 3000 then ((p.price_per_unit::numeric * v.size)::numeric(10,2) - gp2_price) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        p.currency
-      from
-        gp2_volume_pricing as v
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonEC2'
-          and p.filters in (
-            '{"volumeType": "General Purpose"}' :: jsonb,
-            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
-            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
-            '{"volumeType": "Cold HDD"}' :: jsonb
-          )
-          and p.attributes ->> 'regionCode' = v.region
-          and p.attributes ->> 'volumeApiName' = v.volume_type
-    )
     select
       arn as resource,
       case
@@ -329,11 +174,10 @@ control "ebs_volume_low_iops" {
         when iops <= 3000 then volume_id || ' only has ' || iops || ' iops.'
         else volume_id || ' has ' || iops || ' iops.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      volume_pricing;
+      aws_ebs_volume;
   EOQ
 }
 
@@ -420,19 +264,7 @@ control "ebs_volume_on_stopped_instances" {
   })
 
   sql = <<-EOQ
-    with volume_list as (
-      select
-        arn,
-        _ctx,
-        size,
-        volume_id,
-        volume_type,
-        attachments,
-        region,
-        account_id
-      from
-        aws_ebs_volume
-    ), vols_and_instances as (
+    with vols_and_instances as (
       select
         v.arn,
         v._ctx,
@@ -442,6 +274,7 @@ control "ebs_volume_on_stopped_instances" {
         v.region,
         v.volume_type,
         v.account_id,
+        v.tags,
         sum(
           case
             when i.instance_state = 'stopped' then 0
@@ -449,7 +282,7 @@ control "ebs_volume_on_stopped_instances" {
           end
         ) as running_instances
       from
-        volume_list as v
+        aws_ebs_volume as v
         left join jsonb_array_elements(v.attachments) as va on true
         left join aws_ec2_instance as i on va ->> 'InstanceId' = i.instance_id
       group by
@@ -461,33 +294,8 @@ control "ebs_volume_on_stopped_instances" {
         v.region,
         v.account_id,
         v.volume_type,
-        v.size
-    ), volume_pricing as (
-      select
-        v.arn,
-        v.volume_id,
         v.size,
-        v._ctx,
-        v.region,
-        v.volume_type,
-        v.running_instances,
-        v.instance_id,
-        v.account_id,
-        case when v.running_instances = 0 then (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month'
-        else '' end as net_savings,
-        p.currency
-      from
-        vols_and_instances as v
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonEC2'
-          and p.filters in (
-            '{"volumeType": "General Purpose"}' :: jsonb,
-            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
-            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
-            '{"volumeType": "Cold HDD"}' :: jsonb
-          )
-          and p.attributes ->> 'regionCode' = v.region
-          and p.attributes ->> 'volumeApiName' = v.volume_type
+        v.tags
     )
     select
       arn as resource,
@@ -496,9 +304,10 @@ control "ebs_volume_on_stopped_instances" {
         else 'alarm'
       end as status,
       volume_id || ' is attached to ' || running_instances || ' running instances.' as reason
+      ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      volume_pricing;
+      vols_and_instances;
   EOQ
 }
 
@@ -510,122 +319,6 @@ control "ebs_volume_unattached" {
     class = "unused"
   })
   sql = <<-EOQ
-    with volume_list as (
-      select
-        arn,
-        volume_id,
-        volume_type,
-        size,
-        attachments,
-        region,
-        account_id,
-        _ctx
-      from
-        aws_ebs_volume
-    ),
-    volume_pricing as (
-      select
-        v.arn,
-        v.volume_id,
-        v.size,
-        v.region,
-        v.account_id,
-        v.attachments,
-        v._ctx,
-        case when jsonb_array_length(attachments) > 0 then '' else
-        (p.price_per_unit::numeric * v.size)::numeric(10,2) || ' ' || currency || '/month' end as net_savings,
-        p.currency
-      from
-        volume_list as v
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonEC2'
-          and p.filters in (
-            '{"volumeType": "General Purpose"}' :: jsonb,
-            '{"volumeType": "Provisioned IOPS"}' :: jsonb,
-            '{"volumeType": "Throughput Optimized HDD"}' :: jsonb,
-            '{"volumeType": "Cold HDD"}' :: jsonb
-          )
-          and p.attributes ->> 'regionCode' = v.region
-          and p.attributes ->> 'volumeApiName' = v.volume_type
-    )
-    select
-      arn as resource,
-      case
-        when jsonb_array_length(attachments) > 0 then 'ok'
-        else 'alarm'
-      end as status,
-      case
-        when jsonb_array_length(attachments) > 0 then volume_id || ' has attachments.'
-        else volume_id || ' has no attachments.'
-      end as reason
-      ${local.common_dimensions_savings_sql}
-      ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
-    from
-      volume_pricing;
-  EOQ
-}
-
-control "ebs_volume_using_gp2" {
-  title       = "EBS volumes using gp2 should be migrated to gp3"
-  description = "GP3 volumes offer better performance and lower cost compared to GP2. Review and migrate EBS volumes using GP2 to GP3 to optimize storage performance and reduce expenses."
-  severity    = "low"
-  tags = merge(local.ebs_common_tags, {
-    class = "generation_gaps"
-  })
-
-  sql = <<-EOQ
-    with volume_list as (
-      select
-        arn,
-        volume_id,
-        volume_type,
-        size,
-        region,
-        account_id,
-        _ctx
-      from
-        aws_ebs_volume
-    ),
-    volume_regions as (
-      select
-        distinct region
-      from
-        aws_ebs_volume
-    ),
-    volume_pricing as (
-      select
-        r.region,
-        p.currency,
-        max(case when p.attributes ->> 'volumeApiName' = 'gp2' then  p.price_per_unit else null end) as gp2_price,
-        max(case when p.attributes ->> 'volumeApiName' = 'gp3' then  p.price_per_unit else null end) as gp3_price
-      from
-        aws_pricing_product as p
-        join volume_regions as r on
-          p.service_code = 'AmazonEC2'
-          and p.filters = '{
-            "volumeType": "General Purpose"
-          }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-      group by r.region, p.currency
-    ),
-    calculate_savings_per_volume as (
-      select
-        v.arn,
-        v.volume_id,
-        v.volume_type,
-        v.region,
-        v.account_id,
-        v._ctx,
-        case
-          when v.volume_type = 'gp2' then ((p.gp2_price::float - p.gp3_price::float) * v.size)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        p.currency
-      from
-        volume_list as v
-        join volume_pricing as p on v.region = p.region
-    )
     select
       arn as resource,
       case
@@ -634,11 +327,10 @@ control "ebs_volume_using_gp2" {
         else 'skip'
       end as status,
       volume_id || ' type is ' || volume_type as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      calculate_savings_per_volume
+      aws_ebs_volume;
   EOQ
 }
 
@@ -647,7 +339,7 @@ control "ebs_volume_using_io1" {
   description = "IO2 volumes provide higher durability and reliability at the same cost as IO1. Review and migrate EBS volumes using IO1 to IO2 to improve data durability and optimize costs."
   severity    = "low"
   tags = merge(local.ebs_common_tags, {
-    class = "generation_gaps"
+    class = "outdated_resources"
   })
 
   param "ebs_volume_io1_ops" {
@@ -656,78 +348,6 @@ control "ebs_volume_using_io1" {
   }
 
   sql = <<-EOQ
-    with volume_list as (
-      select
-        arn,
-        volume_id,
-        volume_type,
-        iops,
-        size,
-        region,
-        account_id,
-        _ctx
-      from
-        aws_ebs_volume
-    ), volume_regions as (
-      select
-        distinct region
-      from
-        aws_ebs_volume
-    ), io1_volume_pricing as (
-      select
-        r.region,
-        p.attributes,
-        p.currency,
-        p.description,
-        (p.price_per_unit)::numeric
-      from
-        aws_pricing_product as p
-        join volume_regions as r on
-        p.service_code = 'AmazonEC2'
-        and p.filters = '{
-            "volumeApiName": "io1"
-          }' :: jsonb
-        and p.attributes ->> 'regionCode' = r.region
-        and p.unit = 'IOPS-Mo'
-      group by r.region, p.currency, p.attributes, p.price_per_unit, p.description
-    ), io2_volume_pricing as (
-      select
-        r.region,
-        p.attributes,
-        p.currency,
-        p.description,
-        (p.price_per_unit)::numeric
-      from
-        aws_pricing_product as p
-        join volume_regions as r on
-        p.service_code = 'AmazonEC2'
-        and p.filters in (
-        '{"volumeApiName": "io2"}' :: jsonb,
-        '{"group": "EBS IOPS Tier 2"}' :: jsonb
-        )
-        and p.attributes ->> 'regionCode' = r.region
-        and p.attributes ->> 'group' = 'EBS IOPS Tier 2'
-        and p.unit = 'IOPS-Mo'
-      group by r.region, p.currency, p.attributes, p.price_per_unit, p.description
-    ), calculate_cost_per_month as (
-      select
-        v.arn,
-        v.volume_id,
-        v.volume_type,
-        v.region,
-        v.iops,
-        v.account_id,
-        v._ctx,
-        case
-          when v.volume_type = 'io1' and v.iops > $1 then ((a.price_per_unit * v.iops) -  (b.price_per_unit * v.iops))::numeric(10,2) || ' ' || a.currency || '/month'
-          else ''
-        end as net_savings,
-        a.currency
-      from
-        volume_list as v
-        join io1_volume_pricing as a on v.region = a.region
-        join io2_volume_pricing as b on v.region = b.region
-    )
     select
       arn as resource,
       case
@@ -739,10 +359,55 @@ control "ebs_volume_using_io1" {
         when volume_type not in ('io1', 'io2') then volume_id || ' type is ' || volume_type || '.'
         else volume_id || ' type is ' || volume_type || ' using ' || iops || ' iops.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      calculate_cost_per_month;
+      aws_ebs_volume;
+  EOQ
+}
+
+control "ebs_volume_using_gp2" {
+  title       = "EBS volumes using gp2 should be migrated to gp3"
+  description = "GP3 volumes offer better performance and lower cost compared to GP2. Review and migrate EBS volumes using GP2 to GP3 to optimize storage performance and reduce expenses."
+  severity    = "low"
+  tags = merge(local.ebs_common_tags, {
+    class = "outdated_resources"
+  })
+
+  sql = <<-EOQ
+    select
+      arn as resource,
+      case
+        when volume_type = 'gp2' then 'alarm'
+        when volume_type = 'gp3' then 'ok'
+        else 'skip'
+      end as status,
+      volume_id || ' type is ' || volume_type || '.' as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_ebs_volume;
+  EOQ
+}
+
+control "ebs_volume_io1_io2_migrate_to_gp3" {
+  title       = "EBS volumes using io1/io2 should be migrated to GP3 if IOPS ≤ 16,000"
+  description = "EBS volumes using io1 or io2 storage types with IOPS ≤ 16,000 should be migrated to GP3 for better cost efficiency. GP3 provides up to 16,000 IOPS with improved price-performance ratio compared to io1/io2 volumes."
+
+  sql = <<EOQ
+    select
+      volume_id as resource,
+      case
+        when volume_type in ('io1', 'io2') and iops <= 16000 then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when  volume_type in ('io1', 'io2') and iops <= 16000 then title || ' (' || volume_type || ') can be migrated to GP3. Current IOPS: ' || iops || '.'
+        else title || ' (' || volume_type || ') should remain as current type. Current IOPS: ' || iops || '. '
+      end as reason
+      ${local.tag_dimensions_sql}
+      ${local.common_dimensions_sql}
+    from
+      aws_ebs_volume;
   EOQ
 }

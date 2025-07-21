@@ -17,7 +17,7 @@ locals {
 }
 
 benchmark "ecs" {
-  title         = "ECS Cost Checks"
+  title         = "ECS Checks"
   description   = "Thrifty developers checks under-utilized ECS clusters and ECS service without autoscaling configuration."
   documentation = file("./controls/docs/ecs.md")
   children = [
@@ -37,7 +37,7 @@ control "ecs_cluster_container_instance_without_graviton" {
   severity    = "low"
 
   tags = merge(local.ecs_common_tags, {
-    class = "generation_gaps"
+    class = "outdated_resources"
   })
 
   sql = <<-EOQ

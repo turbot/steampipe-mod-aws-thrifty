@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "lambda" {
-  title         = "Lambda Cost Checks"
+  title         = "Lambda Checks"
   description   = "Thrifty developers ensure their Lambda functions are optimized."
   documentation = file("./controls/docs/lambda.md")
 
@@ -108,60 +108,6 @@ control "lambda_function_with_graviton" {
   })
 
   sql = <<-EOQ
-    with lambda_function_list as (
-      select
-        title,
-        arn,
-        architecture,
-        memory_size,
-        region,
-        account_id,
-        _ctx
-      from
-        aws_lambda_function,
-        jsonb_array_elements_text(architectures) as architecture
-    ),
-    lambda_function_regions as (
-      select
-        distinct region
-      from
-        aws_lambda_function
-    ),
-    lambda_pricing as (
-      select
-        r.region,
-        p.currency,
-        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration-ARM' and p.begin_range = '0' then (p.price_per_unit)::numeric else null end) as arm_tier_1_price,
-        max(case when p.attributes ->> 'group' = 'AWS-Lambda-Duration' and p.begin_range = '0' then  (p.price_per_unit)::numeric else null end) as x86_64_price
-      from
-        aws_pricing_product as p
-        join lambda_function_regions as r on
-          p.service_code = 'AWSLambda'
-          and p.filters in (
-            '{"group": "AWS-Lambda-Duration"}' :: jsonb,
-            '{"group": "AWS-Lambda-Duration-ARM"}' :: jsonb
-          )
-          and p.attributes ->> 'regionCode' = r.region
-          and p.begin_range = '0' -- calculating based on the Tier-1 price
-      group by r.region, p.currency
-    ) ,
-    calculate_savings_per_function as (
-      select
-        l.title,
-        l.arn,
-        l.architecture,
-        l.region,
-        l.account_id,
-        l._ctx,
-        case
-        when l.architecture = 'x86_64' then ((p.x86_64_price::float - p.arm_tier_1_price::float) * 3600 * (l.memory_size/1024.0) * 24 * 30)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        p.currency
-      from
-        lambda_function_list as l
-        join lambda_pricing as p on l.region = p.region
-    )
     select
       arn as resource,
       case
@@ -169,13 +115,13 @@ control "lambda_function_with_graviton" {
         else 'alarm'
       end as status,
       case
-        when architecture = 'arm64' then title || ' is using graviton processor.'
-        else title || ' is not using graviton processor.'
+        when architecture = 'arm64' then title || ' is using Graviton processor.'
+        else title || ' is not using Graviton processor.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      calculate_savings_per_function;
+      aws_lambda_function,
+      jsonb_array_elements_text(architectures) as architecture;
   EOQ
 }

@@ -11,7 +11,7 @@ locals {
 }
 
 benchmark "secretsmanager" {
-  title         = "Secrets Manager Cost Checks"
+  title         = "Secrets Manager Checks"
   description   = "Thrifty developers ensure their Secrets Manager secret is in use."
   documentation = file("./controls/docs/secretsmanager.md")
 
@@ -39,22 +39,6 @@ control "secretsmanager_secret_unused" {
   }
 
   sql = <<-EOQ
-    with secret_pricing as (
-      select
-        arn,
-        title,
-        last_accessed_date,
-        region,
-        account_id,
-        tags,
-        _ctx,
-        case
-          when date_part('day', now()-last_accessed_date) < $1 then ''
-          else '0.04 USD /month'
-        end as net_savings
-      from
-        aws_secretsmanager_secret
-    )
     select
       arn as resource,
       case
@@ -65,11 +49,10 @@ control "secretsmanager_secret_unused" {
         when last_accessed_date is null then title || ' is never used.'
         else title || ' is last used ' || age(current_date, last_accessed_date) || ' ago.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      secret_pricing;
+      aws_secretsmanager_secret;
   EOQ
 
 }

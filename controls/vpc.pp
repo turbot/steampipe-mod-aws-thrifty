@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "vpc" {
-  title         = "VPC Cost Checks"
+  title         = "VPC Checks"
   description   = "Thrifty developers ensure that they delete unused network resources."
   documentation = file("./controls/docs/vpc.md")
 
@@ -28,66 +28,24 @@ control "vpc_nat_gateway_unused" {
   })
 
   sql = <<-EOQ
-    with nat_gateway_regions as (
-      select
-        distinct region
-      from
-        aws_vpc_nat_gateway
-    ),
-    nat_gateway_pricing as (
-      select
-        r.region,
-        p.price_per_unit::numeric as alb_price_hrs,
-        p.currency
-      from
-        aws_pricing_product as p
-        join nat_gateway_regions as r on
-          p.service_code = 'AmazonEC2'
-          and p.filters = '{
-            "operation": "NatGateway",
-            "usagetype": "NatGateway-Hours"
-          }' :: jsonb
-          and p.attributes ->> 'regionCode' = r.region
-      group by r.region, p.price_per_unit, p.currency
-    ), nat_gateway_pricing_monthly as (
-      select
-        case
-          when nat.state = 'available' and i.subnet_id is null then (30*24*alb_price_hrs)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        instance_id,
-        currency,
-        i.subnet_id,
-        i.instance_state,
-        nat.arn,
-        nat.region,
-        nat._ctx,
-        nat.account_id,
-        nat.title,
-        nat.state
-      from
-        aws_vpc_nat_gateway as nat
-        left join aws_ec2_instance as i on nat.subnet_id = i.subnet_id,
-        nat_gateway_pricing
-    )
     select
-      arn as resource,
+      nat.arn as resource,
       case
-        when state <> 'available' then 'alarm'
-        when subnet_id is null then 'alarm'
+        when nat.state <> 'available' then 'alarm'
+        when nat.subnet_id is null then 'alarm'
         when instance_state <> 'running' then 'alarm'
         else 'ok'
       end as status,
       case
-        when state <> 'available' then title || ' in ' || state || ' state.'
-        when subnet_id is null then title || ' not in-use.'
-        when instance_state <> 'running' then title || ' associated with ' || instance_id || ', which is in ' ||  instance_state || ' state.'
-        else title || ' in-use.'
+        when nat.state <> 'available' then nat.title || ' in ' || nat.state || ' state.'
+        when nat.subnet_id is null then nat.title || ' not in-use.'
+        when instance_state <> 'running' then nat.title || ' associated with ' || i.instance_id || ', which is in ' ||  instance_state || ' state.'
+        else nat.title || ' in-use.'
       end as reason
-      ${local.common_dimensions_savings_sql}
-      ${local.tag_dimensions_sql}
-      ${local.common_dimensions_sql}
+      ${replace(local.tag_dimensions_qualifier_sql, "__QUALIFIER__", "nat.")}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "nat.")}
     from
-      nat_gateway_pricing_monthly
+      aws_vpc_nat_gateway as nat
+      left join aws_ec2_instance as i on nat.subnet_id = i.subnet_id;
   EOQ
 }

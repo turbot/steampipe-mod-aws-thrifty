@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "apigateway" {
-  title         = "API Gateway Cost Checks"
+  title         = "API Gateway Checks"
   description   = "Best practices for AWS API Gateway resources."
   documentation = file("./controls/docs/apigateway.md")
 

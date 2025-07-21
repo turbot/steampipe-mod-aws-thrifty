@@ -63,61 +63,6 @@ control "redshift_cluster_max_age" {
   })
 
   sql = <<-EOQ
-    with redshift_cluster_list as (
-      select
-        arn,
-        node_type,
-        region,
-        cluster_create_time,
-        account_id,
-        title,
-        _ctx
-      from
-        aws_redshift_cluster
-    ),redshift_reserved_pricing as (
-      select
-        r.arn,
-        r.node_type,
-        r.region,
-        r.cluster_create_time,
-        r.account_id,
-        r.title,
-        r._ctx,
-        ((p.price_per_unit::numeric)*24*30)::numeric(10,2) as redshift_reserved_pricing
-      from
-        redshift_cluster_list as r
-        left join aws_pricing_product as p on
-          p.service_code = 'AmazonRedshift'
-          and p.attributes ->> 'regionCode' = r.region
-          and p.attributes ->> 'instanceType' = r.node_type
-          and p.term = 'Reserved'
-          and p.unit = 'Hrs'
-          and p.lease_contract_length = '1yr'
-          and purchase_option = 'No Upfront'
-          and p.attributes ->> 'usagetype' like 'Node:%'
-    ), redshift_pricing as (
-      select
-        r.arn,
-        r.node_type,
-        r.region,
-        r.cluster_create_time,
-        r.account_id,
-        r.title,
-        r._ctx,
-        case
-          when date_part('day', now() - cluster_create_time) > $1 then (((p.price_per_unit::numeric)*24*30)::numeric(10,2)- redshift_reserved_pricing) || ' ' || currency || ' savings/month'
-          else ''
-        end as net_savings,
-        p.currency
-      from
-        redshift_reserved_pricing as r
-        left join aws_pricing_product as p on
-        p.service_code = 'AmazonRedshift'
-        and p.attributes ->> 'regionCode' = r.region
-        and p.attributes ->> 'instanceType' = r.node_type
-        and p.term = 'OnDemand'
-        and p.attributes ->> 'usagetype' like 'Node:%'
-    )
     select
       arn as resource,
       case
@@ -127,11 +72,10 @@ control "redshift_cluster_max_age" {
       end as status,
       title || ' created on ' || cluster_create_time || ' (' || date_part('day', now() - cluster_create_time) || ' days).'
       as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      redshift_pricing;
+      aws_redshift_cluster;
   EOQ
 }
 
@@ -222,42 +166,6 @@ control "redshift_cluster_low_utilization" {
         date_part('day', now() - timestamp) <= 30
       group by
         cluster_identifier
-    ), redshift_cluster_list as (
-      select
-        arn,
-        cluster_identifier,
-        node_type,
-        region,
-        _ctx,
-        cluster_create_time,
-        account_id,
-        title
-      from
-        aws_redshift_cluster
-    ), redshift_pricing as (
-      select
-        r.arn,
-        r.cluster_identifier,
-        r.node_type,
-        r.region,
-        r._ctx,
-        r.cluster_create_time,
-        r.account_id,
-        r.title,
-        case
-          when u.avg_max < $1 then ((p.price_per_unit::numeric)*24*30)::numeric(10,2) || ' ' || currency || '/month'
-          else ''
-        end as net_savings,
-        p.currency
-      from
-        redshift_cluster_list as r
-        left join redshift_cluster_utilization as u on u.cluster_identifier = r.cluster_identifier
-        left join aws_pricing_product as p on
-        p.service_code = 'AmazonRedshift'
-        and p.attributes ->> 'regionCode' = r.region
-        and p.attributes ->> 'instanceType' = r.node_type
-        and p.term = 'OnDemand'
-        and p.attributes ->> 'usagetype' like 'Node:%'
     )
     select
       i.cluster_identifier as resource,
@@ -271,11 +179,10 @@ control "redshift_cluster_low_utilization" {
         when avg_max is null then 'CloudWatch metrics not available for ' || title || '.'
         else title || ' is averaging ' || avg_max || '% max utilization over the last ' || days || ' days.'
       end as reason
-      ${local.common_dimensions_savings_sql}
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      redshift_pricing as i
+      aws_redshift_cluster as i
       left join redshift_cluster_utilization as u on u.cluster_identifier = i.cluster_identifier;
   EOQ
 }

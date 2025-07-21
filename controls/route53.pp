@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "route53" {
-  title         = "Route 53 Cost Checks"
+  title         = "Route 53 Checks"
   description   = "Thrifty developers keep a careful eye on the actual usage of Route 53 service."
   documentation = file("./controls/docs/route53.md")
 
@@ -68,19 +68,6 @@ control "route53_health_check_unused" {
         aws_route53_record as r
       where
         r.zone_id = z.id
-    ), health_check_pricing as (
-      select
-        h.id,
-        c.health_check_id,
-        h.title,
-        h.partition,
-        h.region,
-        h.account_id,
-        h.tags,
-        h._ctx
-      from
-        aws_route53_health_check as h
-        left join health_check as c on h.id = c.health_check_id
     )
     select
       'arn:' || partition || ':route53:::healthcheck/' || id as resource,
@@ -95,6 +82,7 @@ control "route53_health_check_unused" {
       ${local.tag_dimensions_sql}
       ${local.common_dimensions_sql}
     from
-      health_check_pricing;
+      aws_route53_health_check as h
+      left join health_check as c on h.id = c.health_check_id;
   EOQ
 }
