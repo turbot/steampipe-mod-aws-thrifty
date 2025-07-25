@@ -24,7 +24,7 @@ benchmark "cost_explorer" {
 }
 
 control "cost_explorer_full_month_cost_changes" {
-  title       = "AWS service cost fluctuations between months should be analyzed"
+  title       = "Service cost fluctuations between months should be analyzed"
   description = "Compares the cost of services between the last two full months of AWS usage."
   severity    = "low"
 
