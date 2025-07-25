@@ -1,4 +1,4 @@
-variable "dynamodb_table_stale_data_max_days" {
+variable "dynamodb_table_with_stale_data_max_days" {
   type        = number
   description = "The maximum number of days table data can be unchanged before it is considered stale."
   default     = 90
@@ -17,8 +17,8 @@ benchmark "dynamodb" {
 
   children = [
     control.dynamodb_table_zero_items,
-    control.dynamodb_table_stale_data,
-    control.dynamodb_table_autoscaling_disabled
+    control.dynamodb_table_with_stale_data,
+    control.dynamodb_table_with_autoscaling_disabled
   ]
 
   tags = merge(local.dynamodb_common_tags, {
@@ -54,14 +54,14 @@ control "dynamodb_table_zero_items" {
   EOQ
 }
 
-control "dynamodb_table_stale_data" {
+control "dynamodb_table_with_stale_data" {
   title       = "DynamoDB tables with stale data should be reviewed"
   description = "DynamoDB tables that have not been updated for an extended period may be underutilized or obsolete. Retaining tables with stale data can increase costs and complicate data management. Review tables that have not changed recently and consider archiving or deleting them if they are no longer needed."
   severity    = "low"
 
-  param "dynamodb_table_stale_data_max_days" {
+  param "dynamodb_table_with_stale_data_max_days" {
     description = "The maximum number of days table data can be unchanged before it is considered stale."
-    default     = var.dynamodb_table_stale_data_max_days
+    default     = var.dynamodb_table_with_stale_data_max_days
   }
 
   tags = merge(local.dynamodb_common_tags, {
@@ -87,7 +87,7 @@ control "dynamodb_table_stale_data" {
   EOQ
 }
 
-control "dynamodb_table_autoscaling_disabled" {
+control "dynamodb_table_with_autoscaling_disabled" {
   title       = "DynamoDB tables auto scaling should be enabled"
   description = "DynamoDB tables with provisioned capacity mode should use auto-scaling to optimize costs. Auto-scaling automatically adjusts read and write capacity based on actual usage patterns, helping to avoid over-provisioning and reduce costs."
   severity    = "low"

@@ -38,7 +38,7 @@ The Stale Data category helps organizations:
 - **Benefit**: Prevents indefinite log storage and reduces costs
 
 ### DynamoDB Stale Data
-- **Control**: `dynamodb_table_stale_data`
+- **Control**: `dynamodb_table_with_stale_data`
 - **Purpose**: Identifies DynamoDB tables with old or unused data
 - **Benefit**: Reduces storage costs and improves performance
 

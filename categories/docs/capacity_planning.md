@@ -29,7 +29,7 @@ The Capacity Planning category helps organizations:
 ## Controls in This Category
 
 ### DynamoDB Table Autoscaling
-- **Control**: `dynamodb_table_autoscaling_disabled`
+- **Control**: `dynamodb_table_with_autoscaling_disabled`
 - **Purpose**: Identifies DynamoDB tables without autoscaling enabled
 - **Benefit**: Autoscaling helps optimize costs by automatically adjusting capacity based on demand
 

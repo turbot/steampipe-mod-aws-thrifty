@@ -57,7 +57,7 @@ The Outdated Resources category helps organizations:
 - **Benefit**: Graviton provides up to 19% better performance at 20% lower cost
 
 ### RDS Graviton Migration
-- **Control**: `rds_instance_without_graviton`
+- **Control**: `rds_db_instance_without_graviton`
 - **Purpose**: Identifies RDS instances not using Graviton processors
 - **Benefit**: Graviton instances offer better performance and cost efficiency
 
@@ -67,12 +67,12 @@ The Outdated Resources category helps organizations:
 - **Benefit**: Graviton provides better performance and cost efficiency
 
 ### RDS Instance Class Review
-- **Control**: `rds_instance_prev_gen_class`
+- **Control**: `rds_db_instance_prev_gen_class`
 - **Purpose**: Identifies RDS instances using previous generation instance classes
 - **Benefit**: Newer classes offer better performance and cost efficiency
 
 ### RDS Engine Version
-- **Control**: `rds_instance_unsupported_engine_version`
+- **Control**: `rds_db_instance_unsupported_engine_version`
 - **Purpose**: Identifies RDS instances using unsupported engine versions
 - **Benefit**: Supported versions receive security updates and performance improvements
 

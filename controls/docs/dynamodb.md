@@ -6,5 +6,5 @@ Thrifty developers optimize their DynamoDB tables for cost efficiency. This benc
 
 | Variable | Description | Default |
 | - | - | - |
-| dynamodb_table_stale_data_max_days | The maximum number of days table data can be unchanged before it is considered stale. | 90 days |
+| dynamodb_table_with_stale_data_max_days | The maximum number of days table data can be unchanged before it is considered stale. | 90 days |
 

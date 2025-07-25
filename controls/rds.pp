@@ -45,12 +45,12 @@ benchmark "rds" {
   description   = "Thrifty developers eliminate unused and under-utilized RDS instances."
   documentation = file("./controls/docs/rds.md")
   children = [
-    control.rds_instance_prev_gen_class,
+    control.rds_db_instance_prev_gen_class,
     control.rds_db_instance_max_age,
     control.rds_db_instance_low_connection,
-    control.rds_instance_low_cpu_utilization,
-    control.rds_instance_without_graviton,
-    control.rds_instance_unsupported_engine_version,
+    control.rds_db_instance_low_cpu_utilization,
+    control.rds_db_instance_without_graviton,
+    control.rds_db_instance_unsupported_engine_version,
     control.rds_db_snapshot_unused
   ]
 
@@ -94,7 +94,7 @@ control "rds_db_instance_max_age" {
   EOQ
 }
 
-control "rds_instance_prev_gen_class" {
+control "rds_db_instance_prev_gen_class" {
   title       = "RDS DB instances using previous generation instance types should be reviewed"
   description = "RDS DB instances running on previous generation instance types may have higher costs and lower performance. Review and migrate these instances to the latest generation types to optimize cost and performance."
   severity    = "low"
@@ -171,7 +171,7 @@ control "rds_db_instance_low_connection" {
   EOQ
 }
 
-control "rds_instance_low_cpu_utilization" {
+control "rds_db_instance_low_cpu_utilization" {
   title       = "RDS DB instances with low CPU utilization should be reviewed"
   description = "RDS DB instances with low CPU utilization may be over-provisioned. Review and resize or terminate these instances to optimize resource usage and reduce costs."
   severity    = "low"
@@ -223,7 +223,7 @@ control "rds_instance_low_cpu_utilization" {
   EOQ
 }
 
-control "rds_instance_without_graviton" {
+control "rds_db_instance_without_graviton" {
   title       = "RDS DB instances not using graviton processor should be reviewed"
   description = "EC2 instances running on x86_64 architecture may incur higher costs compared to Graviton (arm64) instances. Review and migrate eligible workloads to Graviton-based instances to benefit from improved performance and reduced costs."
   severity    = "low"
@@ -250,7 +250,7 @@ control "rds_instance_without_graviton" {
   EOQ
 }
 
-control "rds_instance_unsupported_engine_version" {
+control "rds_db_instance_unsupported_engine_version" {
   title       = "RDS MySQL and PostgreSQL DB instances with unsupported versions should be upgraded"
   description = "RDS MySQL and PostgreSQL DB instances running unsupported engine versions may incur higher charges and lack security updates. Upgrade these instances to supported versions to avoid extended support costs and maintain compliance."
   severity    = "low"

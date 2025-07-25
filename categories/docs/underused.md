@@ -53,7 +53,7 @@ The Underused Resources category helps organizations:
 - **Benefit**: Rightsizing database instances reduces costs
 
 ### RDS CPU Utilization
-- **Control**: `rds_instance_low_cpu_utilization`
+- **Control**: `rds_db_instance_low_cpu_utilization`
 - **Purpose**: Identifies RDS instances with low CPU utilization
 - **Benefit**: Downsizing database instances can reduce costs
 

@@ -6,7 +6,7 @@ locals {
 
 benchmark "apigateway" {
   title         = "API Gateway Checks"
-  description   = "Best practices for AWS API Gateway resources."
+  description   = "Thrifty developers checks API Gateway stages without caching enabled."
   documentation = file("./controls/docs/apigateway.md")
 
   children = [
@@ -19,7 +19,7 @@ benchmark "apigateway" {
 }
 
 control "apigateway_stage_with_caching_disabled" {
-  title       = "API Gateway stage with caching disabled"
+  title       = "API Gateway stage should have caching enabled"
   description = "API Gateway stages should have caching enabled to improve performance and reduce backend load. Stages without caching may experience higher latency and increased costs."
   severity    = "low"
 

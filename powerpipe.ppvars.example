@@ -9,7 +9,7 @@ cloudwatch_log_stream_age_max_days = 90
 cost_explorer_service_cost_max_cost_units = 10
 
 # DynamoDB
-dynamodb_table_stale_data_max_days = 90
+dynamodb_table_with_stale_data_max_days = 90
 
 # EBS
 ebs_snapshot_age_max_days          = 90
