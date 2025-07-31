@@ -1,11 +1,11 @@
 locals {
-  aws_all_controls_common_tags = merge(local.aws_thrifty_common_tags, {
+  all_controls_common_tags = merge(local.aws_thrifty_common_tags, {
     type = "Benchmark"
   })
 }
 
-benchmark "aws_all_controls" {
-  title       = "AWS All Controls"
+benchmark "all_controls" {
+  title       = "All Controls"
   description = "This benchmark contains all controls grouped by service to help you detect resource configurations that do not meet best practices."
   children = [
     benchmark.apigateway,
@@ -30,5 +30,5 @@ benchmark "aws_all_controls" {
     benchmark.vpc
   ]
 
-  tags = local.aws_all_controls_common_tags
+  tags = local.all_controls_common_tags
 }
