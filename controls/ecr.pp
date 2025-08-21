@@ -11,7 +11,7 @@ locals {
 }
 
 benchmark "ecr" {
-  title         = "ECR Checks"
+  title         = "ECR Cost Controls"
   description   = "Thrifty developers eliminate unused ECR repository images."
   documentation = file("./controls/docs/ecr.md")
   children = [

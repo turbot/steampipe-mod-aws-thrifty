@@ -11,7 +11,7 @@ locals {
 }
 
 benchmark "dynamodb" {
-  title         = "DynamoDB Checks"
+  title         = "DynamoDB Cost Controls"
   description   = "Thrifty developers delete DynamoDB tables with stale or empty data."
   documentation = file("./controls/docs/dynamodb.md")
 

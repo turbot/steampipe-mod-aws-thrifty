@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "apigateway" {
-  title         = "API Gateway Checks"
+  title         = "API Gateway Cost Controls"
   description   = "Thrifty developers checks API Gateway stages without caching enabled."
   documentation = file("./controls/docs/apigateway.md")
 

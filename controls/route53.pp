@@ -5,13 +5,13 @@ locals {
 }
 
 benchmark "route53" {
-  title         = "Route 53 Checks"
+  title         = "Route 53 Cost Controls"
   description   = "Thrifty developers keep a careful eye on the actual usage of Route 53 service."
   documentation = file("./controls/docs/route53.md")
 
   children = [
     control.route53_health_check_unused,
-    control.route53_record_higher_ttl
+    control.route53_record_lower_ttl
   ]
 
   tags = merge(local.route53_common_tags, {
@@ -19,7 +19,7 @@ benchmark "route53" {
   })
 }
 
-control "route53_record_higher_ttl" {
+control "route53_record_lower_ttl" {
   title       = "Route 53 records with low TTL values should be reviewed"
   description = "If you configure a higher TTL for your records, the intermediate resolvers cache the records for longer time. As a result, there are fewer queries received by the name servers. This configuration reduces the charges corresponding to the DNS queries answered. A value between an hour (3600s) and a day (86,400s) is a common choice."
   severity    = "low"

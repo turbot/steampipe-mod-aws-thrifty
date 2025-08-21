@@ -11,7 +11,7 @@ locals {
 }
 
 benchmark "cost_explorer" {
-  title         = "Cost Explorer Cost Checks"
+  title         = "Cost Explorer Controls"
   description   = "Thrifty developers actively monitor their cloud usage and cost data."
   documentation = file("./controls/docs/cost-explorer.md")
   children = [

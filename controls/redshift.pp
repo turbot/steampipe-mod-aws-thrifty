@@ -29,7 +29,7 @@ locals {
 }
 
 benchmark "redshift" {
-  title         = "Redshift Cost Checks"
+  title         = "Redshift Cost Controls"
   description   = "Thrifty developers check their long running Redshift clusters are associated with reserved nodes."
   documentation = file("./controls/docs/redshift.md")
   children = [

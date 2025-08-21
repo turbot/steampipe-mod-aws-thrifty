@@ -4,15 +4,10 @@ benchmark "capacity_planning" {
   documentation = file("./categories/docs/capacity_planning.md")
   children = [
     control.dynamodb_table_with_autoscaling_disabled,
-    control.ebs_volume_low_iops,
-    control.ec2_instance_max_age,
     control.ec2_reserved_instance_lease_expiration_days,
     control.ecs_service_autoscaling_disabled,
-    control.elasticache_cluster_max_age,
-    control.rds_db_instance_max_age,
-    control.redshift_cluster_max_age,
     control.redshift_cluster_pause_resume_disabled,
-    control.route53_record_higher_ttl,
+    control.route53_record_lower_ttl,
     control.apigateway_stage_with_caching_disabled,
   ]
 
@@ -84,8 +79,6 @@ benchmark "stale_data" {
   documentation = file("./categories/docs/stale_data.md")
   children = [
     control.cloudwatch_log_group_retention_disabled,
-    control.dynamodb_table_with_stale_data,
-    control.ebs_snapshot_max_age,
     control.s3_bucket_without_lifecycle
   ]
 
@@ -101,6 +94,7 @@ benchmark "underused_resources" {
   children = [
     control.ebs_volume_low_usage,
     control.ec2_instance_low_utilization,
+    control.ebs_volume_low_iops,
     control.ecs_cluster_low_utilization,
     control.rds_db_instance_low_connection,
     control.rds_db_instance_low_cpu_utilization,
@@ -112,26 +106,44 @@ benchmark "underused_resources" {
   })
 }
 
+benchmark "aging_resources" {
+  title         = "AWS Aging Resources"
+  description   = "Thrifty developers regularly review aging resources to optimize costs. Long-running instances might be candidates for reserved instances or retirement, while old snapshots and clusters may no longer be needed. Regular review of aging resources helps identify opportunities for cost optimization, whether through different pricing models, cleanup, or modernization."
+  documentation = file("./categories/docs/aging.md")
+  children = [
+    control.dynamodb_table_with_stale_data,
+    control.ebs_snapshot_max_age,
+    control.ec2_instance_max_age,
+    control.elasticache_cluster_max_age,
+    control.rds_db_instance_max_age,
+    control.redshift_cluster_max_age
+  ]
+
+  tags = merge(local.aws_thrifty_common_tags, {
+    type = "Benchmark"
+  })
+}
+
 benchmark "unused_resources" {
   title         = "AWS Unused Resources"
-  description   = "Thrifty developers need to pay close attention to unused resources. It’s possible to end up with resources that aren’t being used. Load balancers may not have associated resources or targets; RDS databases may have low or no connection counts; a NAT gateway may not have any resources routing to it. And most commonly, EBS volumes may not be attached to running instances. The ability to easily create, attach and unattached disk volumes is a key benefit of working in the cloud, but it can also become a source of unchecked cost if not watched closely. Even if an Amazon EBS volume is unattached, you are still billed for the provisioned storage."
+  description   = "Thrifty developers need to pay close attention to unused resources. It's possible to end up with resources that aren't being used. Load balancers may not have associated resources or targets; RDS databases may have low or no connection counts; a NAT gateway may not have any resources routing to it. And most commonly, EBS volumes may not be attached to running instances. The ability to easily create, attach and unattached disk volumes is a key benefit of working in the cloud, but it can also become a source of unchecked cost if not watched closely. Even if an Amazon EBS volume is unattached, you are still billed for the provisioned storage."
   documentation = file("./categories/docs/unused.md")
   children = [
     control.cloudwatch_log_stream_unused,
-    control.ebs_volume_unattached,
+    control.dynamodb_table_zero_items,
     control.ebs_volume_on_stopped_instances,
+    control.ebs_volume_unattached,
     control.ec2_application_lb_unused,
     control.ec2_classic_lb_unused,
+    control.ec2_eips_unattached,
     control.ec2_gateway_lb_unused,
     control.ec2_network_lb_unused,
-    control.ec2_eips_unattached,
-    control.emr_cluster_idle_over_30_minutes,
-    control.secretsmanager_secret_unused,
-    control.vpc_nat_gateway_unused,
-    control.route53_health_check_unused,
-    control.rds_db_snapshot_unused,
     control.ecr_repository_image_unused,
-    control.dynamodb_table_zero_items,
+    control.emr_cluster_idle_over_30_minutes,
+    control.rds_db_snapshot_unused,
+    control.route53_health_check_unused,
+    control.secretsmanager_secret_unused,
+    control.vpc_nat_gateway_unused
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {

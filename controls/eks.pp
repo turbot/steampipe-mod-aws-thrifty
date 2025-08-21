@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "eks" {
-  title         = "EKS Checks"
+  title         = "EKS Cost Controls"
   description   = "Thrifty developers ensure their EKS resources are optimized."
   documentation = file("./controls/docs/eks.md")
   children = [

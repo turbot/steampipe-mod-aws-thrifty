@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "lambda" {
-  title         = "Lambda Checks"
+  title         = "Lambda Cost Controls"
   description   = "Thrifty developers ensure their Lambda functions are optimized."
   documentation = file("./controls/docs/lambda.md")
 

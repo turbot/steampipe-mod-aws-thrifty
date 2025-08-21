@@ -5,7 +5,7 @@ locals {
 }
 
 benchmark "cloudfront" {
-  title         = "CloudFront Checks"
+  title         = "CloudFront Cost Controls"
   description   = "Thrifty developers checks price class of CloudFront distribution for cost optimization."
   documentation = file("./controls/docs/cloudfront.md")
 
@@ -19,9 +19,9 @@ benchmark "cloudfront" {
 }
 
 control "cloudfront_distribution_pricing_class" {
-  title         = "CloudFront distribution pricing class should be reviewed"
-  description   = "CloudFront distribution pricing class should be reviewed. Price Classes let you reduce your delivery prices by excluding Amazon CloudFront’s more expensive edge locations from your Amazon CloudFront distribution."
-  severity      = "low"
+  title       = "CloudFront distribution pricing class should be reviewed"
+  description = "CloudFront distribution pricing class should be reviewed. Price Classes let you reduce your delivery prices by excluding Amazon CloudFront’s more expensive edge locations from your Amazon CloudFront distribution."
+  severity    = "low"
 
   tags = merge(local.cloudfront_common_tags, {
     class = "overused"
