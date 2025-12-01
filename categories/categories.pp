@@ -3,12 +3,17 @@ benchmark "capacity_planning" {
   description   = "Thrifty developers ensure that long running resources are strategically planned. If you have long-running resources, it's a good idea to prepurchase reserved instances at lower cost. This can apply to long-running resources including EC2 instances, RDS instances, and Redshift clusters. You should also keep an eye on EC2 reserved instances that are scheduled for expiration, or have expired in the preceding 30 days, to verify that these cost-savers are in fact no longer needed."
   documentation = file("./categories/docs/capacity_planning.md")
   children = [
+    control.apigateway_stage_with_caching_disabled,
     control.dynamodb_table_with_autoscaling_disabled,
+    control.ebs_volume_low_iops,
+    control.ec2_instance_max_age,
     control.ec2_reserved_instance_lease_expiration_days,
     control.ecs_service_autoscaling_disabled,
+    control.elasticache_cluster_max_age,
+    control.rds_db_instance_max_age,
+    control.redshift_cluster_max_age,
     control.redshift_cluster_pause_resume_disabled,
-    control.route53_record_lower_ttl,
-    control.apigateway_stage_with_caching_disabled,
+    control.route53_record_lower_ttl
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {
@@ -45,7 +50,7 @@ benchmark "outdated_resources" {
     control.lambda_function_with_graviton,
     control.rds_db_instance_prev_gen_class,
     control.rds_db_instance_unsupported_engine_version,
-    control.rds_db_instance_without_graviton,
+    control.rds_db_instance_without_graviton
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {
@@ -79,6 +84,8 @@ benchmark "stale_data" {
   documentation = file("./categories/docs/stale_data.md")
   children = [
     control.cloudwatch_log_group_retention_disabled,
+    control.dynamodb_table_with_stale_data,
+    control.ebs_snapshot_max_age,
     control.s3_bucket_without_lifecycle
   ]
 
@@ -92,31 +99,13 @@ benchmark "underused_resources" {
   description   = "Thrifty developers check underused AWS resources. Large EC2 (or RDS, Redshift, ECS, etc) instances may have been created and sized to handle peak utilization but never reviewed later to see how well the storage, compute, and/or memory is being utilized. Consider rightsizing the instance type if an application is overprovisioned in any of these ways. AWS has different pricing for resources that are compute-optimized or memory-optimized. Analyze your inventory and utilization metrics to find underused resources, and prune them as warranted."
   documentation = file("./categories/docs/underused.md")
   children = [
+    control.ebs_volume_low_iops,
     control.ebs_volume_low_usage,
     control.ec2_instance_low_utilization,
-    control.ebs_volume_low_iops,
     control.ecs_cluster_low_utilization,
     control.rds_db_instance_low_connection,
     control.rds_db_instance_low_cpu_utilization,
     control.redshift_cluster_low_utilization
-  ]
-
-  tags = merge(local.aws_thrifty_common_tags, {
-    type = "Benchmark"
-  })
-}
-
-benchmark "aging_resources" {
-  title         = "AWS Aging Resources"
-  description   = "Thrifty developers regularly review aging resources to optimize costs. Long-running instances might be candidates for reserved instances or retirement, while old snapshots and clusters may no longer be needed. Regular review of aging resources helps identify opportunities for cost optimization, whether through different pricing models, cleanup, or modernization."
-  documentation = file("./categories/docs/aging.md")
-  children = [
-    control.dynamodb_table_with_stale_data,
-    control.ebs_snapshot_max_age,
-    control.ec2_instance_max_age,
-    control.elasticache_cluster_max_age,
-    control.rds_db_instance_max_age,
-    control.redshift_cluster_max_age
   ]
 
   tags = merge(local.aws_thrifty_common_tags, {

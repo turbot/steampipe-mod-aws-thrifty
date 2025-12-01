@@ -18,7 +18,7 @@ benchmark "s3" {
 }
 
 control "s3_bucket_without_lifecycle" {
-  title       = "3 buckets without lifecycle policies should be reviewed"
+  title       = "S3 buckets without lifecycle policies should be reviewed"
   description = "S3 buckets without lifecycle policies may retain data indefinitely, leading to increased storage costs and potential compliance risks. AWS best practices recommend configuring lifecycle policies to manage object expiration and transitions, ensuring data is retained only as long as necessary. Review and apply appropriate lifecycle policies to all S3 buckets."
   severity    = "low"
 
