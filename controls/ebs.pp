@@ -47,7 +47,8 @@ benchmark "ebs" {
     control.io1_volumes,
     control.large_ebs_volumes,
     control.low_iops_ebs_volumes,
-    control.unattached_ebs_volumes
+    control.unattached_ebs_volumes,
+    control.unattached_ebs_snapshots
   ]
 
   tags = merge(local.ebs_common_tags, {
@@ -367,5 +368,73 @@ control "ebs_snapshot_max_age" {
       ${local.common_dimensions_sql}
     from
       aws_ebs_snapshot;
+  EOQ
+}
+
+control "unattached_ebs_snapshots" {
+  title       = "EBS Snapshots should be attached to an AMI"
+  description = "EBS Snapshots not attached to an AMI are harder to track and could show a cost-overrun if not managed and pruned."
+  severity    = "low"
+
+  tags = merge(local.ebs_common_tags, {
+    class = "unused"
+  })
+
+  sql = <<-EOQ
+    with amis as (
+      select
+        image_id,
+        block_device_mappings
+      from
+        aws_ec2_ami
+    ),
+    snapshots as (
+      select
+        arn,
+        snapshot_id,
+        volume_size,
+        volume_id,
+        start_time,
+        description,
+        storage_tier,
+        region,
+        account_id,
+        tags ->> 'Name' as tag_name,
+        tags ->> 'aws:backup:source-resource' as tag_backup
+      from
+        aws_ebs_snapshot
+    ),
+    used_snapshot_ids as (
+      select
+        image_id,
+        bdm -> 'Ebs' ->> 'SnapshotId' as snapshot_id
+      from
+        aws_ec2_ami a,
+        jsonb_array_elements(a.block_device_mappings) as bdm
+      where
+        bdm -> 'Ebs' ->> 'SnapshotId' is not null
+    )
+    select
+      s.arn as resource,
+      u.snapshot_id,
+      tag_backup,
+      case
+        when u.snapshot_id is null
+          and s.tag_backup is null then 'alarm'
+        else 'ok'
+      end as status,
+      case
+        when u.snapshot_id is not null and s.tag_backup is not null then s.snapshot_id || ' created at ' || s.start_time || ' is in use and is marked as backup.'
+        when u.snapshot_id is not null then s.snapshot_id || ' created at ' || s.start_time || ' is in use.'
+        when s.tag_backup is not null then s.snapshot_id || ' created at ' || s.start_time || ' is marked as as backup.'
+        else s.snapshot_id || ' created at ' || s.start_time || ' is not in use.'
+      end as reason
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "s.")}
+    from
+      snapshots s
+      left join used_snapshot_ids u on u.snapshot_id = s.snapshot_id
+    order by
+      s.volume_id,
+      s.start_time;
   EOQ
 }
