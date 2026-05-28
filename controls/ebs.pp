@@ -42,13 +42,13 @@ benchmark "ebs" {
     control.ebs_snapshot_max_age,
     control.ebs_volumes_on_stopped_instances,
     control.ebs_with_low_usage,
+    control.ebs_unused_snapshots,
     control.gp2_volumes,
     control.high_iops_ebs_volumes,
     control.io1_volumes,
     control.large_ebs_volumes,
     control.low_iops_ebs_volumes,
     control.unattached_ebs_volumes,
-    control.unattached_ebs_snapshots
   ]
 
   tags = merge(local.ebs_common_tags, {
@@ -371,9 +371,9 @@ control "ebs_snapshot_max_age" {
   EOQ
 }
 
-control "unattached_ebs_snapshots" {
-  title       = "EBS Snapshots should be attached to an AMI"
-  description = "EBS Snapshots not attached to an AMI are harder to track and could show a cost-overrun if not managed and pruned."
+control "ebs_unused_snapshots" {
+  title       = "Orphaned EBS snapshots should be reviewed for deletion"
+  description = "Snapshots whose source volume has been deleted and that are not used by any AMI or retained by a backup policy are likely orphaned and accrue storage cost. Snapshots are stored incrementally, so deleting one may not reclaim its full volume size; treat these as candidates for review rather than guaranteed savings."
   severity    = "low"
 
   tags = merge(local.ebs_common_tags, {
@@ -381,60 +381,34 @@ control "unattached_ebs_snapshots" {
   })
 
   sql = <<-EOQ
-    with amis as (
-      select
-        image_id,
-        block_device_mappings
-      from
-        aws_ec2_ami
-    ),
-    snapshots as (
-      select
-        arn,
-        snapshot_id,
-        volume_size,
-        volume_id,
-        start_time,
-        description,
-        storage_tier,
-        region,
-        account_id,
-        tags ->> 'Name' as tag_name,
-        tags ->> 'aws:backup:source-resource' as tag_backup
-      from
-        aws_ebs_snapshot
-    ),
-    used_snapshot_ids as (
-      select
-        image_id,
+    with snapshots_used_by_amis as (
+      select distinct
         bdm -> 'Ebs' ->> 'SnapshotId' as snapshot_id
       from
-        aws_ec2_ami a,
-        jsonb_array_elements(a.block_device_mappings) as bdm
+        aws_ec2_ami,
+        jsonb_array_elements(block_device_mappings) as bdm
       where
         bdm -> 'Ebs' ->> 'SnapshotId' is not null
     )
     select
       s.arn as resource,
-      u.snapshot_id,
-      tag_backup,
       case
-        when u.snapshot_id is null
-          and s.tag_backup is null then 'alarm'
-        else 'ok'
+        when a.snapshot_id is not null then 'ok'
+        when v.volume_id is not null then 'ok'
+        when s.tags ? 'aws:backup:source-resource' or s.tags ? 'aws:dlm:lifecycle-policy-id' then 'ok'
+        else 'alarm'
       end as status,
       case
-        when u.snapshot_id is not null and s.tag_backup is not null then s.snapshot_id || ' created at ' || s.start_time || ' is in use and is marked as backup.'
-        when u.snapshot_id is not null then s.snapshot_id || ' created at ' || s.start_time || ' is in use.'
-        when s.tag_backup is not null then s.snapshot_id || ' created at ' || s.start_time || ' is marked as as backup.'
-        else s.snapshot_id || ' created at ' || s.start_time || ' is not in use.'
+        when a.snapshot_id is not null then s.snapshot_id || ' is in use by an AMI.'
+        when v.volume_id is not null then s.snapshot_id || ' source volume ' || s.volume_id || ' still exists.'
+        when s.tags ? 'aws:backup:source-resource' or s.tags ? 'aws:dlm:lifecycle-policy-id' then s.snapshot_id || ' is managed by a backup policy.'
+        else s.snapshot_id || ' is orphaned (source volume deleted, not used by any AMI).'
       end as reason
+      ${replace(local.tag_dimensions_qualifier_sql, "__QUALIFIER__", "s.")}
       ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "s.")}
     from
-      snapshots s
-      left join used_snapshot_ids u on u.snapshot_id = s.snapshot_id
-    order by
-      s.volume_id,
-      s.start_time;
+      aws_ebs_snapshot as s
+      left join snapshots_used_by_amis as a on a.snapshot_id = s.snapshot_id
+      left join aws_ebs_volume as v on v.volume_id = s.volume_id;
   EOQ
 }
