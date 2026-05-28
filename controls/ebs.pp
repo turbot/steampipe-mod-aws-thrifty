@@ -42,12 +42,13 @@ benchmark "ebs" {
     control.ebs_snapshot_max_age,
     control.ebs_volumes_on_stopped_instances,
     control.ebs_with_low_usage,
+    control.ebs_unused_snapshots,
     control.gp2_volumes,
     control.high_iops_ebs_volumes,
     control.io1_volumes,
     control.large_ebs_volumes,
     control.low_iops_ebs_volumes,
-    control.unattached_ebs_volumes
+    control.unattached_ebs_volumes,
   ]
 
   tags = merge(local.ebs_common_tags, {
@@ -367,5 +368,47 @@ control "ebs_snapshot_max_age" {
       ${local.common_dimensions_sql}
     from
       aws_ebs_snapshot;
+  EOQ
+}
+
+control "ebs_unused_snapshots" {
+  title       = "EBS snapshots without source volumes should be reviewed"
+  description = "EBS snapshots whose source volume no longer exists and that are not used by an AMI or managed by a backup policy may be unnecessary and should be reviewed for deletion to reduce costs."
+  severity    = "low"
+
+  tags = merge(local.ebs_common_tags, {
+    class = "unused"
+  })
+
+  sql = <<-EOQ
+    with snapshots_used_by_amis as (
+      select distinct
+        bdm -> 'Ebs' ->> 'SnapshotId' as snapshot_id
+      from
+        aws_ec2_ami,
+        jsonb_array_elements(block_device_mappings) as bdm
+      where
+        bdm -> 'Ebs' ->> 'SnapshotId' is not null
+    )
+    select
+      s.arn as resource,
+      case
+        when a.snapshot_id is not null then 'ok'
+        when v.volume_id is not null then 'ok'
+        when s.tags ? 'aws:backup:source-resource' or s.tags ? 'aws:dlm:lifecycle-policy-id' then 'ok'
+        else 'alarm'
+      end as status,
+      case
+        when a.snapshot_id is not null then s.snapshot_id || ' is in use by an AMI.'
+        when v.volume_id is not null then s.snapshot_id || ' source volume ' || s.volume_id || ' still exists.'
+        when s.tags ? 'aws:backup:source-resource' or s.tags ? 'aws:dlm:lifecycle-policy-id' then s.snapshot_id || ' is managed by a backup policy.'
+        else s.snapshot_id || ' is orphaned (source volume deleted, not used by any AMI).'
+      end as reason
+      ${replace(local.tag_dimensions_qualifier_sql, "__QUALIFIER__", "s.")}
+      ${replace(local.common_dimensions_qualifier_sql, "__QUALIFIER__", "s.")}
+    from
+      aws_ebs_snapshot as s
+      left join snapshots_used_by_amis as a on a.snapshot_id = s.snapshot_id
+      left join aws_ebs_volume as v on v.volume_id = s.volume_id;
   EOQ
 }
