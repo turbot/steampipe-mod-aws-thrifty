@@ -372,8 +372,8 @@ control "ebs_snapshot_max_age" {
 }
 
 control "ebs_unused_snapshots" {
-  title       = "Orphaned EBS snapshots should be reviewed for deletion"
-  description = "Snapshots whose source volume has been deleted and that are not used by any AMI or retained by a backup policy are likely orphaned and accrue storage cost. Snapshots are stored incrementally, so deleting one may not reclaim its full volume size; treat these as candidates for review rather than guaranteed savings."
+  title       = "EBS snapshots without source volumes should be reviewed"
+  description = "EBS snapshots whose source volume no longer exists and that are not used by an AMI or managed by a backup policy may be unnecessary and should be reviewed for deletion to reduce costs."
   severity    = "low"
 
   tags = merge(local.ebs_common_tags, {
