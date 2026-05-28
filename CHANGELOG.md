@@ -1,3 +1,10 @@
+## v1.2.0 [2026-05-28]
+
+_What's new?_
+
+- New control added:
+  - `ebs_unused_snapshots` ([#194](https://github.com/turbot/steampipe-mod-aws-thrifty/pull/194)) (Thanks [@urkle](https://github.com/urkle) for the contribution!)
+
 ## v1.1.0 [2025-06-04]
 
 _What's new?_
